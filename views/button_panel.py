@@ -2,7 +2,6 @@ import os
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QShortcut, QCheckBox, QHBoxLayout
 from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import QKeySequence, QImage
-#import cv2
 import os
 import zipfile
 from controllers.data import DATA
@@ -156,7 +155,6 @@ class ButtonPanel(QWidget):
             ostatnia_tura = tury[-1]
             return int(ostatnia_tura.split(".")[0])
         except Exception as e:
-            print(f"Błąd podczas odczytu tur: {e}")
             return -1
 
     def update_export_button(self):
