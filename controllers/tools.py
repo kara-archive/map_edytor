@@ -85,7 +85,7 @@ class PixelSampler(dict):
         self.sample_positions = sample_positions
         self.states = states
         self.tolerance = tolerance
-        print(self.image)
+        #print(self.image)
         # Zapisanie wyników próbkowania bezpośrednio w self (dziedziczenie po dict)
         super().__init__(self._sample_pixels())
 
@@ -109,6 +109,7 @@ class PixelSampler(dict):
                     if self.is_similar_color(color, state.color.getRgb()[:3], self.tolerance):
                         counts[state.name] += 1  # Zlicz prowincję
                         break
+        print(counts)
         return counts
 
     @staticmethod

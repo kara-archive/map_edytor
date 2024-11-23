@@ -38,25 +38,37 @@ class StateController(QObject):
         print(f"Stany zapisane do pliku: {file_path}")
 
     def export_to_csv(self, obecna_tura, file_path="prowincje.csv"):
-        """eksportuje prowincje"""
+        """
+        Zapisuje dane do pliku CSV, nadpisując pierwszą linię nagłówkami.
+        """
         if not self.states:
             print("Nie można zapisać stanu: brak danych o państwach.")
             return
 
-        # Sprawdzenie, czy plik istnieje
-        file_exists = os.path.isfile(file_path)
+        # Przygotowanie nagłówków i danych
+        headers = ["tura"] + [state.name for state in self.states]
+        row = [obecna_tura] + [state.provinces for state in self.states]
 
         try:
-            with open(file_path, mode='a', newline='', encoding='utf-8') as file:
+            # Odczyt istniejącego pliku, jeśli istnieje
+            existing_rows = []
+            if os.path.isfile(file_path):
+                with open(file_path, mode='r', newline='', encoding='utf-8') as file:
+                    reader = csv.reader(file)
+                    existing_rows = list(reader)
+
+            # Nadpisanie pierwszej linii nagłówkami
+            with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
 
-                # Dodanie nagłówków, jeśli plik nie istnieje
-                if not file_exists:
-                    headers = ["tura"] + [state.name for state in self.states]
-                    writer.writerow(headers)
+                # Zapisz nagłówki
+                writer.writerow(headers)
 
-                # Przygotowanie danych dla obecnej tury
-                row = [obecna_tura] + [state.provinces for state in self.states]
+                # Dopisz istniejące dane, pomijając starą linię nagłówków
+                for row_data in existing_rows[1:]:
+                    writer.writerow(row_data)
+
+                # Dopisz nowy wiersz dla obecnej tury
                 writer.writerow(row)
 
             print(f"Dane dla tury {obecna_tura} zapisane do pliku: {file_path}")

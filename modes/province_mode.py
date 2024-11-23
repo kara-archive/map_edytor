@@ -3,14 +3,13 @@ from controllers.tools import Tools, PixelSampler
 from controllers.data import DATA
 import copy
 import numpy as np
-
+from controllers.state_controller import State
 class ProvinceMode:
     """Obsługuje tryb prowincji."""
     def __init__(self, mode_manager, map_controller):
         self.map_controller = map_controller
         self.sampled_color = None
         self.active_state = None
-        self.provinces = DATA.provinces
         self.mode_manager = mode_manager
         self.layer = self.mode_manager.layer_manager.layers.get("province")
 
@@ -58,11 +57,10 @@ class ProvinceMode:
         after_layer = copy.deepcopy(self.mode_manager.layer_manager.layers["province"])
         self.map_controller.snapshot_manager.create_snapshot({
             "layers": {
-                "province": {
+                "province": {staticmethod},
                     "before": before_layer,
                     "after": after_layer
                 }
-            }
         })
 
     def _fill(self, layer, x, y, color):
@@ -130,7 +128,7 @@ class ProvinceMode:
         print("Rozpoczynanie próbkowania prowincji...")
         states = self.map_controller.state_controller.get_states()
         image = self.mode_manager.layer_manager.layers.get("province")
-        province_counts = PixelSampler(image, self.provinces, states)
+        province_counts = PixelSampler(image, DATA.provinces, states)
 
         # Przypisanie liczby prowincji do obiektów State
         for state in states:
