@@ -186,8 +186,8 @@ class ButtonPanel(QWidget):
 
         # Ścieżki do zapisania
         export_path = f"Tury/{obecna_tura}.Tura"
-        self.map_controller.export_image(export_path+".png")
-        self.controller.save_to_csv(export_path+".csv")
+        self.map_controller.export_image(f"Tury/{obecna_tura}.Tura"+".png")
+        self.controller.export_to_csv(obecna_tura,"Tury/prowincje"+".csv")
 
     def save_data(self):
         """

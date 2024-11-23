@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QObject, pyqtSignal
-import csv
+import csv, os
 from controllers.data import DATA
 from controllers.tools import PixelSampler
 
@@ -28,13 +28,8 @@ class StateController(QObject):
     def add_state(self, state):
         self.states.append(state)
 
-
     def save_to_csv(self, file_path):
         """Zapisuje aktualny stan państw do pliku CSV."""
-        if not self.states:
-            print("Nie można zapisać stanu: brak danych o państwach.")
-            return
-
         with open(file_path, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             writer.writerow(["name", "color", "province_count"])  # Nagłówki kolumn
@@ -42,7 +37,33 @@ class StateController(QObject):
                 writer.writerow([state.name, state.color.name(), state.provinces])  # Zapis danych
         print(f"Stany zapisane do pliku: {file_path}")
 
-        print(f"Stany zapisane do pliku: {file_path}")
+    def export_to_csv(self, obecna_tura, file_path="prowincje.csv"):
+        """eksportuje prowincje"""
+        if not self.states:
+            print("Nie można zapisać stanu: brak danych o państwach.")
+            return
+
+        # Sprawdzenie, czy plik istnieje
+        file_exists = os.path.isfile(file_path)
+
+        try:
+            with open(file_path, mode='a', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+
+                # Dodanie nagłówków, jeśli plik nie istnieje
+                if not file_exists:
+                    headers = ["tura"] + [state.name for state in self.states]
+                    writer.writerow(headers)
+
+                # Przygotowanie danych dla obecnej tury
+                row = [obecna_tura] + [state.provinces for state in self.states]
+                writer.writerow(row)
+
+            print(f"Dane dla tury {obecna_tura} zapisane do pliku: {file_path}")
+
+        except Exception as e:
+            print(f"Błąd podczas zapisywania pliku CSV: {e}")
+
 
     def load_from_csv(self, file_path):
         """Wczytuje stany z pliku CSV."""
