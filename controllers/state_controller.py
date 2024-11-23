@@ -2,7 +2,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QObject, pyqtSignal
 import csv
 from controllers.data import DATA
-from controllers.map_controller import PixelSampler
+from controllers.tools import PixelSampler
 
 from PyQt5.QtCore import pyqtSignal
 

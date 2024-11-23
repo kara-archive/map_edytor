@@ -4,7 +4,7 @@ from views.state_panel import StatePanel
 from views.map_view import MapView
 from views.button_panel import ButtonPanel
 from controllers.state_controller import StateController
-from controllers.map_controller import MapController
+from controllers.map_controller.map_controller import MapController
 class MainView(QMainWindow):
     def __init__(self):
         super().__init__()
