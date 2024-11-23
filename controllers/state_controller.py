@@ -50,7 +50,7 @@ class StateController(QObject):
         row = [obecna_tura] + [state.provinces for state in self.states]
 
         try:
-            # Odczyt istniejącego pliku, jeśli istnieje
+        # Odczyt istniejącego pliku, jeśli istnieje
             existing_rows = []
             if os.path.isfile(file_path):
                 with open(file_path, mode='r', newline='', encoding='utf-8') as file:
