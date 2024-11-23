@@ -2,7 +2,7 @@ from PyQt5.QtGui import QImage, QPainter, QColor
 from PyQt5.QtCore import Qt
 from controllers.tools import Tools
 import numpy as np
-import copy 
+import copy
 class ArmyMode:
     """Obsługuje tryb armii."""
     def __init__(self, mode_manager, map_controller):
