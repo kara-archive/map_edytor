@@ -52,16 +52,16 @@ class ProvinceMode:
         if updated_layer is not None:
             self.mode_manager.layer_manager.layers["province"] = updated_layer
             self.mode_manager.layer_manager.refresh_layer("province")
-        self.sample_provinces()
-        # Utwórz snapshot po operacji
-        after_layer = copy.deepcopy(self.mode_manager.layer_manager.layers["province"])
-        self.map_controller.snapshot_manager.create_snapshot({
-            "layers": {
-                "province": {staticmethod},
-                    "before": before_layer,
-                    "after": after_layer
-                }
-        })
+            self.sample_provinces()
+            # Utwórz snapshot po operacji
+            after_layer = copy.deepcopy(self.mode_manager.layer_manager.layers["province"])
+            self.map_controller.snapshot_manager.create_snapshot({
+                "layers": {
+                    "province": {staticmethod},
+                        "before": before_layer,
+                        "after": after_layer
+                    }
+            })
 
     def _fill(self, layer, x, y, color):
 
