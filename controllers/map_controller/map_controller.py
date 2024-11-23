@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QPainterPath, QRegion
+from PyQt5.QtGui import QImage, QPixmap, QColor, QPainterPath, QRegion
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsScene, QGraphicsPathItem
 from PyQt5.QtCore import QObject, Qt, QPoint, QRect
 import numpy as np

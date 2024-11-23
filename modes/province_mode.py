@@ -50,8 +50,9 @@ class ProvinceMode:
             print("Warstwa 'province' nie istnieje.")
             return
         updated_layer = self._fill(layer, x, y, color)
-        self.mode_manager.layer_manager.layers["province"] = updated_layer
-        self.mode_manager.layer_manager.refresh_layer("province")
+        if updated_layer is not None:
+            self.mode_manager.layer_manager.layers["province"] = updated_layer
+            self.mode_manager.layer_manager.refresh_layer("province")
         self.sample_provinces()
         # Utwórz snapshot po operacji
         after_layer = copy.deepcopy(self.mode_manager.layer_manager.layers["province"])
