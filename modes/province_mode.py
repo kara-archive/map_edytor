@@ -39,9 +39,7 @@ class ProvinceMode:
             y (int): Współrzędna Y punktu startowego.
             color (tuple): Kolor docelowy w RGB.
         """
-        if color == (0, 0, 0):
-            return  # Ignoruj kolor czarny jako wypełnienie
-                # Utwórz snapshot przed operacją
+
 
         layer = self.mode_manager.layer_manager.get_layer("province")
         before_layer = copy.deepcopy(layer)
@@ -75,7 +73,7 @@ class ProvinceMode:
 
         fill_color = (color[0], color[1], color[2])  # RGB
         start_color = QColor(image.pixel(x, y)).getRgb()[:3]
-        if start_color == fill_color or start_color == (0, 0, 0):
+        if start_color == fill_color or start_color in [(0, 0, 0), (47, 74, 113)]:
             print("Debug: Kolor startowy i docelowy są takie same lub czarny.")
             return
 
