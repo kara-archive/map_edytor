@@ -51,7 +51,7 @@ class MainView(QMainWindow):
 
         # Ładowanie domyślnej mapy
         self.map_controller.button_panel = self.button_panel
-        self.map_controller.load_map("Tury/0.Tura.png")
+#        self.map_controller.load_map("Tury/0.Tura.png")
 
     def setup_signals(self):
         """Podłącza sygnały między komponentami."""

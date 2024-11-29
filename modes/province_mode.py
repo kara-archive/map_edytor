@@ -12,7 +12,7 @@ class ProvinceMode:
         self.active_state = None
         self.mode_manager = mode_manager
         self.layer = self.mode_manager.layer_manager.layers.get("province")
-        self.copy_image(self.map_controller.cv_image)
+#        self.copy_image(self.map_controller.cv_image)
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""
@@ -41,7 +41,8 @@ class ProvinceMode:
 
             self.mode_manager.layer_manager.layers["province"] = cv_image.copy()
             print(f"Skopiowano cv_image do warstwy '{layer_name}' (z_value = 1)")
-
+        else:
+            print("provincemode: cv_image jest None")
     def flood_fill(self, x, y, color):
         """
         Flood fill dla warstwy 'province' z tworzeniem snapshotów.
