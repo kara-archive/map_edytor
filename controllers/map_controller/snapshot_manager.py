@@ -21,10 +21,8 @@ class SnapshotManager:
         self.future.clear()  # Po stworzeniu nowego snapshotu czyścimy przyszłą historię
         if len(self.history) > self.max_snapshots:
             self.history.pop(0)  # Usuwamy najstarszy snapshot, aby utrzymać limit
-        print("Utworzono delta snapshot. Aktualna długość historii: {}".format(len(self.history)))
 
     def undo(self):
-        print("Undoing last snapshot...")
         """Cofa ostatnie zmiany, przywracając poprzedni snapshot delta."""
         if not self.history:
             print("Brak snapshotów do cofnięcia.")
@@ -33,7 +31,6 @@ class SnapshotManager:
         last_snapshot = self.history.pop()
         self.future.append(last_snapshot)
         self._apply_delta(last_snapshot, undo=True)
-        print("Cofnięto do poprzedniego snapshotu. Dane zostały przywrócone.")
 
     def redo(self):
         print("Redoing last snapshot...")
@@ -45,16 +42,11 @@ class SnapshotManager:
         next_snapshot = self.future.pop()
         self.history.append(next_snapshot)
         self._apply_delta(next_snapshot, undo=False)
-        print("Przywrócono cofnięty snapshot. Dane zostały przywrócone.")
 
     def _apply_delta(self, delta_snapshot, undo):
         print(f"Applying delta, undo: {undo}")
         print(f"Delta snapshot: {delta_snapshot}")
-        """
-        Aplikuje zmiany zapisane w snapshot delta.
-        :param delta_snapshot: Delta snapshot do zastosowania.
-        :param undo: Czy wykonujemy operację cofnięcia (True) czy przywrócenia (False).
-        """
+
         # Przywróć warstwy
         layers_delta = delta_snapshot["layers"]
         for layer_name, layer_data in layers_delta.items():

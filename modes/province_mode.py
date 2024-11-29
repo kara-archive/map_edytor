@@ -12,6 +12,7 @@ class ProvinceMode:
         self.active_state = None
         self.mode_manager = mode_manager
         self.layer = self.mode_manager.layer_manager.layers.get("province")
+        self.copy_image(self.map_controller.cv_image)
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""
@@ -30,6 +31,17 @@ class ProvinceMode:
                 return
             self.flood_fill(event.x, event.y, fill_color)
 
+    def copy_image(self, cv_image):
+        # Jeśli warstwa ma być zainicjalizowana obrazem bazowym
+        if cv_image is not None:
+            if cv_image.shape[2] == 3:  # RGB bez kanału alfa
+                alpha_channel = np.full((height, width, 1), 255, dtype=np.uint8)  # Pełna przezroczystość
+                cv_image = np.concatenate((cv_image, alpha_channel), axis=2)  # Dodanie kanału alfa
+                print("Dodano kanał alfa do obrazu bazowego.")
+
+            self.mode_manager.layer_manager.layers["province"] = cv_image.copy()
+            print(f"Skopiowano cv_image do warstwy '{layer_name}' (z_value = 1)")
+
     def flood_fill(self, x, y, color):
         """
         Flood fill dla warstwy 'province' z tworzeniem snapshotów.
@@ -46,79 +58,14 @@ class ProvinceMode:
         if layer is None:
             print("Warstwa 'province' nie istnieje.")
             return
-        updated_layer = self._fill(layer, x, y, color)
+        updated_layer = Tools.fill(layer, x, y, color)
         if updated_layer is not None:
             self.mode_manager.layer_manager.layers["province"] = updated_layer
             self.mode_manager.layer_manager.refresh_layer("province")
             self.sample_provinces()
             # Utwórz snapshot po operacji
             after_layer = copy.deepcopy(self.mode_manager.layer_manager.get_layer("province"))
-            self.map_controller.snapshot_manager.create_snapshot({
-            "layers": {
-                "province": {
-                    "before": before_layer,
-                    "after": after_layer
-                }
-            }
-            })
-
-    def _fill(self, layer, x, y, color):
-
-        # Pobranie wymiarów obrazu
-        height, width, channels = layer.shape
-        bytes_per_line = channels * width
-
-        # Konwersja numpy array na QImage
-        image = QImage(layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-
-        fill_color = (color[0], color[1], color[2])  # RGB
-        start_color = QColor(image.pixel(x, y)).getRgb()[:3]
-        if start_color == fill_color or start_color in [(0, 0, 0), (47, 74, 113)]:
-            print("Debug: Kolor startowy i docelowy są takie same lub czarny.")
-            return
-
-        # Pobranie rozmiarów obrazu
-        pixels = image.bits()
-        pixels.setsize(height * width * 4)  # 4 kanały (RGBA)
-        pixel_array = np.frombuffer(pixels, dtype=np.uint8).reshape((height, width, 4))
-
-        # BFS z liniowym przetwarzaniem
-        queue = [(x, y)]
-        visited = set()
-
-        while queue:
-            current_x, current_y = queue.pop(0)
-            if (current_x, current_y) in visited:
-                continue
-            visited.add((current_x, current_y))
-
-            # Zabezpieczenie przed przekroczeniem granic
-            if current_x < 0 or current_y < 0 or current_x >= width or current_y >= height:
-                continue
-
-            # Sprawdź kolor bieżącego piksela
-            current_pixel = pixel_array[current_y, current_x][:3]  # Tylko RGB
-            if not np.array_equal(current_pixel, start_color):
-                continue
-
-            # Wypełnij linię w prawo
-            left_x, right_x = current_x, current_x
-            while left_x > 0 and np.array_equal(pixel_array[current_y, left_x - 1][:3], start_color):
-                left_x -= 1
-            while right_x < width - 1 and np.array_equal(pixel_array[current_y, right_x + 1][:3], start_color):
-                right_x += 1
-
-            # Wypełnij linię i dodaj sąsiadów do kolejki
-            for fill_x in range(left_x, right_x + 1):
-                pixel_array[current_y, fill_x][:3] = fill_color  # Ustaw RGB
-                if current_y > 0:  # Dodaj linię powyżej
-                    queue.append((fill_x, current_y - 1))
-                if current_y < height - 1:  # Dodaj linię poniżej
-                    queue.append((fill_x, current_y + 1))
-
-        # Aktualizacja obrazu
-        updated_layer = np.copy(pixel_array)
-        return updated_layer
+            self.map_controller.snapshot_manager.create_snapshot({"layers": {"province": {"before": before_layer,"after": after_layer}}})
 
     def sample_provinces(self):
         """

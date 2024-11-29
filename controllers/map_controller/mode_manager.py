@@ -27,7 +27,12 @@ class ModeManager(QObject):
             "army": self.army_mode,
             "roads": self.roads_mode,
         }
-
+        self.layer_manager.Z_VALUES = {
+            "province": 0,
+            "roads": 1,
+            "buildings": 2,
+            "army": 3
+        }
     def set_mode(self, mode_name=None):
         """Ustawia aktywny tryb."""
         self.active_mode = self.modes.get(mode_name)

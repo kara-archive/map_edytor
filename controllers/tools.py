@@ -3,6 +3,64 @@ from PyQt5.QtCore import Qt
 import numpy as np
 import math
 class Tools:
+    @staticmethod
+    def fill(layer, x, y, color):
+
+        # Pobranie wymiarów obrazu
+        height, width, channels = layer.shape
+        bytes_per_line = channels * width
+
+        # Konwersja numpy array na QImage
+        image = QImage(layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
+
+        fill_color = (color[0], color[1], color[2])  # RGB
+        start_color = QColor(image.pixel(x, y)).getRgb()[:3]
+        if start_color == fill_color or start_color in [(0, 0, 0), (47, 74, 113)]:
+            print("Debug: Kolor startowy i docelowy są takie same lub czarny.")
+            return
+
+        # Pobranie rozmiarów obrazu
+        pixels = image.bits()
+        pixels.setsize(height * width * 4)  # 4 kanały (RGBA)
+        pixel_array = np.frombuffer(pixels, dtype=np.uint8).reshape((height, width, 4))
+
+        # BFS z liniowym przetwarzaniem
+        queue = [(x, y)]
+        visited = set()
+
+        while queue:
+            current_x, current_y = queue.pop(0)
+            if (current_x, current_y) in visited:
+                continue
+            visited.add((current_x, current_y))
+
+            # Zabezpieczenie przed przekroczeniem granic
+            if current_x < 0 or current_y < 0 or current_x >= width or current_y >= height:
+                continue
+
+            # Sprawdź kolor bieżącego piksela
+            current_pixel = pixel_array[current_y, current_x][:3]  # Tylko RGB
+            if not np.array_equal(current_pixel, start_color):
+                continue
+
+            # Wypełnij linię w prawo
+            left_x, right_x = current_x, current_x
+            while left_x > 0 and np.array_equal(pixel_array[current_y, left_x - 1][:3], start_color):
+                left_x -= 1
+            while right_x < width - 1 and np.array_equal(pixel_array[current_y, right_x + 1][:3], start_color):
+                right_x += 1
+
+            # Wypełnij linię i dodaj sąsiadów do kolejki
+            for fill_x in range(left_x, right_x + 1):
+                pixel_array[current_y, fill_x][:3] = fill_color  # Ustaw RGB
+                if current_y > 0:  # Dodaj linię powyżej
+                    queue.append((fill_x, current_y - 1))
+                if current_y < height - 1:  # Dodaj linię poniżej
+                    queue.append((fill_x, current_y + 1))
+
+        # Aktualizacja obrazu
+        updated_layer = np.copy(pixel_array)
+        return updated_layer
 
     @staticmethod
     def erase_area(map_controller, layer_manager, layer_name, x, y, radius=5):

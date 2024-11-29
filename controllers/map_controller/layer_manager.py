@@ -7,12 +7,7 @@ class LayerManager:
         self.layers = {}  # Przechowuje dane warstw w formie numpy.ndarray
         self.layer_items = {}  # QGraphicsPixmapItem dla każdej warstwy
         self.visible_layers = set()  # Nazwy widocznych warstw
-        self.Z_VALUES = {
-            "province": 0,
-            "roads": 1,
-            "buildings": 2,
-            "army": 3
-        }
+        self.Z_VALUES = {}
         self.map_controller = map_controller
 
     def get_map_controller(self):
