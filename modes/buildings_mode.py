@@ -1,10 +1,11 @@
 from controllers.tools import Tools, PixelSampler
-from PyQt5.QtGui import QImage, QPainter, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QImage, QPainter, QColor, QIcon, QPixmap
+from PyQt5.QtCore import Qt, QSize
 from controllers.data import DATA
 import copy
 import numpy as np
 import math
+from PyQt5.QtWidgets import QPushButton
 class BuildingsMode:
     """Obsługuje tryb budynków."""
     MAX_RECENT_OPERATIONS = 5  # Limit zapisanych operacji
@@ -12,12 +13,48 @@ class BuildingsMode:
     def __init__(self, mode_manager, map_controller):
         self.snap = False
         self.map_controller = map_controller
-        self.building_positions = {}  # Pozycje budynków
-        self.building_icon = QImage("icons/city.png")
         self.before_layer = None
+        self.building_icons = {
+            "city": QImage("icons/city.png"),
+            #"factory": QImage("icons/factory.png"),
+            "farm": QImage("icons/farm.png"),
+        }
+
+        self.building_icon = self.building_icons["city"]
 
         if self.building_icon.isNull():
             raise ValueError("Nie udało się załadować ikony budynku: icons/city.png")
+
+    def setup_menu(self):
+        print("Setup menu dla BuildingsMode")
+
+        # Tworzenie przycisków z ikonami
+        m_button = QPushButton()
+        m_button.setIcon(self.get_icon_from_image(self.building_icons["city"]))  # Konwertuj QImage na QIcon
+        m_button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
+        m_button.setFixedSize(50, 50)  # Przyciski są kwadratowe
+        m_button.clicked.connect(lambda: self.set_icon_type("city"))
+
+        f_button = QPushButton()
+        f_button.setIcon(self.get_icon_from_image(self.building_icons["farm"]))  # Konwertuj QImage na QIcon
+        f_button.setIconSize(QSize(40, 40))
+        f_button.setFixedSize(50, 50)
+        f_button.clicked.connect(lambda: self.set_icon_type("farm"))
+
+        # Aktualizacja dynamicznego menu
+        self.map_controller.button_panel.update_dynamic_menu([m_button, f_button])
+
+    def get_icon_from_image(self, image):
+        pixmap = QPixmap.fromImage(image)
+        return QIcon(pixmap)
+
+
+    def set_icon_type(self, icon_type):
+        if icon_type in self.building_icons:
+            self.building_icon = self.building_icons[icon_type]  # Ustaw ikonę z mapy
+            print(f"Ustawiono ikonę: {icon_type}")
+        else:
+            raise ValueError(f"Nieznany typ ikony: {icon_type}")
 
     def handle_event(self, event):
         if event.event_type == "click":
@@ -37,7 +74,6 @@ class BuildingsMode:
     def add_building(self, x, y):
         print(f"Adding building at: ({x}, {y})")
         """Dodaje budynek do warstwy i zapisuje operację."""
-        self.building_positions[(x, y)] = "city"
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
         if building_layer is None:
             print("Nie można znaleźć warstwy 'buildings'.")
@@ -82,29 +118,60 @@ class BuildingsMode:
         self.map_controller.layer_manager.refresh_layer("buildings")
 
     def add_building_position(self, x, y):
-        print(f"Adding building position to DATA: ({x}, {y})")
-        """Dodaje pozycję budynku i zapisuje operację."""
-        DATA.buildings.cities.append((x, y))
-        print(f"Dodano budynek w pozycji: ({x}, {y})")
+        # Pobierz typ aktywnej ikony
+        active_icon_type = next((key for key, value in self.building_icons.items() if value == self.building_icon), None)
+
+        if not active_icon_type:
+            print(f"Nieznany typ ikony: {self.building_icon}.")
+            return
+
+        # Dodaj pozycję do odpowiedniej listy w DATA.buildings
+        if active_icon_type == "city":
+            DATA.buildings.cities.append((x, y))
+        elif active_icon_type == "farm":
+            DATA.buildings.farms.append((x, y))
+        else:
+            print(f"Typ '{active_icon_type}' nieobsługiwany. Pozycja nie została dodana.")
+            return
+
+        # Informacja o dodaniu
+        print(f"Dodano budynek typu '{active_icon_type}' w pozycji: ({x}, {y})")
 
     def remove_building_positions(self, event, radius):
         print(f"Removing building positions around: ({event.x}, {event.y}), radius: {radius}")
         """
         Usuwa pozycje budynków w zadanym promieniu.
-        Zwraca listę usuniętych pozycji.
+        Zwraca listę usuniętych pozycji wraz z ich typami.
         """
         x, y = event.x, event.y
-        removed_positions = [
-            (bx, by) for bx, by in DATA.buildings.cities
-            if math.sqrt((bx - x) ** 2 + (by - y) ** 2) <= radius
-        ]
 
-        # Usuwanie budynków z bazy danych w dokładnym promieniu
-        for pos in removed_positions:
-            DATA.buildings.cities.remove(pos)
+        removed_positions = {
+            "cities": [],
+            "farms": [],
+            "towns": [],
 
-        print(f"Usunięto {len(removed_positions)} budynków w promieniu {radius} od punktu ({x}, {y}).")
+            # Dodaj inne typy budynków, jeśli istnieją
+        }
+
+        # Sprawdź budynki w każdej kategorii
+        for building_type, positions in vars(DATA.buildings).items():
+            if isinstance(positions, list):  # Upewnij się, że to lista pozycji
+                to_remove = [
+                    (bx, by) for bx, by in positions
+                    if math.sqrt((bx - x) ** 2 + (by - y) ** 2) <= radius
+                ]
+                # Usuń znalezione pozycje
+                for pos in to_remove:
+                    positions.remove(pos)
+                removed_positions[building_type].extend(to_remove)
+
+        # Logowanie usuniętych pozycji
+        for building_type, positions in removed_positions.items():
+            if positions:
+                print(f"Usunięto {len(positions)} budynków typu '{building_type}' w promieniu {radius} od ({x}, {y}).")
+
         return removed_positions
+
 
     def restore_operation(self, type, x, y):
         print(type, x, y)
@@ -113,6 +180,7 @@ class BuildingsMode:
         """
         Próbkuje piksele w pozycjach budynków (miast) i wyświetla liczbę miast dla każdego państwa.
         """
+        active_icon_type = next((key for key, value in self.building_icons.items() if value == self.building_icon), None)
         if self.map_controller.cv_image is None:
             print("Brak obrazu bazowego (cv_image) do próbkowania miast.")
             return
@@ -120,12 +188,19 @@ class BuildingsMode:
         if not DATA.buildings.cities:
             print("Brak zapisanych pozycji miast w DATA.buildings.cities.")
             return
-
-        # Użycie PixelSampler
-        pixel_sampler = PixelSampler(
-            self.map_controller.layer_manager.layers.get("province"),
-            DATA.buildings.cities,
-            self.map_controller.state_controller.get_states()
-        )
-        for state in self.map_controller.state_controller.get_states():
-            state.cities = pixel_sampler.get(state.name, 0)
+        if active_icon_type == "city":
+            pixel_sampler = PixelSampler(
+                self.map_controller.layer_manager.layers.get("province"),
+                DATA.buildings.cities,
+                self.map_controller.state_controller.get_states()
+            )
+            for state in self.map_controller.state_controller.get_states():
+                state.cities = pixel_sampler.get(state.name, 0)
+        elif active_icon_type == "farm":
+            pixel_sampler = PixelSampler(
+                self.map_controller.layer_manager.layers.get("province"),
+                DATA.buildings.farms,
+                self.map_controller.state_controller.get_states()
+            )
+            for state in self.map_controller.state_controller.get_states():
+                state.farms = pixel_sampler.get(state.name, 0)

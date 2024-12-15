@@ -19,6 +19,9 @@ class ArmyMode:
         elif event.button == "right":
             self.erase_army(event)
 
+    def setup_menu(self):
+        self.map_controller.button_panel.update_dynamic_menu([])
+        
     def add_army(self, x, y):
         """Dodaje ikonę armii na warstwę z kolorem wybranego państwa."""
         army_layer = self.map_controller.layer_manager.get_layer("army")

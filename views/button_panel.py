@@ -1,5 +1,5 @@
 import os
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QShortcut, QCheckBox, QHBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QPushButton, QFileDialog, QShortcut, QCheckBox, QHBoxLayout
 from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import QKeySequence, QImage
 import os
@@ -73,6 +73,16 @@ class ButtonPanel(QWidget):
 
         # Odstęp
         layout.addStretch()
+        # Sekcja dla dynamicznego menu
+        # Ustawienie kontenera na dynamiczne menu
+        self.dynamic_menu_container = QWidget()
+        self.dynamic_menu_layout = QGridLayout()  # Ustawienie układu jako QGridLayout
+        self.dynamic_menu_container.setLayout(self.dynamic_menu_layout)
+        self.layout().addWidget(self.dynamic_menu_container)
+
+        self.clear_dynamic_menu()
+
+        layout.addStretch()
 
         # Przycisk Zapisz
 #        self.save_button = QPushButton("Zapisz stany")
@@ -101,6 +111,28 @@ class ButtonPanel(QWidget):
         # Pierwsze ustawienie tekstu przycisku
         self.update_export_button()
 
+    def clear_dynamic_menu(self):
+        """Czyści dynamiczne menu."""
+        while self.dynamic_menu_layout.count():
+            item = self.dynamic_menu_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+    def update_dynamic_menu(self, widgets):
+        """
+        Aktualizuje dynamiczne menu w układzie siatki (QGridLayout).
+
+        :param widgets: Lista widżetów do dodania do dynamicznego menu.
+        """
+        self.clear_dynamic_menu()  # Czyści dynamiczne menu
+
+        # Dodanie widżetów do siatki
+        for i, widget in enumerate(widgets):
+            row, col = divmod(i, 3)  # Rozmieszczenie w siatce: 3 kolumny
+            self.dynamic_menu_layout.addWidget(widget, row, col)
+
+
     def toggle_visibility(self, state, layer_name):
         """
         Przełącza widoczność warstwy w zależności od stanu przycisku.
@@ -119,6 +151,8 @@ class ButtonPanel(QWidget):
         self.current_mode = mode
         self.highlight_active_button()  # Aktualizuje wygląd przycisków
         self.active_mode.emit(mode)  # Emituje sygnał, aby zmienić tryb
+        self.map_controller.mode_manager.active_mode.setup_menu()
+
 
     def initialize_shortcuts(self):
         """Inicjalizuje skróty klawiszowe na podstawie `self.shortcuts`."""

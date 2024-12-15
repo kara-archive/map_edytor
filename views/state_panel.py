@@ -85,7 +85,7 @@ class StatePanel(QWidget):
         top_layout.addWidget(button)
 
         # Dolna linijka: Opis
-        bottom_label = QLabel(f"Prowincje: {state.provinces} Budynki: {state.cities}")
+        bottom_label = QLabel(f"P: {state.provinces} M: {state.cities}  F: {state.farms}")
         bottom_label.setStyleSheet("font-size: 14px; color: white;")
         bottom_label.setAlignment(Qt.AlignLeft)
         container_layout.addLayout(top_layout)

@@ -24,6 +24,10 @@ class RoadsMode:
                 layer = self.map_controller.layer_manager.get_layer("roads")
                 self.map_controller.snapshot_manager.create_snapshot({"layers": {"roads": {"before": copy.deepcopy(layer),"after": copy.deepcopy(self.map_controller.layer_manager.layers["roads"])}}})
 
+    def setup_menu(self):
+        self.map_controller.button_panel.update_dynamic_menu([])
+        
+
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         if event.event_type in {"click", "move"}:

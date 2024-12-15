@@ -96,3 +96,4 @@ class State:
         self.color = QColor(color)
         self.provinces = 0
         self.cities = 0  # Liczba miast
+        self.farms = 0

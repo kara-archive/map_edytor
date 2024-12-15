@@ -31,6 +31,10 @@ class ProvinceMode:
                 return
             self.flood_fill(event.x, event.y, fill_color)
 
+    def setup_menu(self):
+        self.map_controller.button_panel.update_dynamic_menu([])
+        
+
     def copy_image(self, cv_image):
         # Jeśli warstwa ma być zainicjalizowana obrazem bazowym
         if cv_image is not None:
