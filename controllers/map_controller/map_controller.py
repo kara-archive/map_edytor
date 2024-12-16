@@ -16,7 +16,7 @@ class MapController:
         self.button_panel = None
         self.layer_manager = LayerManager(self)
         self.snapshot_manager = SnapshotManager(self)
-        self.mode_manager = ModeManager(self,)
+        self.mode_manager = ModeManager(self)
 
     def set_scene(self, scene):
         """Ustawia scenę dla kontrolera."""

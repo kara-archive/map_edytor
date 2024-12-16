@@ -21,7 +21,7 @@ class ArmyMode:
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
-        
+
     def add_army(self, x, y):
         """Dodaje ikonę armii na warstwę z kolorem wybranego państwa."""
         army_layer = self.map_controller.layer_manager.get_layer("army")
@@ -87,12 +87,6 @@ class ArmyMode:
             pass
 
     def recolor_icon(self, image, target_color):
-        """
-        Zmienia białe piksele w ikonie na wybrany kolor.
-        :param image: QImage ikony.
-        :param target_color: QColor lub (R, G, B) reprezentujący kolor wybranego państwa.
-        :return: Zmieniona QImage.
-        """
         if isinstance(target_color, tuple):
             target_color = QColor(*target_color)
 
