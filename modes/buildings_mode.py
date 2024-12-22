@@ -8,7 +8,6 @@ import math
 from PyQt5.QtWidgets import QPushButton
 class BuildingsMode:
     """Obsługuje tryb budynków."""
-    MAX_RECENT_OPERATIONS = 5  # Limit zapisanych operacji
 
     def __init__(self, mode_manager, map_controller):
         self.snap = False
@@ -58,18 +57,17 @@ class BuildingsMode:
 
     def handle_event(self, event):
         if event.event_type == "click":
-            self.before_layer = copy.deepcopy(self.map_controller.layer_manager.get_layer("buildings"))
+            self.map_controller.snapshot_manager.start_snap("buildings")
         if event.event_type == "click" and event.button == "left":
             self.add_building(event.x, event.y)
-            self.count_cities_by_state()
 
         elif event.event_type in {"move", "click"} and event.button == "right":
             self.erase_building(event)
-            self.count_cities_by_state()
 
         elif event.event_type == "release":
             after_layer = copy.deepcopy(self.map_controller.layer_manager.get_layer("buildings"))
-            self.do_snap(self.before_layer, after_layer)
+            self.map_controller.snapshot_manager.end_snap("buildings")
+            self.count_cities_by_state()
 
     def add_building(self, x, y):
         print(f"Adding building at: ({x}, {y})")
@@ -140,22 +138,22 @@ class BuildingsMode:
     def remove_building_positions(self, event, radius):
         print(f"Removing building positions around: ({event.x}, {event.y}), radius: {radius}")
         """
-        Usuwa pozycje budynków w zadanym promieniu.
+        Usuwa pozycje budynków wszystkich typów w zadanym promieniu.
         Zwraca listę usuniętych pozycji wraz z ich typami.
         """
         x, y = event.x, event.y
 
+        # Słownik do przechowywania usuniętych pozycji według typu
         removed_positions = {
             "cities": [],
             "farms": [],
             "towns": [],
-
-            # Dodaj inne typy budynków, jeśli istnieją
         }
 
-        # Sprawdź budynki w każdej kategorii
+        # Iteruj przez wszystkie listy budynków w DATA.buildings
         for building_type, positions in vars(DATA.buildings).items():
-            if isinstance(positions, list):  # Upewnij się, że to lista pozycji
+            if isinstance(positions, list):  # Sprawdź, czy to lista pozycji
+                # Znajdź pozycje do usunięcia w promieniu
                 to_remove = [
                     (bx, by) for bx, by in positions
                     if math.sqrt((bx - x) ** 2 + (by - y) ** 2) <= radius
@@ -173,34 +171,34 @@ class BuildingsMode:
         return removed_positions
 
 
+
     def restore_operation(self, type, x, y):
         print(type, x, y)
 
     def count_cities_by_state(self):
         """
-        Próbkuje piksele w pozycjach budynków (miast) i wyświetla liczbę miast dla każdego państwa.
+        Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
         """
-        active_icon_type = next((key for key, value in self.building_icons.items() if value == self.building_icon), None)
         if self.map_controller.cv_image is None:
-            print("Brak obrazu bazowego (cv_image) do próbkowania miast.")
+            print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
             return
 
-        if not DATA.buildings.cities:
-            print("Brak zapisanych pozycji miast w DATA.buildings.cities.")
-            return
-        if active_icon_type == "city":
+        building_types = {
+            "cities": DATA.buildings.cities,
+            "farms": DATA.buildings.farms,
+        }
+
+        for building_type, positions in building_types.items():
+            if not positions:
+                print(f"Brak zapisanych pozycji budynków w DATA.buildings.{building_type}.")
+                continue
+
             pixel_sampler = PixelSampler(
                 self.map_controller.layer_manager.layers.get("province"),
-                DATA.buildings.cities,
+                positions,
                 self.map_controller.state_controller.get_states()
             )
+
             for state in self.map_controller.state_controller.get_states():
-                state.cities = pixel_sampler.get(state.name, 0)
-        elif active_icon_type == "farm":
-            pixel_sampler = PixelSampler(
-                self.map_controller.layer_manager.layers.get("province"),
-                DATA.buildings.farms,
-                self.map_controller.state_controller.get_states()
-            )
-            for state in self.map_controller.state_controller.get_states():
-                state.farms = pixel_sampler.get(state.name, 0)
+                setattr(state, building_type, pixel_sampler.get(state.name, 0))
+                print(f"Państwo {state.name} ma {getattr(state, building_type)} budynków typu '{building_type}'.")

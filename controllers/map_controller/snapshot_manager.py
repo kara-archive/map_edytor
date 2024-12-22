@@ -1,4 +1,6 @@
 from controllers.map_controller.layer_manager import LayerManager
+import copy
+from controllers.data import DATA
 
 class SnapshotManager:
     """Zarządza snapshotami delta stanu aplikacji."""
@@ -8,14 +10,16 @@ class SnapshotManager:
         self.history = []  # Lista delta snapshotów
         self.future = []  # Lista przyszłych snapshotów dla redo
         self.max_snapshots = max_snapshots
+        self.before_data = None
 
     def create_snapshot(self, changes):
         """
-        Tworzy snapshot delta, który zapisuje tylko zmiany.
+        Tworzy snapshot delta, który zapisuje zmiany i pełną kopię danych.
         :param changes: Słownik zmian (np. zmiana warstw).
         """
         delta_snapshot = {
-            "layers": changes.get("layers", {})
+            "layers": changes.get("layers", {}),
+            "data": changes.get("data", {}),  # Kopia stanu DATA
         }
         self.history.append(delta_snapshot)
         self.future.clear()  # Po stworzeniu nowego snapshotu czyścimy przyszłą historię
@@ -45,13 +49,46 @@ class SnapshotManager:
 
     def _apply_delta(self, delta_snapshot, undo):
         print(f"Applying delta, undo: {undo}")
-        print(f"Delta snapshot: {delta_snapshot}")
+        restored_data = delta_snapshot["data"]
+        restored = restored_data["before"] if undo else restored_data["after"]
+        #print(f"Restoring DATA: {restored.buildings.cities}")
+
+        # Odtwórz dane
+        #DATA.buildings.cities = copy.deepcopy(restored.buildings.cities)
+        #DATA.army = copy.deepcopy(restored.army)
+        #DATA.provinces = copy.deepcopy(restored.provinces)
 
         # Przywróć warstwy
         layers_delta = delta_snapshot["layers"]
         for layer_name, layer_data in layers_delta.items():
-            if undo:
-                self.map_controller.layer_manager.layers[layer_name] = layer_data["before"]
-            else:
-                self.map_controller.layer_manager.layers[layer_name] = layer_data["after"]
+            self.map_controller.layer_manager.layers[layer_name] = layer_data["before"] if undo else layer_data["after"]
             self.map_controller.layer_manager.refresh_layer(layer_name)
+        print(f"DATA after restore: {DATA.buildings.cities}")
+
+
+    def start_snap(self, layer):
+        """Rozpoczyna proces tworzenia snapshotu."""
+        self.before_layer = copy.deepcopy(self.map_controller.layer_manager.get_layer(layer))
+        self.before_data = copy.deepcopy(DATA.buildings)  # Tworzenie pełnej kopii DATA
+        #print("start_snap before_data:", str(self.before_data.buildings.cities))
+        print("Snapshot start: Kopia przed zmianami zapisana.")
+
+    def end_snap(self, layer):
+        """Kończy proces tworzenia snapshotu."""
+        after_layer = copy.deepcopy(self.map_controller.layer_manager.get_layer(layer))
+        after_data = copy.deepcopy(DATA.buildings)
+        #print("end_snap before_data:", str(self.before_data.buildings.cities))  # Powinno równać się start_snap before_data
+        #print("end_snap after_data:", str(after_data.buildings.cities))        # Powinno zawierać zmiany
+        self.create_snapshot({
+            "layers": {
+                "buildings": {
+                    "before": self.before_layer,
+                    "after": after_layer
+                }
+            },
+            "data": {
+                "before": self.before_data,
+                "after": after_data
+            }
+        })
+        print("Snapshot end: Kopia po zmianach zapisana.")
