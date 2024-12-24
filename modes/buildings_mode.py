@@ -65,7 +65,6 @@ class BuildingsMode:
             self.erase_building(event)
 
         elif event.event_type == "release":
-            after_layer = copy.deepcopy(self.map_controller.layer_manager.get_layer("buildings"))
             self.map_controller.snapshot_manager.end_snap("buildings")
             self.count_cities_by_state()
 
@@ -78,16 +77,6 @@ class BuildingsMode:
             return
         self._draw_icon(building_layer, x, y)
         self.add_building_position(x, y)
-
-    def do_snap(self, before, after):
-        self.map_controller.snapshot_manager.create_snapshot({
-            "layers": {
-                "buildings": {
-                    "before": before,
-                    "after": after
-                }
-            }
-        })
 
     def erase_building(self, event):
         print(f"Erasing buildings around: ({event.x}, {event.y}), radius: 20")

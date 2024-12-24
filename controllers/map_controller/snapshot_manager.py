@@ -81,7 +81,7 @@ class SnapshotManager:
         #print("end_snap after_data:", str(after_data.buildings.cities))        # Powinno zawierać zmiany
         self.create_snapshot({
             "layers": {
-                "buildings": {
+                layer: {
                     "before": self.before_layer,
                     "after": after_layer
                 }

@@ -11,7 +11,7 @@ class ProvinceMode:
         self.sampled_color = None
         self.active_state = None
         self.mode_manager = mode_manager
-        self.layer = self.mode_manager.layer_manager.layers.get("province")
+        self.layer = self.map_controller.layer_manager.layers.get("province")
 #        self.copy_image(self.map_controller.cv_image)
 
     def handle_event(self, event):
@@ -29,11 +29,15 @@ class ProvinceMode:
             else:
                 print("ProvinceMode: Brak aktywnego państwa lub koloru próbki.")
                 return
+            self.map_controller.snapshot_manager.start_snap("province")
             self.flood_fill(event.x, event.y, fill_color)
+            self.map_controller.snapshot_manager.end_snap("province")
+            self.sample_provinces()
+
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
-        
+
 
     def copy_image(self, cv_image):
         # Jeśli warstwa ma być zainicjalizowana obrazem bazowym
@@ -48,18 +52,7 @@ class ProvinceMode:
         else:
             print("provincemode: cv_image jest None")
     def flood_fill(self, x, y, color):
-        """
-        Flood fill dla warstwy 'province' z tworzeniem snapshotów.
-
-        Args:
-            x (int): Współrzędna X punktu startowego.
-            y (int): Współrzędna Y punktu startowego.
-            color (tuple): Kolor docelowy w RGB.
-        """
-
-
         layer = self.mode_manager.layer_manager.get_layer("province")
-        before_layer = copy.deepcopy(layer)
         if layer is None:
             print("Warstwa 'province' nie istnieje.")
             return
@@ -67,16 +60,8 @@ class ProvinceMode:
         if updated_layer is not None:
             self.mode_manager.layer_manager.layers["province"] = updated_layer
             self.mode_manager.layer_manager.refresh_layer("province")
-            self.sample_provinces()
-            # Utwórz snapshot po operacji
-            after_layer = copy.deepcopy(self.mode_manager.layer_manager.get_layer("province"))
-            self.map_controller.snapshot_manager.create_snapshot({"layers": {"province": {"before": before_layer,"after": after_layer}}})
 
     def sample_provinces(self):
-        """
-        Próbkuje piksele na mapie i przypisuje liczbę prowincji do odpowiednich państw.
-        """
-        print("Rozpoczynanie próbkowania prowincji...")
         states = self.map_controller.state_controller.get_states()
         image = self.mode_manager.layer_manager.layers.get("province")
         province_counts = PixelSampler(image, DATA.provinces, states)
@@ -87,9 +72,6 @@ class ProvinceMode:
             print(f"Państwo {state.name} ma {state.provinces} prowincji")
 
     def get_color_at(self, x, y):
-        print(f"Pobieranie koloru w punkcie ({x}, {y})")
-
-        # Pobierz warstwę
         self.layer = self.mode_manager.layer_manager.get_layer("province")
         if self.layer is None:
             print("Warstwa 'province' nie istnieje.")

@@ -16,17 +16,18 @@ class RoadsMode:
 
     def handle_event(self, event):
         """Obsługuje zdarzenia myszy."""
+        if event.event_type =="click":
+            self.map_controller.snapshot_manager.start_snap("roads")
         if event.button == "left":
             self._rysuj(event)
         elif event.button == "right":
             self._zmazuj(event)
-            if event.event_type =="click":
-                layer = self.map_controller.layer_manager.get_layer("roads")
-                self.map_controller.snapshot_manager.create_snapshot({"layers": {"roads": {"before": copy.deepcopy(layer),"after": copy.deepcopy(self.map_controller.layer_manager.layers["roads"])}}})
+        if event.event_type =="release":
+            self.map_controller.snapshot_manager.end_snap("roads")
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
-        
+
 
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
@@ -56,14 +57,6 @@ class RoadsMode:
             if roads_layer is None:
                 print("Brak warstwy 'roads' do rysowania.")
                 return
-            self.map_controller.snapshot_manager.create_snapshot({
-                "layers": {
-                    "roads": {
-                        "before": copy.deepcopy(roads_layer),
-                        "after": copy.deepcopy(self.map_controller.layer_manager.layers["roads"])
-                    }
-                }
-            })
             height, width, _ = roads_layer.shape
             bytes_per_line = 4 * width
             layer_image = QImage(roads_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)

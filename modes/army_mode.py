@@ -15,9 +15,13 @@ class ArmyMode:
 
     def handle_event(self, event):
         if event.event_type == "click" and event.button == "left":
+            self.map_controller.snapshot_manager.start_snap("army")
             self.add_army(event.x, event.y)
+            self.map_controller.snapshot_manager.end_snap("army")
         elif event.button == "right":
+            self.map_controller.snapshot_manager.start_snap("army")
             self.erase_army(event)
+            self.map_controller.snapshot_manager.end_snap("army")
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
@@ -57,14 +61,7 @@ class ArmyMode:
 
         # Odświeżenie warstwy
         self.map_controller.layer_manager.refresh_layer("army")
-        self.map_controller.snapshot_manager.create_snapshot({
-            "layers": {
-                "army": {
-                    "before": copy.deepcopy(army_layer),
-                    "after": copy.deepcopy(self.map_controller.layer_manager.layers["army"])
-                }
-            }
-        })
+
 
     def erase_army(self, event):
         army_layer = self.map_controller.layer_manager.get_layer("army")
@@ -75,14 +72,7 @@ class ArmyMode:
             Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "army", x, y, radius)
             if event.event_type =="click":
                 layer = self.map_controller.layer_manager.get_layer("army")
-                self.map_controller.snapshot_manager.create_snapshot({
-                    "layers": {
-                        "army": {
-                            "before": copy.deepcopy(layer),
-                            "after": copy.deepcopy(self.map_controller.layer_manager.layers["army"])
-                        }
-                    }
-                })
+                self.map_controller.snapshot_manager.end_snap("army")
         elif event.event_type == "release":
             pass
 
