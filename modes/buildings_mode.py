@@ -124,7 +124,7 @@ class BuildingsMode(Mode):
         result = cv2.matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
 
         # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
-        threshold = 0.8
+        threshold = 0.5
         locations = np.where(result >= threshold)
 
         # Konwersja współrzędnych do listy punktów (x, y)
