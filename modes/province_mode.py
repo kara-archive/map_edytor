@@ -3,10 +3,11 @@ from controllers.tools import Tools, PixelSampler
 from controllers.data import DATA
 import copy
 import numpy as np
-from controllers.state_controller import State
+from modes.base_mode import Mode
 class ProvinceMode:
     """Obsługuje tryb prowincji."""
     def __init__(self, mode_manager, map_controller):
+        Mode.__init__(self, map_controller)
         self.map_controller = map_controller
         self.sampled_color = None
         self.active_state = None
@@ -19,9 +20,11 @@ class ProvinceMode:
         if self.active_state != self.mode_manager.active_state:
             self.active_state = self.mode_manager.active_state
             self.sampled_color = None
+        if event.event_type == "click":
+            Mode.start_snap(self, "province")
         if event.event_type == "click" and event.button == "right":
             self.sampled_color = self.get_color_at(event.x, event.y)
-        elif event.event_type == "click" and event.button == "left":
+        elif event.button == "left":
             if self.sampled_color:
                 fill_color = self.sampled_color
             elif self.active_state and hasattr(self.active_state, 'color'):
@@ -29,10 +32,11 @@ class ProvinceMode:
             else:
                 print("ProvinceMode: Brak aktywnego państwa lub koloru próbki.")
                 return
-            self.map_controller.snapshot_manager.start_snap("province")
             self.flood_fill(event.x, event.y, fill_color)
-            self.map_controller.snapshot_manager.end_snap("province")
+        if event.event_type == "release":
+            Mode.end_snap(self, "province")
             self.sample_provinces()
+
 
 
     def setup_menu(self):

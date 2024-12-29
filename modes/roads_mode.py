@@ -4,11 +4,12 @@ import copy
 import numpy as np
 from controllers.tools import Tools
 import copy
-
+from modes.base_mode import Mode
 class RoadsMode:
     """Obsługuje tryb rysowania dróg z podglądem na żywo."""
 
     def __init__(self, mode_manager, map_controller,):
+        Mode.__init__(self, map_controller)
         self.map_controller = map_controller
         self.path = QPainterPath()  # Aktualna ścieżka rysowania
         self.preview_item = None  # Podgląd rysowania w czasie rzeczywistym
@@ -17,13 +18,13 @@ class RoadsMode:
     def handle_event(self, event):
         """Obsługuje zdarzenia myszy."""
         if event.event_type =="click":
-            self.map_controller.snapshot_manager.start_snap("roads")
+            Mode.start_snap(self, "roads")
         if event.button == "left":
             self._rysuj(event)
         elif event.button == "right":
             self._zmazuj(event)
         if event.event_type =="release":
-            self.map_controller.snapshot_manager.end_snap("roads")
+            Mode.end_snap(self, "roads")
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])

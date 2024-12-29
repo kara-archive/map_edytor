@@ -3,9 +3,11 @@ from PyQt5.QtCore import Qt
 from controllers.tools import Tools
 import numpy as np
 import copy
+from modes.base_mode import Mode
 class ArmyMode:
     """Obsługuje tryb armii."""
     def __init__(self, mode_manager, map_controller):
+        Mode.__init__(self, map_controller)
         self.map_controller = map_controller
         self.mode_manager = mode_manager
         self.army_icon = QImage("icons/army.png")
@@ -15,13 +17,15 @@ class ArmyMode:
 
     def handle_event(self, event):
         if event.event_type == "click" and event.button == "left":
-            self.map_controller.snapshot_manager.start_snap("army")
+            Mode.start_snap(self, "army")
             self.add_army(event.x, event.y)
-            self.map_controller.snapshot_manager.end_snap("army")
+            Mode.end_snap(self, "army")
         elif event.button == "right":
-            self.map_controller.snapshot_manager.start_snap("army")
+            if event.event_type == "click":
+                Mode.start_snap(self, "army")
             self.erase_army(event)
-            self.map_controller.snapshot_manager.end_snap("army")
+            if event.event_type == "release":
+                Mode.end_snap(self, "army")
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
@@ -67,7 +71,7 @@ class ArmyMode:
         army_layer = self.map_controller.layer_manager.get_layer("army")
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         if event.event_type in {"click", "move"}:
-            radius = 10  # Promień gumki
+            radius = 20  # Promień gumki
             x, y = event.x, event.y
             Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "army", x, y, radius)
             if event.event_type =="click":

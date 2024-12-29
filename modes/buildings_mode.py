@@ -6,16 +6,18 @@ import copy
 import numpy as np
 import math
 from PyQt5.QtWidgets import QPushButton
-class BuildingsMode:
+from modes.base_mode import Mode
+
+class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
 
     def __init__(self, mode_manager, map_controller):
+        Mode.__init__(self, map_controller)
         self.snap = False
         self.map_controller = map_controller
         self.before_layer = None
         self.building_icons = {
             "city": QImage("icons/city.png"),
-            #"factory": QImage("icons/factory.png"),
             "farm": QImage("icons/farm.png"),
         }
 
@@ -47,7 +49,6 @@ class BuildingsMode:
         pixmap = QPixmap.fromImage(image)
         return QIcon(pixmap)
 
-
     def set_icon_type(self, icon_type):
         if icon_type in self.building_icons:
             self.building_icon = self.building_icons[icon_type]  # Ustaw ikonę z mapy
@@ -57,7 +58,7 @@ class BuildingsMode:
 
     def handle_event(self, event):
         if event.event_type == "click":
-            self.map_controller.snapshot_manager.start_snap("buildings")
+            Mode.start_snap(self, "buildings")
         if event.event_type == "click" and event.button == "left":
             self.add_building(event.x, event.y)
 
@@ -65,7 +66,7 @@ class BuildingsMode:
             self.erase_building(event)
 
         elif event.event_type == "release":
-            self.map_controller.snapshot_manager.end_snap("buildings")
+            Mode.end_snap(self, "buildings")
             self.count_cities_by_state()
 
     def add_building(self, x, y):
@@ -158,11 +159,6 @@ class BuildingsMode:
                 print(f"Usunięto {len(positions)} budynków typu '{building_type}' w promieniu {radius} od ({x}, {y}).")
 
         return removed_positions
-
-
-
-    def restore_operation(self, type, x, y):
-        print(type, x, y)
 
     def count_cities_by_state(self):
         """

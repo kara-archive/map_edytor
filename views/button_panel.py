@@ -84,10 +84,6 @@ class ButtonPanel(QWidget):
 
         layout.addStretch()
 
-        # Przycisk Zapisz
-#        self.save_button = QPushButton("Zapisz stany")
-#        layout.addWidget(self.save_button)
-#        self.save_button.clicked.connect(self.save_states)
 
         # „Wczytaj”
         self.load_button = QPushButton("Wczytaj")
@@ -195,12 +191,6 @@ class ButtonPanel(QWidget):
         """Aktualizuje tekst przycisku eksportu tury."""
         obecna_tura = self.get_last_turn() + 1
         self.export_turn_button.setText(f"Eksport {obecna_tura} Tury")
-
-#    def save_states(self):
-#        """Zapisuje stany do pliku CSV."""
-#        file_path, _ = QFileDialog.getSaveFileName(self, "Zapisz stany", "", "CSV Files (*.csv)")
-#        if file_path:
-#            self.controller.save_to_csv(file_path)
 
     def load_states(self):
         """Wczytuje stany z pliku CSV."""
