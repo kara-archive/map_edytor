@@ -38,7 +38,7 @@ class MainView(QMainWindow):
 
         # Inicjalizacja UI
         self.state_panel = StatePanel(self.state_controller)
-        self.button_panel = ButtonPanel(self.map_controller, self.map_view, self.state_controller)
+        self.button_panel = ButtonPanel(self.map_controller, self.map_view, self.state_controller, self.state_panel)
 
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.state_panel)

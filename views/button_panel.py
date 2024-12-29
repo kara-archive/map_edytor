@@ -10,12 +10,12 @@ class ButtonPanel(QWidget):
     """Panel boczny z przyciskami do interakcji."""
     active_mode = pyqtSignal(str)  # Sygnał zmiany trybu
 
-    def __init__(self, map_controller, map_view, state_controller):
+    def __init__(self, map_controller, map_view, state_controller, state_panel):
         super().__init__()
         self.map_controller = map_controller
         self.map_view = map_view
-        self.controller = state_controller
-
+        self.state_controller = state_controller
+        self.state_panel = state_panel
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -172,7 +172,7 @@ class ButtonPanel(QWidget):
 
         # Ustaw styl aktywnego przycisku
         if self.current_mode in buttons:
-            buttons[self.current_mode].setStyleSheet("font-weight: 900;")
+            buttons[self.current_mode].setStyleSheet("font-weight: 800;")
 
 
     def get_last_turn(self):
@@ -196,7 +196,7 @@ class ButtonPanel(QWidget):
         """Wczytuje stany z pliku CSV."""
         file_path, _ = QFileDialog.getOpenFileName(self, "Wczytaj Państwa", "", "")
         if file_path:
-            self.controller.load_from_csv(file_path)
+            self.state_controller.load_from_csv(file_path)
             # Wywołaj metodę aktualizacji widoku
             self.map_view.scene().update()
             if hasattr(self.map_view, 'state_panel'):
@@ -209,7 +209,7 @@ class ButtonPanel(QWidget):
         # Ścieżki do zapisania
         export_path = f"Tury/{obecna_tura}.Tura"
         self.map_controller.export_image(f"Tury/{obecna_tura}.Tura"+".png")
-        self.controller.export_to_csv(obecna_tura,"Tury/prowincje"+".csv")
+        self.state_controller.export_to_csv(obecna_tura,"Tury/prowincje"+".csv")
 
     def save_data(self):
         """
@@ -240,7 +240,7 @@ class ButtonPanel(QWidget):
 
             # Zapisz CSV stanów za pomocą StateController
             states_csv_path = os.path.join(temp_dir, "states_metadata.csv")
-            self.controller.save_to_csv(states_csv_path)
+            self.state_controller.save_to_csv(states_csv_path)
 
             # Zapisz CSV z DATA
             data_csv_path = os.path.join(temp_dir, "data_metadata.csv")
@@ -307,7 +307,7 @@ class ButtonPanel(QWidget):
             # Przywróć stany z CSV
             states_csv_path = os.path.join(temp_dir, "states_metadata.csv")
             if os.path.exists(states_csv_path):
-                self.controller.load_from_csv(states_csv_path)
+                self.state_controller.load_from_csv(states_csv_path)
                 print(f"Stany załadowane z {states_csv_path}")
 
             # Przywróć dane z DATA
@@ -327,5 +327,6 @@ class ButtonPanel(QWidget):
             os.rmdir(temp_dir)
             self.map_controller.mode_manager.province_mode.sample_provinces()
             self.map_controller.mode_manager.buildings_mode.count_cities_by_state()
+            self.state_panel.update_states()
 
         print("Dane zostały pomyślnie przywrócone.")

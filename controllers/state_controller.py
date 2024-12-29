@@ -3,7 +3,6 @@ from PyQt5.QtCore import QObject, pyqtSignal
 import csv, os
 from controllers.data import DATA
 from controllers.tools import PixelSampler
-
 from PyQt5.QtCore import pyqtSignal
 
 class StateController(QObject):
@@ -15,7 +14,6 @@ class StateController(QObject):
         self.states = []
         self.last_state = None
         self.map_controller = map_controller
-        self.provinces = DATA.provinces
 
     def get_states(self):
         return self.states

@@ -14,6 +14,7 @@ class StatePanel(QWidget):
         self.active_state = None
         self.controller = controller
         self.init_ui()
+        self.update_states()
 
     def init_ui(self):
         """Inicjalizuje interfejs użytkownika."""
@@ -46,7 +47,7 @@ class StatePanel(QWidget):
         # Timer do odświeżania widoku co sekundę
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_states)
-        self.timer.start(1000)  # Odświeżanie co 1000 ms (1 sekunda)
+        self.timer.start(2000)  # Odświeżanie co 1000 ms (1 sekunda)
 
         # Pierwsze wywołanie aktualizacji
         self.update_states()
@@ -97,6 +98,7 @@ class StatePanel(QWidget):
     def set_active_state(self, state):
             self.active_state = state
             self.active_state_changed.emit(state)
+            self.update_states()
 
 
     def edit_state(self, state):
