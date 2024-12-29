@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt, QSize
 from controllers.data import DATA
 import copy
 import numpy as np
+import cv2
 import math
 from PyQt5.QtWidgets import QPushButton
 from modes.base_mode import Mode
@@ -14,8 +15,9 @@ class BuildingsMode(Mode):
     def __init__(self, mode_manager, map_controller):
         Mode.__init__(self, map_controller)
         self.snap = False
+        self.cities = []
+        self.farms = []
         self.map_controller = map_controller
-        self.before_layer = None
         self.building_icons = {
             "city": QImage("icons/city.png"),
             "farm": QImage("icons/farm.png"),
@@ -77,13 +79,11 @@ class BuildingsMode(Mode):
             print("Nie można znaleźć warstwy 'buildings'.")
             return
         self._draw_icon(building_layer, x, y)
-        self.add_building_position(x, y)
 
     def erase_building(self, event):
         print(f"Erasing buildings around: ({event.x}, {event.y}), radius: 20")
         """Usuwa budynki w promieniu i zapisuje operację."""
         radius = 20
-        removed_positions = self.remove_building_positions(event, radius)
         Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "buildings", event.x, event.y, radius)
 
     def _draw_icon(self, building_layer, x, y):
@@ -105,60 +105,46 @@ class BuildingsMode(Mode):
         self.map_controller.layer_manager.layers["buildings"] = np.frombuffer(data, dtype=np.uint8).reshape(height, width, 4)
         self.map_controller.layer_manager.refresh_layer("buildings")
 
-    def add_building_position(self, x, y):
-        # Pobierz typ aktywnej ikony
-        active_icon_type = next((key for key, value in self.building_icons.items() if value == self.building_icon), None)
-
-        if not active_icon_type:
-            print(f"Nieznany typ ikony: {self.building_icon}.")
-            return
-
-        # Dodaj pozycję do odpowiedniej listy w DATA.buildings
-        if active_icon_type == "city":
-            DATA.buildings.cities.append((x, y))
-        elif active_icon_type == "farm":
-            DATA.buildings.farms.append((x, y))
-        else:
-            print(f"Typ '{active_icon_type}' nieobsługiwany. Pozycja nie została dodana.")
-            return
-
-        # Informacja o dodaniu
-        print(f"Dodano budynek typu '{active_icon_type}' w pozycji: ({x}, {y})")
-
-    def remove_building_positions(self, event, radius):
-        print(f"Removing building positions around: ({event.x}, {event.y}), radius: {radius}")
+    def find_cities(self, sample_icon, image):
         """
-        Usuwa pozycje budynków wszystkich typów w zadanym promieniu.
-        Zwraca listę usuniętych pozycji wraz z ich typami.
+        Wyszukuje współrzędne ikon w obrazie za pomocą dopasowywania szablonu.
+
+        :param sample_icon: QImage ikony do wyszukiwania (np. "city" lub "farm").
+        :param image: Obraz warstwy "buildings" jako macierz NumPy.
+        :return: Lista współrzędnych (x, y) dopasowanych ikon.
         """
-        x, y = event.x, event.y
+        # Konwersja QImage na macierz NumPy
+        icon = self.convert_qimage_to_numpy(sample_icon)
 
-        # Słownik do przechowywania usuniętych pozycji według typu
-        removed_positions = {
-            "cities": [],
-            "farms": [],
-            "towns": [],
-        }
+        # Przekształcenie obrazu do skali szarości
+        icon_gray = cv2.cvtColor(icon, cv2.COLOR_BGRA2GRAY)
+        image_gray = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
 
-        # Iteruj przez wszystkie listy budynków w DATA.buildings
-        for building_type, positions in vars(DATA.buildings).items():
-            if isinstance(positions, list):  # Sprawdź, czy to lista pozycji
-                # Znajdź pozycje do usunięcia w promieniu
-                to_remove = [
-                    (bx, by) for bx, by in positions
-                    if math.sqrt((bx - x) ** 2 + (by - y) ** 2) <= radius
-                ]
-                # Usuń znalezione pozycje
-                for pos in to_remove:
-                    positions.remove(pos)
-                removed_positions[building_type].extend(to_remove)
+        # Wykonanie dopasowania szablonu
+        result = cv2.matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
 
-        # Logowanie usuniętych pozycji
-        for building_type, positions in removed_positions.items():
-            if positions:
-                print(f"Usunięto {len(positions)} budynków typu '{building_type}' w promieniu {radius} od ({x}, {y}).")
+        # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
+        threshold = 0.8
+        locations = np.where(result >= threshold)
 
-        return removed_positions
+        # Konwersja współrzędnych do listy punktów (x, y)
+        coordinates = [(int(pt[1]), int(pt[0])) for pt in zip(*locations[::-1])]
+
+        return coordinates
+
+    def convert_qimage_to_numpy(self, qimage):
+        """
+        Konwertuje QImage na macierz NumPy.
+
+        :param qimage: Obiekt QImage.
+        :return: Obraz jako macierz NumPy.
+        """
+        width = qimage.width()
+        height = qimage.height()
+        ptr = qimage.bits()
+        ptr.setsize(height * width * 4)  # Każdy piksel ma 4 kanały (RGBA)
+        return np.array(ptr, dtype=np.uint8).reshape((height, width, 4))
+
 
     def count_cities_by_state(self):
         """
@@ -167,10 +153,12 @@ class BuildingsMode(Mode):
         if self.map_controller.cv_image is None:
             print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
             return
-
+        self.cities = self.find_cities(self.building_icons["city"], self.map_controller.layer_manager.layers.get("buildings"))
+        self.farms = self.find_cities(self.building_icons["farm"], self.map_controller.layer_manager.layers.get("buildings"))
+        print(self.cities)
         building_types = {
-            "cities": DATA.buildings.cities,
-            "farms": DATA.buildings.farms,
+            "cities": self.cities,
+            "farms": self.farms,
         }
 
         for building_type, positions in building_types.items():
