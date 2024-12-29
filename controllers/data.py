@@ -9,13 +9,6 @@ class DATA(object):
         self.provinces = DATA.Provinces()
         self.province_mode = None  # Add province_mode to DATA for easier restoration
 
-    def __deepcopy__(self, memo):
-        copied_data = DATA()
-        copied_data.buildings = copy.deepcopy(self.buildings, memo)
-        copied_data.army = copy.deepcopy(self.army, memo)
-        copied_data.provinces = copy.deepcopy(self.provinces, memo)
-        copied_data.province_mode = copy.deepcopy(self.province_mode, memo)
-        return copied_data
 
     class Buildings:
         """Przechowuje różne typy budynków."""
