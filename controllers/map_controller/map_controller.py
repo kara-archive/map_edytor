@@ -124,9 +124,9 @@ class MapController:
         if self.cv_image is not None:
             cv_image_path = os.path.join(output_dir, "base_image.png")
             height, width, _ = self.cv_image.shape
-            bytes_per_line = 3 * width
+            bytes_per_line = 4 * width
             contiguous_image = np.ascontiguousarray(self.cv_image)  # Zapewnij ciągłość pamięci
-            q_image = QImage(contiguous_image.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            q_image = QImage(contiguous_image.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
             if not q_image.save(cv_image_path):
                 print(f"Nie udało się zapisać obrazu bazowego jako {cv_image_path}")
             else:
