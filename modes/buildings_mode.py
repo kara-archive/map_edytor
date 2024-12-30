@@ -105,6 +105,36 @@ class BuildingsMode(Mode):
         self.map_controller.layer_manager.layers["buildings"] = np.frombuffer(data, dtype=np.uint8).reshape(height, width, 4)
         self.map_controller.layer_manager.refresh_layer("buildings")
 
+    def count_cities_by_state(self):
+        """
+        Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
+        """
+        if self.map_controller.cv_image is None:
+            print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
+            return
+        self.cities = self.find_cities(self.building_icons["city"], copy.deepcopy(self.map_controller.layer_manager.layers.get("buildings")))
+        self.farms = self.find_cities(self.building_icons["farm"], copy.deepcopy(self.map_controller.layer_manager.layers.get("buildings")))
+        print(self.cities)
+        building_types = {
+            "cities": self.cities,
+            "farms": self.farms,
+        }
+
+        for building_type, positions in building_types.items():
+            if not positions:
+                print(f"Brak zapisanych pozycji budynków w DATA.buildings.{building_type}.")
+                continue
+
+            pixel_sampler = PixelSampler(
+                self.map_controller.layer_manager.layers.get("province"),
+                positions,
+                self.map_controller.state_controller.get_states()
+            )
+
+            for state in self.map_controller.state_controller.get_states():
+                setattr(state, building_type, pixel_sampler.get(state.name, 0))
+                print(f"Państwo {state.name} ma {getattr(state, building_type)} budynków typu '{building_type}'.")
+
     def find_cities(self, sample_icon, image):
         """
         Wyszukuje współrzędne ikon w obrazie za pomocą dopasowywania szablonu.
@@ -128,7 +158,7 @@ class BuildingsMode(Mode):
         locations = np.where(result >= threshold)
 
         # Konwersja współrzędnych do listy punktów (x, y)
-        coordinates = [(int(pt[1]), int(pt[0])) for pt in zip(*locations[::-1])]
+        coordinates = [(int(pt[0]), int(pt[1])) for pt in zip(*locations[::-1])]
 
         return coordinates
 
@@ -144,34 +174,3 @@ class BuildingsMode(Mode):
         ptr = qimage.bits()
         ptr.setsize(height * width * 4)  # Każdy piksel ma 4 kanały (RGBA)
         return np.array(ptr, dtype=np.uint8).reshape((height, width, 4))
-
-
-    def count_cities_by_state(self):
-        """
-        Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
-        """
-        if self.map_controller.cv_image is None:
-            print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
-            return
-        self.cities = self.find_cities(self.building_icons["city"], self.map_controller.layer_manager.layers.get("buildings"))
-        self.farms = self.find_cities(self.building_icons["farm"], self.map_controller.layer_manager.layers.get("buildings"))
-        print(self.cities)
-        building_types = {
-            "cities": self.cities,
-            "farms": self.farms,
-        }
-
-        for building_type, positions in building_types.items():
-            if not positions:
-                print(f"Brak zapisanych pozycji budynków w DATA.buildings.{building_type}.")
-                continue
-
-            pixel_sampler = PixelSampler(
-                self.map_controller.layer_manager.layers.get("province"),
-                positions,
-                self.map_controller.state_controller.get_states()
-            )
-
-            for state in self.map_controller.state_controller.get_states():
-                setattr(state, building_type, pixel_sampler.get(state.name, 0))
-                print(f"Państwo {state.name} ma {getattr(state, building_type)} budynków typu '{building_type}'.")
