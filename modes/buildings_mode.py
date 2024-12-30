@@ -72,7 +72,6 @@ class BuildingsMode(Mode):
             self.count_cities_by_state()
 
     def add_building(self, x, y):
-        print(f"Adding building at: ({x}, {y})")
         """Dodaje budynek do warstwy i zapisuje operację."""
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
         if building_layer is None:
@@ -81,7 +80,7 @@ class BuildingsMode(Mode):
         self._draw_icon(building_layer, x, y)
 
     def erase_building(self, event):
-        print(f"Erasing buildings around: ({event.x}, {event.y}), radius: 20")
+        #print(f"Erasing buildings around: ({event.x}, {event.y}), radius: 20")
         """Usuwa budynki w promieniu i zapisuje operację."""
         radius = 20
         Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "buildings", event.x, event.y, radius)
@@ -114,7 +113,6 @@ class BuildingsMode(Mode):
             return
         self.cities = self.find_cities(self.building_icons["city"], copy.deepcopy(self.map_controller.layer_manager.layers.get("buildings")))
         self.farms = self.find_cities(self.building_icons["farm"], copy.deepcopy(self.map_controller.layer_manager.layers.get("buildings")))
-        print(self.cities)
         building_types = {
             "cities": self.cities,
             "farms": self.farms,
@@ -141,10 +139,10 @@ class BuildingsMode(Mode):
 
         :param sample_icon: QImage ikony do wyszukiwania (np. "city" lub "farm").
         :param image: Obraz warstwy "buildings" jako macierz NumPy.
-        :return: Lista współrzędnych (x, y) dopasowanych ikon.
+        :return: Lista współrzędnych (x, y) dopasowanych ikon (środek).
         """
         # Konwersja QImage na macierz NumPy
-        icon = self.convert_qimage_to_numpy(sample_icon)
+        icon = self._convert_qimage_to_numpy(sample_icon)
 
         # Przekształcenie obrazu do skali szarości
         icon_gray = cv2.cvtColor(icon, cv2.COLOR_BGRA2GRAY)
@@ -154,23 +152,29 @@ class BuildingsMode(Mode):
         result = cv2.matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
 
         # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
-        threshold = 0.5
+        threshold = 0.7
         locations = np.where(result >= threshold)
 
+        # Wymiary ikony
+        icon_height, icon_width = icon_gray.shape
+
         # Konwersja współrzędnych do listy punktów (x, y)
-        coordinates = [(int(pt[0]), int(pt[1])) for pt in zip(*locations[::-1])]
+        coordinates = [
+            (int(pt[0] + icon_width / 2), int(pt[1] + icon_height / 2))  # Środek ikony
+            for pt in zip(*locations[::-1])
+        ]
 
         return coordinates
 
-    def convert_qimage_to_numpy(self, qimage):
-        """
-        Konwertuje QImage na macierz NumPy.
 
-        :param qimage: Obiekt QImage.
-        :return: Obraz jako macierz NumPy.
+
+    def _convert_qimage_to_numpy(self, qimage):
+        """
+        Konwertuje QImage na macierz NumPy bez wymuszania formatu.
+        Zakłada, że obraz jest w formacie RGBA8888.
         """
         width = qimage.width()
         height = qimage.height()
         ptr = qimage.bits()
-        ptr.setsize(height * width * 4)  # Każdy piksel ma 4 kanały (RGBA)
-        return np.array(ptr, dtype=np.uint8).reshape((height, width, 4))
+        ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
+        return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))

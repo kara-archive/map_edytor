@@ -167,7 +167,7 @@ class PixelSampler(dict):
                     if self.is_similar_color(color, state.color.getRgb()[:3], self.tolerance):
                         counts[state.name] += 1  # Zlicz prowincję
                         break
-        print(counts)
+        #print(counts)
         return counts
 
     @staticmethod
