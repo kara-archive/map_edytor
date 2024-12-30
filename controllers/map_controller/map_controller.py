@@ -70,11 +70,13 @@ class MapController:
         Spłaszcza obraz, łącząc bazowy obraz mapy i wszystkie widoczne warstwy.
         :return: Spłaszczony obraz jako numpy.ndarray.
         """
-        if self.cv_image is None:
-            raise ValueError("Brak obrazu bazowego (cv_image).")
+        base_layer_name = next((name for name, z in self.layer_manager.Z_VALUES.items() if z == 0), None)
+        if base_layer_name is None:
+            raise ValueError("Nie znaleziono warstwy bazowej z z_value równym 0.")
 
-        # Rozpocznij od obrazu bazowego
-        flattened_image = self.cv_image.copy()
+        flattened_image = self.layer_manager.get_layer(base_layer_name)
+        if flattened_image is None:
+            raise ValueError(f"Warstwa bazowa '{base_layer_name}' nie została znaleziona.")
 
         # Nakładanie widocznych warstw
         for layer_name in self.layer_manager.visible_layers:
