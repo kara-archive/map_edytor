@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QApplication
 from views.main_view import MainView  # Zakładam, że to Twój główny widok
 import os
 import shutil
-from modes.add_point import AddPoints
 
 def ensure_resources_exist():
     # Ścieżka do katalogu tymczasowego w PyInstaller
