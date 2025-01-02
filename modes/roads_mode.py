@@ -1,32 +1,28 @@
-from PyQt5.QtGui import QImage, QPainter, QPen, QColor, QPainterPath
+from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor, QImage, QPixmap
 from PyQt5.QtWidgets import QGraphicsPathItem
 import numpy as np
 from controllers.tools import Tools
 from .base_mode import Mode
-class RoadsMode:
+
+class RoadsMode(Mode):
     """Obsługuje tryb rysowania dróg z podglądem na żywo."""
 
-    def __init__(self, mode_manager, map_controller,):
-        Mode.__init__(self, map_controller)
+    def __init__(self, mode_manager, map_controller):
+        super().__init__(map_controller)
         self.map_controller = map_controller
-        self.path = QPainterPath()  # Aktualna ścieżka rysowania
-        self.preview_item = None  # Podgląd rysowania w czasie rzeczywistym
-        self.last_position = None  # Ostatnia znana pozycja myszy
+        self.path = None
+        self.last_position = None
+        self.preview_item = None
 
     def handle_event(self, event):
         """Obsługuje zdarzenia myszy."""
-        if event.event_type =="click":
-            Mode.start_snap(self, "roads")
-        if event.button == "left":
-            self._rysuj(event)
-        elif event.button == "right":
+        if event.button == "right":
             self._zmazuj(event)
-        if event.event_type =="release":
-            Mode.end_snap(self, "roads")
+        elif event.button == "left":
+            self._rysuj(event)
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
-
 
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
@@ -56,19 +52,13 @@ class RoadsMode:
             if roads_layer is None:
                 print("Brak warstwy 'roads' do rysowania.")
                 return
-            height, width, _ = roads_layer.shape
-            bytes_per_line = 4 * width
-            layer_image = QImage(roads_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
 
-            painter = QPainter(layer_image)
+            painter = QPainter(roads_layer)
             pen = QPen(QColor(128, 128, 128, 255))
             pen.setWidth(2)
             painter.setPen(pen)
             painter.drawPath(self.path)
             painter.end()
-
-            layer_data = layer_image.bits().asstring(bytes_per_line * height)
-            self.map_controller.layer_manager.layers["roads"] = np.frombuffer(layer_data, dtype=np.uint8).reshape(height, width, 4)
 
             # Odświeżenie warstwy
             self.map_controller.layer_manager.refresh_layer("roads")

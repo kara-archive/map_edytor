@@ -2,6 +2,7 @@ from PyQt5.QtGui import QImage, QPainter, QColor # type: ignore
 from controllers.tools import Tools
 import numpy as np # type: ignore
 from modes.base_mode import Mode
+
 class ArmyMode:
     """Obsługuje tryb armii."""
     def __init__(self, mode_manager, map_controller):
@@ -45,35 +46,21 @@ class ArmyMode:
         # Przekształć ikonę armii
         recolored_icon = self.recolor_icon(self.army_icon.copy(), state_color)
 
-        # Pobranie wymiarów obrazu warstwy
-        height, width, _ = army_layer.shape
-        bytes_per_line = 4 * width
-
-        # Tworzenie obrazu warstwy na bazie istniejących danych
-        layer_image = QImage(army_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-
         # Rysowanie ikony armii
-        painter = QPainter(layer_image)
+        painter = QPainter(army_layer)
         painter.drawImage(x - recolored_icon.width() // 2, y - recolored_icon.height() // 2, recolored_icon)
         painter.end()
-
-        # Aktualizacja danych warstwy
-        data = layer_image.bits().asstring(bytes_per_line * height)
-        self.map_controller.layer_manager.layers["army"] = np.frombuffer(data, dtype=np.uint8).reshape(height, width, 4)
 
         # Odświeżenie warstwy
         self.map_controller.layer_manager.refresh_layer("army")
 
-
     def erase_army(self, event):
-        army_layer = self.map_controller.layer_manager.get_layer("army")
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         if event.event_type in {"click", "move"}:
             radius = 20  # Promień gumki
             x, y = event.x, event.y
             Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "army", x, y, radius)
-            if event.event_type =="click":
-                layer = self.map_controller.layer_manager.get_layer("army")
+            if event.event_type == "click":
                 self.map_controller.snapshot_manager.end_snap("army")
         elif event.event_type == "release":
             pass

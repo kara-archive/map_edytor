@@ -12,7 +12,9 @@ class Mode:
         raise NotImplementedError
 
     def start_snap(self, name):
-            self.snapshot_manager.start_snap(name)
+            #self.snapshot_manager.start_snap(name)
+            print("start_snap")
 
     def end_snap(self, name):
-            self.snapshot_manager.end_snap(name)
+            #self.snapshot_manager.end_snap(name)
+            print("end_snap")

@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QImage, QPixmap # type: ignore
+from PyQt5.QtGui import QImage, QPixmap, QColor # type: ignore
 from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
 import numpy as np # type: ignore
 import os
@@ -30,18 +30,7 @@ class MapController:
         else:
             # Konwertujemy obraz na format RGBA8888
             image = image.convertToFormat(QImage.Format_RGBA8888)
-            width, height = image.width(), image.height()
-            bytes_per_line = image.bytesPerLine()
-            data = image.bits().asstring(bytes_per_line * height)
-            array = np.frombuffer(data, dtype=np.uint8).reshape((height, width, 4))
-
-            # Upewnij się, że obraz ma 4 kanały
-            if array.shape[2] != 4:
-                print(f"Uwaga: Obraz nie jest w formacie RGBA! Zmieniam format.")
-                alpha_channel = np.full((height, width, 1), 255, dtype=np.uint8)  # Pełna nieprzezroczystość
-                array = np.concatenate((array, alpha_channel), axis=2)  # Dodanie kanału alfa
-
-            self.cv_image = array.copy()  # Zachowujemy obraz z kanałem alfa
+            self.cv_image = image.copy()  # Zachowujemy obraz jako QImage
 
             # Aktualizuj scenę - wyświetl pustą warstwę (jeśli taka istnieje)
             self.update_scene()
@@ -52,13 +41,12 @@ class MapController:
     def update_scene(self):
         """Odświeża obraz na scenie."""
         # Tworzenie pustej warstwy, aby odświeżyć scenę
-        height, width, _ = self.cv_image.shape if self.cv_image is not None else (600, 800, 4)  # Domyślne wymiary
-        bytes_per_line = 4 * width
-        empty_layer = np.zeros((height, width, 4), dtype=np.uint8)  # Pusta warstwa RGBA
+        height, width = self.cv_image.height(), self.cv_image.width() if self.cv_image is not None else (600, 800)
+        empty_layer = QImage(width, height, QImage.Format_RGBA8888)
+        empty_layer.fill(QColor(0, 0, 0, 0))  # Przezroczysta warstwa
 
-        # Tworzenie QImage na podstawie pustej warstwy
-        q_image = QImage(empty_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-        pixmap = QPixmap.fromImage(q_image)
+        # Tworzenie QPixmap na podstawie pustej warstwy
+        pixmap = QPixmap.fromImage(empty_layer)
 
         # Dodanie pustej warstwy do sceny
         pixmap_item = QGraphicsPixmapItem(pixmap)

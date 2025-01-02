@@ -1,11 +1,11 @@
 from controllers.tools import Tools, PixelSampler
-from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap # type: ignore
-from PyQt5.QtCore import QSize # type: ignore # type: ignore
-import copy
-import numpy as np # type: ignore # type: ignore
-import cv2 # type: ignore
+from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap, QColor # type: ignore
+from PyQt5.QtCore import QSize # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
+import cv2
+import numpy as np
+
 
 class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
@@ -59,6 +59,7 @@ class BuildingsMode(Mode):
     def handle_event(self, event):
         if event.event_type == "click":
             Mode.start_snap(self, "buildings")
+
         if event.event_type == "click" and event.button == "left":
             self.add_building(event.x, event.y)
 
@@ -66,8 +67,8 @@ class BuildingsMode(Mode):
             self.erase_building(event)
 
         elif event.event_type == "release":
-            Mode.end_snap(self, "buildings")
             self.count_cities_by_state()
+            Mode.end_snap(self, "buildings")
 
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""
@@ -78,28 +79,20 @@ class BuildingsMode(Mode):
         self._draw_icon(building_layer, x, y)
 
     def erase_building(self, event):
-        #print(f"Erasing buildings around: ({event.x}, {event.y}), radius: 20")
         """Usuwa budynki w promieniu i zapisuje operację."""
         radius = 20
         Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "buildings", event.x, event.y, radius)
 
     def _draw_icon(self, building_layer, x, y):
         """Rysuje ikonę budynku na warstwie."""
-        height, width, _ = building_layer.shape
-        bytes_per_line = 4 * width
-
-        # Tworzenie obrazu warstwy
-        layer_image = QImage(building_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-        painter = QPainter(layer_image)
+        painter = QPainter(building_layer)
         if not painter.isActive():
             print("Painter nie jest aktywny!")
             return
         painter.drawImage(x - self.building_icon.width() // 2, y - self.building_icon.height() // 2, self.building_icon)
         painter.end()
 
-        # Aktualizacja danych warstwy
-        data = layer_image.bits().asstring(bytes_per_line * height)
-        self.map_controller.layer_manager.layers["buildings"] = np.frombuffer(data, dtype=np.uint8).reshape(height, width, 4)
+        # Odświeżenie warstwy
         self.map_controller.layer_manager.refresh_layer("buildings")
 
     def count_cities_by_state(self):
@@ -109,8 +102,8 @@ class BuildingsMode(Mode):
         if self.map_controller.cv_image is None:
             print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
             return
-        self.cities = self.find_cities(self.building_icons["city"], copy.deepcopy(self.map_controller.layer_manager.layers.get("buildings")))
-        self.farms = self.find_cities(self.building_icons["farm"], copy.deepcopy(self.map_controller.layer_manager.layers.get("buildings")))
+        self.cities = self.find_cities(self.building_icons["city"], self.map_controller.layer_manager.layers.get("buildings"))
+        self.farms = self.find_cities(self.building_icons["farm"], self.map_controller.layer_manager.layers.get("buildings"))
         building_types = {
             "cities": self.cities,
             "farms": self.farms,
@@ -130,6 +123,7 @@ class BuildingsMode(Mode):
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, building_type, pixel_sampler.get(state.name, 0))
                 print(f"Państwo {state.name} ma {getattr(state, building_type)} budynków typu '{building_type}'.")
+
 
     def find_cities(self, sample_icon, image):
         """
@@ -163,9 +157,7 @@ class BuildingsMode(Mode):
         ]
 
         return coordinates
-
-
-
+    
     def _convert_qimage_to_numpy(self, qimage):
         """
         Konwertuje QImage na macierz NumPy bez wymuszania formatu.
@@ -175,4 +167,4 @@ class BuildingsMode(Mode):
         height = qimage.height()
         ptr = qimage.bits()
         ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
-        return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
+        return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))    
