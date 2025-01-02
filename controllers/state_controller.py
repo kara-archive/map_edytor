@@ -1,9 +1,6 @@
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtGui import QColor # type: ignore
+from PyQt5.QtCore import QObject, pyqtSignal # type: ignore
 import csv, os
-from controllers.data import DATA
-from controllers.tools import PixelSampler
-from PyQt5.QtCore import pyqtSignal
 
 class StateController(QObject):
     """Handles the list of states and stores the last selected state."""
@@ -24,7 +21,10 @@ class StateController(QObject):
 
 
     def add_state(self, state):
-        self.states.append(state)
+        if state not in self.states:
+            self.states.append(state)
+        else:
+            print(f"State {state.name} already exists.")
 
     def save_to_csv(self, file_path):
         """Zapisuje aktualny stan państw do pliku CSV."""

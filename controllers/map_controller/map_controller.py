@@ -1,7 +1,6 @@
-from PyQt5.QtGui import QImage, QPixmap, QColor, QPainterPath, QRegion
-from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsScene, QGraphicsPathItem
-from PyQt5.QtCore import QObject, Qt, QPoint, QRect
-import numpy as np
+from PyQt5.QtGui import QImage, QPixmap # type: ignore
+from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
+import numpy as np # type: ignore
 import os
 from controllers.map_controller.layer_manager import LayerManager
 from controllers.map_controller.snapshot_manager import SnapshotManager
@@ -15,8 +14,8 @@ class MapController:
         self.state_controller = None
         self.button_panel = None
         self.layer_manager = LayerManager(self)
-        self.snapshot_manager = SnapshotManager(self)
-        self.mode_manager = ModeManager(self)
+        self.snapshot_manager = SnapshotManager(map_controller=self)
+        self.mode_manager = ModeManager(map_controller=self)
 
     def set_scene(self, scene):
         """Ustawia scenę dla kontrolera."""
@@ -39,7 +38,7 @@ class MapController:
             # Upewnij się, że obraz ma 4 kanały
             if array.shape[2] != 4:
                 print(f"Uwaga: Obraz nie jest w formacie RGBA! Zmieniam format.")
-                alpha_channel = np.full((height, width, 1), 255, dtype=np.uint8)  # Pełna przezroczystość
+                alpha_channel = np.full((height, width, 1), 255, dtype=np.uint8)  # Pełna nieprzezroczystość
                 array = np.concatenate((array, alpha_channel), axis=2)  # Dodanie kanału alfa
 
             self.cv_image = array.copy()  # Zachowujemy obraz z kanałem alfa
@@ -125,7 +124,7 @@ class MapController:
             cv_image_path = os.path.join(output_dir, "base_image.png")
             height, width, _ = self.cv_image.shape
             bytes_per_line = 4 * width
-            contiguous_image = np.ascontiguousarray(self.cv_image)  # Zapewnij ciągłość pamięci
+            contiguous_image = self.cv_image if self.cv_image.flags['C_CONTIGUOUS'] else np.ascontiguousarray(self.cv_image)  # Zapewnij ciągłość pamięci
             q_image = QImage(contiguous_image.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
             if not q_image.save(cv_image_path):
                 print(f"Nie udało się zapisać obrazu bazowego jako {cv_image_path}")
@@ -138,7 +137,9 @@ class MapController:
                 layer_image_path = os.path.join(output_dir, f"{layer_name}.png")
                 height, width, _ = layer_data.shape
                 bytes_per_line = 4 * width
-                contiguous_layer = np.ascontiguousarray(layer_data)  # Zapewnij ciągłość pamięci
+                if not layer_data.flags['C_CONTIGUOUS']:
+                    layer_data = np.ascontiguousarray(layer_data)  # Zapewnij ciągłość pamięci
+                contiguous_layer = layer_data
                 q_image = QImage(contiguous_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
                 if not q_image.save(layer_image_path):
                     print(f"Nie udało się zapisać warstwy '{layer_name}' jako {layer_image_path}")
@@ -176,7 +177,6 @@ class MapController:
         if pixmap_item:
             pixmap = QPixmap.fromImage(image)
             pixmap_item.setPixmap(pixmap)
-            print(f"Warstwa '{layer_name}' została odświeżona.")
 
         self.layer_manager.set_visibility(layer_name, True)
         print(f"Warstwa '{layer_name}' załadowana z {image_path}")

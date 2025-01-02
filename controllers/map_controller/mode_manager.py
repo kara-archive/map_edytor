@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject # type: ignore
 from modes.buildings_mode import BuildingsMode
 from modes.province_mode import ProvinceMode
 from modes.army_mode import ArmyMode
@@ -8,7 +8,7 @@ from modes.roads_mode import RoadsMode
 class ModeManager(QObject):
     """Zarządza aktywnym trybem i deleguje zdarzenia do aktywnego modu."""
 
-    def __init__(self, map_controller,):
+    def __init__(self, map_controller):
         super().__init__()
         self.map_controller = map_controller
         self.layer_manager = self.map_controller.layer_manager
@@ -53,5 +53,5 @@ class ModeManager(QObject):
         else:
             self.active_state = state
 
-    def get_active_state(self,):
+    def get_active_state(self):
         return self.active_state
