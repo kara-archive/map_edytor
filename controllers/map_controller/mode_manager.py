@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject
 from modes.province_mode import ProvinceMode
-
+import numpy as np
 
 
 class ModeManager(QObject):
@@ -10,7 +10,6 @@ class ModeManager(QObject):
         super().__init__()
         self.map_controller = map_controller
         self.layer_manager = self.map_controller.layer_manager
-        self.snapshot_manager = self.map_controller.snapshot_manager
         # Inicjalizacja trybów
         self.province_mode = ProvinceMode(self, map_controller)
         self.active_state = None
@@ -28,6 +27,7 @@ class ModeManager(QObject):
         """Ustawia aktywny tryb."""
         self.active_mode = self.modes.get(mode_name)
         self.active_mode_name = mode_name
+        self.province_mode.draw_province_dots((np.uint8(0), np.uint8(255), np.uint8(0)))
 
     def get_mode(self):
         return self.active_mode_name

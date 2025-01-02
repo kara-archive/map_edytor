@@ -25,7 +25,7 @@ class ProvinceMode:
         if event.button == "left" and event.event_type == "click":
                 fill_color = self.sampled_color
                 DATA.provinces.append((event.x, event.y))
-                self.draw_province_dots((np.uint8(68), np.uint8(107), np.uint8(163)))
+                self.draw_province_dots((np.uint8(0), np.uint8(255), np.uint8(0)))
         if event.button == "right" and event.event_type == "click":
                 fill_color = (np.uint8(255), np.uint8(255), np.uint8(255))
                 self.flood_fill(event.x, event.y, fill_color)

@@ -4,7 +4,6 @@ from PyQt5.QtCore import QObject, Qt, QPoint, QRect
 import numpy as np
 import os
 from controllers.map_controller.layer_manager import LayerManager
-from controllers.map_controller.snapshot_manager import SnapshotManager
 from controllers.map_controller.mode_manager import ModeManager
 
 
@@ -15,7 +14,6 @@ class MapController:
         self.state_controller = None
         self.button_panel = None
         self.layer_manager = LayerManager(self)
-        self.snapshot_manager = SnapshotManager(self)
         self.mode_manager = ModeManager(self)
 
     def set_scene(self, scene):
@@ -132,18 +130,6 @@ class MapController:
             else:
                 print(f"Obraz bazowy zapisany jako {cv_image_path}")
 
-        # Zapisz wszystkie warstwy
-        for layer_name, layer_data in self.layer_manager.layers.items():
-            if layer_data is not None:
-                layer_image_path = os.path.join(output_dir, f"{layer_name}.png")
-                height, width, _ = layer_data.shape
-                bytes_per_line = 4 * width
-                contiguous_layer = np.ascontiguousarray(layer_data)  # Zapewnij ciągłość pamięci
-                q_image = QImage(contiguous_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-                if not q_image.save(layer_image_path):
-                    print(f"Nie udało się zapisać warstwy '{layer_name}' jako {layer_image_path}")
-                else:
-                    print(f"Warstwa '{layer_name}' zapisana jako {layer_image_path}")
 
     def load_layer_from_png(self, layer_name, image_path):
         """

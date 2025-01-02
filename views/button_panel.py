@@ -120,10 +120,7 @@ class ButtonPanel(QWidget):
         """Wyróżnia przycisk aktywnego trybu."""
         # Słownik przycisków
         buttons = {
-            "army": self.wojsko_button,
             "province": self.prowincje_button,
-            "buildings": self.budynki_button,
-            "roads": self.drogi_button,
         }
 
         # Reset stylów dla wszystkich przycisków
@@ -197,10 +194,6 @@ class ButtonPanel(QWidget):
         try:
             # Zapisz obrazy PNG za pomocą MapController
             self.map_controller.save_layers_to_png(temp_dir)
-
-            # Zapisz CSV stanów za pomocą StateController
-            states_csv_path = os.path.join(temp_dir, "states_metadata.csv")
-            self.state_controller.save_to_csv(states_csv_path)
 
             # Zapisz CSV z DATA
             data_csv_path = os.path.join(temp_dir, "data_metadata.csv")

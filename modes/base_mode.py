@@ -5,7 +5,6 @@ class Mode:
     def __init__(self, map_controller):
         self.map_controller = map_controller
         self.layer_manager = map_controller.layer_manager
-        self.snapshot_manager = map_controller.snapshot_manager
 
     def handle_event(self, event):
 
