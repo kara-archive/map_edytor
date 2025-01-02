@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QGridLayout, QSizePolicy
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QSize, pyqtSignal
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy # type: ignore
+from PyQt5.QtGui import QColor # type: ignore
+from PyQt5.QtCore import QSize, pyqtSignal # type: ignore
 from controllers.state_controller import State
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer, Qt # type: ignore
 
 
 class StatePanel(QWidget):

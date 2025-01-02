@@ -1,7 +1,7 @@
 import os
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QPushButton, QFileDialog, QShortcut, QCheckBox, QHBoxLayout
-from PyQt5.QtCore import QTimer, pyqtSignal
-from PyQt5.QtGui import QKeySequence, QImage
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QPushButton, QFileDialog, QShortcut, QCheckBox, QHBoxLayout # type: ignore
+from PyQt5.QtCore import QTimer, pyqtSignal # type: ignore
+from PyQt5.QtGui import QKeySequence # type: ignore
 import os
 import zipfile
 from controllers.data import DATA

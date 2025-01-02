@@ -1,10 +1,8 @@
-from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QPainterPath
+from PyQt5.QtGui import QImage, QPainter, QPen, QColor, QPainterPath
 from PyQt5.QtWidgets import QGraphicsPathItem
-import copy
 import numpy as np
 from controllers.tools import Tools
-import copy
-from modes.base_mode import Mode
+from .base_mode import Mode
 class RoadsMode:
     """Obsługuje tryb rysowania dróg z podglądem na żywo."""
 

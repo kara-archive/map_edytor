@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QGraphicsScene, QShortcut
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QGraphicsScene, QShortcut # type: ignore
+from PyQt5.QtGui import QKeySequence # type: ignore
 from views.state_panel import StatePanel
 from views.map_view import MapView
 from views.button_panel import ButtonPanel

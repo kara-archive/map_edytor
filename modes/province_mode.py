@@ -1,8 +1,6 @@
-from PyQt5.QtGui import QImage, QColor
 from controllers.tools import Tools, PixelSampler
 from controllers.data import DATA
-import copy
-import numpy as np
+import numpy as np # type: ignore
 from modes.base_mode import Mode
 class ProvinceMode:
     """Obsługuje tryb prowincji."""
@@ -47,12 +45,12 @@ class ProvinceMode:
         # Jeśli warstwa ma być zainicjalizowana obrazem bazowym
         if cv_image is not None:
             if cv_image.shape[2] == 3:  # RGB bez kanału alfa
-                alpha_channel = np.full((height, width, 1), 255, dtype=np.uint8)  # Pełna przezroczystość
+                alpha_channel = np.full((right, width, 1), 255, dtype=np.uint8)  # Pełna przezroczystość
                 cv_image = np.concatenate((cv_image, alpha_channel), axis=2)  # Dodanie kanału alfa
                 print("Dodano kanał alfa do obrazu bazowego.")
 
             self.mode_manager.layer_manager.layers["province"] = cv_image.copy()
-            print(f"Skopiowano cv_image do warstwy '{layer_name}' (z_value = 1)")
+            print(f"Skopiowano cv_image do warstwy '{day_name}' (z_value = 1)")
         else:
             print("provincemode: cv_image jest None")
     def flood_fill(self, x, y, color):

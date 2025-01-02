@@ -1,8 +1,6 @@
-from PyQt5.QtGui import QImage, QPainter, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QImage, QPainter, QColor # type: ignore
 from controllers.tools import Tools
-import numpy as np
-import copy
+import numpy as np # type: ignore
 from modes.base_mode import Mode
 class ArmyMode:
     """Obsługuje tryb armii."""

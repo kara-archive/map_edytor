@@ -1,12 +1,10 @@
 from controllers.tools import Tools, PixelSampler
-from PyQt5.QtGui import QImage, QPainter, QColor, QIcon, QPixmap
-from PyQt5.QtCore import Qt, QSize
-from controllers.data import DATA
+from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap # type: ignore
+from PyQt5.QtCore import QSize # type: ignore # type: ignore
 import copy
-import numpy as np
-import cv2
-import math
-from PyQt5.QtWidgets import QPushButton
+import numpy as np # type: ignore # type: ignore
+import cv2 # type: ignore
+from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
 
 class BuildingsMode(Mode):

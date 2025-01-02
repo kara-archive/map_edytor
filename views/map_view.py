@@ -1,6 +1,6 @@
-from PyQt5.QtCore import pyqtSignal, QObject, Qt, QPointF
-from PyQt5.QtWidgets import QGraphicsView
-from PyQt5.QtGui import QWheelEvent
+from PyQt5.QtCore import pyqtSignal, Qt # type: ignore
+from PyQt5.QtWidgets import QGraphicsView # type: ignore # type: ignore
+from PyQt5.QtGui import QWheelEvent # type: ignore
 class MapEvent:
     """Uniwersalny obiekt zdarzenia mapy."""
     def __init__(self, event_type, x, y, button=None, delta=None):
