@@ -1,8 +1,6 @@
 from PyQt5.QtCore import QObject
-from modes.buildings_mode import BuildingsMode
 from modes.province_mode import ProvinceMode
-from modes.army_mode import ArmyMode
-from modes.roads_mode import RoadsMode
+
 
 
 class ModeManager(QObject):
