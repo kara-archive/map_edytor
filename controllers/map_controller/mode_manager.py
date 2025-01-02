@@ -14,24 +14,17 @@ class ModeManager(QObject):
         self.layer_manager = self.map_controller.layer_manager
         self.snapshot_manager = self.map_controller.snapshot_manager
         # Inicjalizacja trybów
-        self.buildings_mode = BuildingsMode(self, map_controller)
         self.province_mode = ProvinceMode(self, map_controller)
-        self.army_mode = ArmyMode(self, map_controller)
-        self.roads_mode = RoadsMode(self, map_controller)
         self.active_state = None
         self.active_mode = None
         self.active_mode_name = None
         self.modes = {
-            "buildings": self.buildings_mode,
             "province": self.province_mode,
-            "army": self.army_mode,
-            "roads": self.roads_mode,
         }
         self.layer_manager.Z_VALUES = {
             "province": 0,
             "roads": 1,
-            "buildings": 2,
-            "army": 3
+
         }
     def set_mode(self, mode_name=None):
         """Ustawia aktywny tryb."""
