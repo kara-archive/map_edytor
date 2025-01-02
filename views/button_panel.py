@@ -20,46 +20,6 @@ class ButtonPanel(QWidget):
         self.setLayout(layout)
 
 
-
-        # Przycisk Wojsko z checkboxem widoczności
-        wojsko_row = QHBoxLayout()
-        self.wojsko_visibility = QCheckBox()
-        self.wojsko_visibility.setChecked(True)
-        self.wojsko_visibility.stateChanged.connect(lambda state: self.toggle_visibility(state, "army"))
-        wojsko_row.addWidget(self.wojsko_visibility)
-
-        self.wojsko_button = QPushButton("Wojsko")
-        self.wojsko_button.clicked.connect(lambda: self.set_active_mode("army"))
-        wojsko_row.addWidget(self.wojsko_button)
-
-        layout.addLayout(wojsko_row)
-
-        # Przycisk Budynki z checkboxem widoczności
-        budynki_row = QHBoxLayout()
-        self.budynki_visibility = QCheckBox()
-        self.budynki_visibility.setChecked(True)
-        self.budynki_visibility.stateChanged.connect(lambda state: self.toggle_visibility(state, "buildings"))
-        budynki_row.addWidget(self.budynki_visibility)
-
-        self.budynki_button = QPushButton("Budynki")
-        self.budynki_button.clicked.connect(lambda: self.set_active_mode("buildings"))
-        budynki_row.addWidget(self.budynki_button)
-
-        layout.addLayout(budynki_row)
-
-        # Przycisk Drogi z checkboxem widoczności
-        drogi_row = QHBoxLayout()
-        self.drogi_visibility = QCheckBox()
-        self.drogi_visibility.setChecked(True)
-        self.drogi_visibility.stateChanged.connect(lambda state: self.toggle_visibility(state, "roads"))
-        drogi_row.addWidget(self.drogi_visibility)
-
-        self.drogi_button = QPushButton("Drogi")
-        self.drogi_button.clicked.connect(lambda: self.set_active_mode("roads"))
-        drogi_row.addWidget(self.drogi_button)
-
-        layout.addLayout(drogi_row)
-
         # Przycisk Prowincje
         self.prowincje_button = QPushButton("Prowincje")
         layout.addWidget(self.prowincje_button)
