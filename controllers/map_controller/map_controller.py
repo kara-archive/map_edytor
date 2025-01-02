@@ -27,7 +27,7 @@ class MapController:
         image = QImage(file_path)
         if image.isNull():
             self.button_panel.load_data()
-            self.export_image("Tury/0.Tura.png")
+            #self.export_image("Tury/0.Tura.png")
         else:
             # Konwertujemy obraz na format RGBA8888
             image = image.convertToFormat(QImage.Format_RGBA8888)
