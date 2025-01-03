@@ -3,6 +3,8 @@ from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
+import cv2
+import numpy as np
 
 
 class BuildingsMode(Mode):
@@ -123,25 +125,49 @@ class BuildingsMode(Mode):
                 print(f"Państwo {state.name} ma {getattr(state, building_type)} budynków typu '{building_type}'.")
 
 
-    def find_cities(self, sample_icon, layer):
-        if layer is None:
-            return []
+    def find_cities(self, sample_icon, image):
+        """
+        Wyszukuje współrzędne ikon w obrazie za pomocą dopasowywania szablonu.
 
-        icon_width, icon_height = sample_icon.width(), sample_icon.height()
-        layer_width, layer_height = layer.width(), layer.height()
+        :param sample_icon: QImage ikony do wyszukiwania (np. "city" lub "farm").
+        :param image: Obraz warstwy "buildings" jako macierz NumPy.
+        :return: Lista współrzędnych (x, y) dopasowanych ikon (środek).
+        """
+        # Konwersja QImage na macierz NumPy
+        icon = self._convert_qimage_to_numpy(sample_icon)
+        image = self._convert_qimage_to_numpy(image)
 
-        cities = []
+        # Przekształcenie obrazu do skali szarości
+        icon_gray = cv2.cvtColor(icon, cv2.COLOR_BGRA2GRAY)
+        image_gray = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
 
-        for x in range(layer_width - icon_width + 1):
-            for y in range(layer_height - icon_height + 1):
-                if self._is_icon_at_position(sample_icon, layer, x, y):
-                    cities.append((x, y))
-        return cities
+        # Wykonanie dopasowania szablonu
+        result = cv2.matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
 
-    def _is_icon_at_position(self, sample_icon, layer, x, y):
-        icon_width, icon_height = sample_icon.width(), sample_icon.height()
-        for ix in range(icon_width):
-            for iy in range(icon_height):
-                if sample_icon.pixel(ix, iy) != layer.pixel(x + ix, y + iy):
-                    return False
-        return True
+        # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
+        threshold = 0.7
+        locations = np.where(result >= threshold)
+
+        # Wymiary ikony
+        icon_height, icon_width = icon_gray.shape
+
+        # Konwersja współrzędnych do listy punktów (x, y)
+        coordinates = [
+            (int(pt[0] + icon_width / 2), int(pt[1] + icon_height / 2))  # Środek ikony
+            for pt in zip(*locations[::-1])
+        ]
+
+        return coordinates
+
+
+
+    def _convert_qimage_to_numpy(self, qimage):
+        """
+        Konwertuje QImage na macierz NumPy bez wymuszania formatu.
+        Zakłada, że obraz jest w formacie RGBA8888.
+        """
+        width = qimage.width()
+        height = qimage.height()
+        ptr = qimage.bits()
+        ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
+        return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
