@@ -1,6 +1,5 @@
 from PyQt5.QtGui import QImage, QPixmap, QColor # type: ignore
 from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
-import numpy as np # type: ignore
 import os
 from controllers.map_controller.layer_manager import LayerManager
 from controllers.map_controller.snapshot_manager import SnapshotManager
@@ -55,7 +54,7 @@ class MapController:
     def _flatten_image(self):
         """
         Spłaszcza obraz, łącząc bazowy obraz mapy i wszystkie widoczne warstwy.
-        :return: Spłaszczony obraz jako numpy.ndarray.
+        :return: Spłaszczony obraz jako QImage.
         """
         base_layer_name = next((name for name, z in self.layer_manager.Z_VALUES.items() if z == 0), None)
         if base_layer_name is None:
@@ -65,16 +64,16 @@ class MapController:
         if flattened_image is None:
             raise ValueError(f"Warstwa bazowa '{base_layer_name}' nie została znaleziona.")
 
+        # Konwertuj QImage na QImage.Format_RGBA8888
+        flattened_image = flattened_image.convertToFormat(QImage.Format_RGBA8888)
+
         # Nakładanie widocznych warstw
         for layer_name in self.layer_manager.visible_layers:
             layer_data = self.layer_manager.get_layer(layer_name)
             if layer_data is not None:
-                alpha_channel = layer_data[:, :, 3] / 255.0  # Normalizuj kanał alfa
-                for c in range(3):  # RGB
-                    flattened_image[:, :, c] = (
-                        alpha_channel * layer_data[:, :, c] +
-                        (1 - alpha_channel) * flattened_image[:, :, c]
-                    )
+                painter = QPainter(flattened_image)
+                painter.drawImage(0, 0, layer_data)
+                painter.end()
 
         return flattened_image
 
@@ -87,13 +86,8 @@ class MapController:
             # Spłaszcz obraz
             flattened_image = self._flatten_image()
 
-            # Konwertuj do QImage
-            height, width, _ = flattened_image.shape
-            bytes_per_line = 4 * width
-            q_image = QImage(flattened_image.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-
             # Zapisz do pliku
-            if not q_image.save(file_path):
+            if not flattened_image.save(file_path):
                 raise IOError(f"Nie udało się zapisać obrazu do pliku: {file_path}")
 
             print(f"Obraz został zapisany do: {file_path}")
@@ -110,11 +104,7 @@ class MapController:
         # Zapisz cv_image
         if self.cv_image is not None:
             cv_image_path = os.path.join(output_dir, "base_image.png")
-            height, width, _ = self.cv_image.shape
-            bytes_per_line = 4 * width
-            contiguous_image = self.cv_image if self.cv_image.flags['C_CONTIGUOUS'] else np.ascontiguousarray(self.cv_image)  # Zapewnij ciągłość pamięci
-            q_image = QImage(contiguous_image.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-            if not q_image.save(cv_image_path):
+            if not self.cv_image.save(cv_image_path):
                 print(f"Nie udało się zapisać obrazu bazowego jako {cv_image_path}")
             else:
                 print(f"Obraz bazowy zapisany jako {cv_image_path}")
@@ -123,13 +113,7 @@ class MapController:
         for layer_name, layer_data in self.layer_manager.layers.items():
             if layer_data is not None:
                 layer_image_path = os.path.join(output_dir, f"{layer_name}.png")
-                height, width, _ = layer_data.shape
-                bytes_per_line = 4 * width
-                if not layer_data.flags['C_CONTIGUOUS']:
-                    layer_data = np.ascontiguousarray(layer_data)  # Zapewnij ciągłość pamięci
-                contiguous_layer = layer_data
-                q_image = QImage(contiguous_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
-                if not q_image.save(layer_image_path):
+                if not layer_data.save(layer_image_path):
                     print(f"Nie udało się zapisać warstwy '{layer_name}' jako {layer_image_path}")
                 else:
                     print(f"Warstwa '{layer_name}' zapisana jako {layer_image_path}")
@@ -144,21 +128,17 @@ class MapController:
         if image.isNull():
             raise FileNotFoundError(f"Nie znaleziono pliku {image_path}")
 
-        # Konwersja do numpy array
+        # Konwersja do QImage.Format_RGBA8888
         image = image.convertToFormat(QImage.Format_RGBA8888)
-        width, height = image.width(), image.height()
-        bytes_per_line = image.bytesPerLine()
-        data = image.bits().asstring(bytes_per_line * height)
-        array = np.frombuffer(data, dtype=np.uint8).reshape(height, width, 4)
 
         if layer_name in self.layer_manager.layers:
             print(f"Nadpisywanie istniejącej warstwy '{layer_name}'")
-            self.layer_manager.layers[layer_name] = array
+            self.layer_manager.layers[layer_name] = image
         else:
             print(f"Tworzenie nowej warstwy '{layer_name}'")
             z_value = self.Z_VALUES.get(layer_name, 0)
-            self.layer_manager.add_layer(layer_name, width, height, z_value, self.scene)
-            self.layer_manager.layers[layer_name] = array
+            self.layer_manager.add_layer(layer_name, image.width(), image.height(), z_value, self.scene)
+            self.layer_manager.layers[layer_name] = image
 
         # Odśwież QGraphicsPixmapItem dla tej warstwy
         pixmap_item = self.layer_manager.layer_items.get(layer_name)
