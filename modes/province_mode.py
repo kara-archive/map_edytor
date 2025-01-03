@@ -62,18 +62,8 @@ class ProvinceMode(Mode):
         if target_color == fill_color:
             return
 
-        painter = QPainter(layer)
-        painter.setPen(fill_color)
-        painter.setBrush(fill_color)
-
-        # Implementacja algorytmu flood fill
-        stack = [(x, y)]
-        while stack:
-            cx, cy = stack.pop()
-            if layer.pixel(cx, cy) == target_color.rgb():
-                painter.drawPoint(cx, cy)
-                stack.extend([(cx + dx, cy + dy) for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]])
-        painter.end()
+        # Użycie funkcji fill z Tools
+        Tools.fill(layer, x, y, fill_color.getRgb()[:3])
 
         # Odśwież QGraphicsPixmapItem dla tej warstwy
         pixmap_item = self.map_controller.layer_manager.layer_items.get("province")
@@ -83,6 +73,7 @@ class ProvinceMode(Mode):
 
         self.map_controller.layer_manager.set_visibility("province", True)
         print(f"Warstwa 'province' została zaktualizowana.")
+
 
     def sample_provinces(self):
         states = self.map_controller.state_controller.get_states()

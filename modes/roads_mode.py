@@ -1,6 +1,5 @@
-from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor, QImage, QPixmap
+from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor
 from PyQt5.QtWidgets import QGraphicsPathItem
-import numpy as np
 from controllers.tools import Tools
 from .base_mode import Mode
 

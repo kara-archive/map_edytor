@@ -1,7 +1,5 @@
-from PyQt5.QtGui import QPainter, QImage, QColor, QPen
+from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt
-import numpy as np
-import math
 
 class Tools:
     @staticmethod

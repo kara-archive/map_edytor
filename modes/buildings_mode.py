@@ -135,6 +135,7 @@ class BuildingsMode(Mode):
         """
         # Konwersja QImage na macierz NumPy
         icon = self._convert_qimage_to_numpy(sample_icon)
+        image = self._convert_qimage_to_numpy(image)
 
         # Przekształcenie obrazu do skali szarości
         icon_gray = cv2.cvtColor(icon, cv2.COLOR_BGRA2GRAY)
@@ -157,7 +158,9 @@ class BuildingsMode(Mode):
         ]
 
         return coordinates
-    
+
+
+
     def _convert_qimage_to_numpy(self, qimage):
         """
         Konwertuje QImage na macierz NumPy bez wymuszania formatu.
@@ -167,4 +170,4 @@ class BuildingsMode(Mode):
         height = qimage.height()
         ptr = qimage.bits()
         ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
-        return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))    
+        return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
