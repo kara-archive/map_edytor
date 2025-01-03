@@ -1,6 +1,5 @@
 from PyQt5.QtGui import QImage, QPixmap, QColor # type: ignore
 from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore # type: ignore
-import numpy as np # type: ignore
 
 class LayerManager:
     def __init__(self, map_controller):

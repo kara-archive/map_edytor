@@ -1,6 +1,5 @@
-from controllers.map_controller.layer_manager import LayerManager
 import copy
-from controllers.data import DATA
+from PyQt5.QtGui import QImage
 
 class SnapshotManager:
     """Zarządza snapshotami delta stanu aplikacji."""
@@ -10,7 +9,7 @@ class SnapshotManager:
         self.history = []  # Lista delta snapshotów
         self.future = []  # Lista przyszłych snapshotów dla redo
         self.max_snapshots = max_snapshots
-        self.before_data = None
+        self.before_layer = None
 
     def create_snapshot(self, changes):
         delta_snapshot = {
@@ -43,13 +42,11 @@ class SnapshotManager:
             self.map_controller.layer_manager.layers[layer_name] = layer_data["before"] if undo else layer_data["after"]
             self.map_controller.layer_manager.refresh_layer(layer_name)
 
-
     def start_snap(self, layer):
-        self.before_layer = copy.deepcopy(self.map_controller.layer_manager.get_layer(layer))
-
+        self.before_layer = self._copy_layer(self.map_controller.layer_manager.get_layer(layer))
 
     def end_snap(self, layer):
-        after_layer = copy.deepcopy(self.map_controller.layer_manager.get_layer(layer))
+        after_layer = self._copy_layer(self.map_controller.layer_manager.get_layer(layer))
 
         self.create_snapshot({
             "layers": {
@@ -59,3 +56,8 @@ class SnapshotManager:
                 }
             }
         })
+
+    def _copy_layer(self, layer):
+        if isinstance(layer, QImage):
+            return layer.copy()
+        return copy.deepcopy(layer)
