@@ -326,6 +326,7 @@ class ButtonPanel(QWidget):
                 os.remove(os.path.join(temp_dir, file_name))
             os.rmdir(temp_dir)
             self.map_controller.mode_manager.province_mode.sample_provinces()
+            self.map_controller.mode_manager.buildings_mode.find_cities()
             self.map_controller.mode_manager.buildings_mode.count_cities_by_state()
             self.state_panel.update_states()
 

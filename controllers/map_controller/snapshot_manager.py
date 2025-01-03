@@ -28,6 +28,7 @@ class SnapshotManager:
         self.future.append(last_snapshot)
         self._apply_delta(last_snapshot, undo=True)
 
+
     def redo(self):
         if not self.future:
             print("Brak snapshotów do przywrócenia.")
@@ -41,6 +42,9 @@ class SnapshotManager:
         for layer_name, layer_data in layers_delta.items():
             self.map_controller.layer_manager.layers[layer_name] = layer_data["before"] if undo else layer_data["after"]
             self.map_controller.layer_manager.refresh_layer(layer_name)
+            if layer_name == "buildings":
+                self.map_controller.mode_manager.buildings_mode.find_cities()
+                self.map_controller.mode_manager.buildings_mode.count_cities_by_state()
 
     def start_snap(self, layer):
         self.before_layer = self._copy_layer(self.map_controller.layer_manager.get_layer(layer))

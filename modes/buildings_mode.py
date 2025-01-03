@@ -21,6 +21,7 @@ class BuildingsMode(Mode):
         }
 
         self.building_icon = self.building_icons["city"]
+        self.active_icon = "city"
 
         if self.building_icon.isNull():
             raise ValueError("Nie udało się załadować ikony budynku: icons/city.png")
@@ -51,23 +52,36 @@ class BuildingsMode(Mode):
     def set_icon_type(self, icon_type):
         if icon_type in self.building_icons:
             self.building_icon = self.building_icons[icon_type]  # Ustaw ikonę z mapy
+            self.active_icon = icon_type
             print(f"Ustawiono ikonę: {icon_type}")
         else:
             raise ValueError(f"Nieznany typ ikony: {icon_type}")
-
+    def add_building_position(self, x, y, building_type):
+        if building_type == "city":
+            self.cities.append((x, y))
+        elif building_type == "farm":
+            self.farms.append((x, y))
+        else:
+            raise ValueError(f"Nieznany typ budynku: {building_type}")
+        
     def handle_event(self, event):
         if event.event_type == "click":
             Mode.start_snap(self, "buildings")
 
         if event.event_type == "click" and event.button == "left":
             self.add_building(event.x, event.y)
+            self.add_building_position(event.x, event.y, self.active_icon)
 
-        elif event.event_type in {"move", "click"} and event.button == "right":
+        if event.event_type in {"move", "click"} and event.button == "right":
             self.erase_building(event)
 
-        elif event.event_type == "release":
+        if event.event_type == "release" and event.button == "right":
+            self.find_cities()
+
+        if event.event_type == "release":
             self.count_cities_by_state()
             Mode.end_snap(self, "buildings")
+
 
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""
@@ -101,8 +115,6 @@ class BuildingsMode(Mode):
         if self.map_controller.cv_image is None:
             print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
             return
-        self.cities = self.find_cities(self.building_icons["city"], self.map_controller.layer_manager.layers.get("buildings"))
-        self.farms = self.find_cities(self.building_icons["farm"], self.map_controller.layer_manager.layers.get("buildings"))
         building_types = {
             "cities": self.cities,
             "farms": self.farms,
@@ -110,9 +122,8 @@ class BuildingsMode(Mode):
 
         for building_type, positions in building_types.items():
             if not positions:
-                print(f"Brak zapisanych pozycji budynków w DATA.buildings.{building_type}.")
-                continue
-
+                positions = [(0, 0)]  # Próbka z lewego górnego rogu obrazu
+                
             pixel_sampler = PixelSampler(
                 self.map_controller.layer_manager.layers.get("province"),
                 positions,
@@ -124,25 +135,51 @@ class BuildingsMode(Mode):
                 print(f"Państwo {state.name} ma {getattr(state, building_type)} budynków typu '{building_type}'.")
 
 
-    def find_cities(self, sample_icon, layer):
+    def find_cities(self):
+        """
+        Znajduje współrzędne ikon odpowiadających próbce na warstwie.
+        """
+        layer = self.map_controller.layer_manager.get_layer("buildings")
+        
         if layer is None:
             return []
 
-        icon_width, icon_height = sample_icon.width(), sample_icon.height()
+        icon_data = {
+            "city": self.building_icons["city"],
+            "farm": self.building_icons["farm"]
+        }
+
         layer_width, layer_height = layer.width(), layer.height()
 
         cities = []
+        farms = []
 
-        for x in range(layer_width - icon_width + 1):
-            for y in range(layer_height - icon_height + 1):
-                if self._is_icon_at_position(sample_icon, layer, x, y):
-                    cities.append((x, y))
-        return cities
+        for icon_type, sample_icon in icon_data.items():
+            icon_width, icon_height = sample_icon.width(), sample_icon.height()
+            for x in range(layer_width - icon_width + 1):
+                for y in range(layer_height - icon_height + 1):
+                    if self._is_icon_at_position(sample_icon, layer, x, y):
+                        center_x = x + icon_width // 2
+                        center_y = y + icon_height // 2
+                        if icon_type == "city":
+                            cities.append((center_x, center_y))
+                        elif icon_type == "farm":
+                            farms.append((center_x, center_y))
+
+        self.cities = cities
+        self.farms = farms
 
     def _is_icon_at_position(self, sample_icon, layer, x, y):
+        """
+        Sprawdza, czy ikona znajduje się w określonej pozycji w warstwie.
+        """
         icon_width, icon_height = sample_icon.width(), sample_icon.height()
+
         for ix in range(icon_width):
             for iy in range(icon_height):
-                if sample_icon.pixel(ix, iy) != layer.pixel(x + ix, y + iy):
+                sample_pixel = sample_icon.pixel(ix, iy)
+                if QColor(sample_pixel).alpha() == 0:
+                    continue  # Ignoruj przezroczyste piksele
+                if sample_pixel != layer.pixel(x + ix, y + iy):
                     return False
         return True
