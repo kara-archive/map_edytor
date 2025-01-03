@@ -143,3 +143,46 @@ class PixelSampler(dict):
     def is_similar_color(color1, color2, tolerance):
         """Porównuje dwa kolory z uwzględnieniem tolerancji."""
         return all(abs(int(c1) - int(c2)) <= tolerance for c1, c2 in zip(color1, color2))
+
+    def TM_CCORR_NORMED(image, template):
+        """
+        Implementacja metody TM_CCORR_NORMED bez użycia OpenCV i numpy.
+        :param image: Obraz wejściowy jako QImage.
+        :param template: Szablon jako QImage.
+        :return: Wynik dopasowania jako QImage.
+        """
+        image_width, image_height = image.width(), image.height()
+        template_width, template_height = template.width(), template.height()
+
+        result_width = image_width - template_width + 1
+        result_height = image_height - template_height + 1
+        result = _Image(result_width, result_height, QImage.Format_Grayscale8)
+
+        # Obliczanie sumy kwadratów szablonu
+        template_sum_sq = sum(
+            QColor(template.pixel(x, y)).red() ** 2
+            for y in range(template_height)
+            for x in range(template_width)
+        )
+
+        for y in range(result_height):
+            for x in range(result_width):
+                numerator = 0
+                image_patch_sum_sq = 0
+
+                for j in range(template_height):
+                    for i in range(template_width):
+                        image_pixel = QColor(image.pixel(x + i, y + j)).red()
+                        template_pixel = QColor(template.pixel(i, j)).red()
+                        numerator += image_pixel * template_pixel
+                        image_patch_sum_sq += image_pixel ** 2
+
+                denominator = (image_patch_sum_sq * template_sum_sq) ** 0.5
+                if denominator != 0:
+                    result_value = numerator / denominator
+                else:
+                    result_value = 0
+
+                result.setPixel(x, y, qRgb(result_value * 255, result_value * 255, result_value * 255))
+
+        return result
