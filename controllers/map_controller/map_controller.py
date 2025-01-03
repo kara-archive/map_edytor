@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QImage, QPixmap, QColor # type: ignore
+from PyQt5.QtGui import QImage, QPixmap, QColor, QPainter # type: ignore
 from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
 import os
 from controllers.map_controller.layer_manager import LayerManager
