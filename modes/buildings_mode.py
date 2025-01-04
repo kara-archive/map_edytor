@@ -72,6 +72,10 @@ class BuildingsMode(Mode):
             (bx, by) for bx, by in self.cities
             if math.sqrt((bx - x) ** 2 + (by - y) ** 2) > radius
         ]
+        self.farms = [
+            (bx, by) for bx, by in self.farms
+            if math.sqrt((bx - x) ** 2 + (by - y) ** 2) > radius
+        ]
 
     def handle_event(self, event):
         if event.event_type == "click":
