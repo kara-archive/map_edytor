@@ -3,7 +3,7 @@ from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
-
+import math
 
 
 class BuildingsMode(Mode):
@@ -56,6 +56,7 @@ class BuildingsMode(Mode):
             print(f"Ustawiono ikonę: {icon_type}")
         else:
             raise ValueError(f"Nieznany typ ikony: {icon_type}")
+
     def add_building_position(self, x, y, building_type):
         if building_type == "city":
             self.cities.append((x, y))
@@ -63,7 +64,15 @@ class BuildingsMode(Mode):
             self.farms.append((x, y))
         else:
             raise ValueError(f"Nieznany typ budynku: {building_type}")
-        
+
+    def remove_building_positions(self, x, y, radius=20):
+
+        # Filtruj pozycje, które mają zostać zachowane (poza promieniem)
+        self.cities = [
+            (bx, by) for bx, by in self.cities
+            if math.sqrt((bx - x) ** 2 + (by - y) ** 2) > radius
+        ]
+
     def handle_event(self, event):
         if event.event_type == "click":
             Mode.start_snap(self, "buildings")
@@ -74,9 +83,7 @@ class BuildingsMode(Mode):
 
         if event.event_type in {"move", "click"} and event.button == "right":
             self.erase_building(event)
-
-        if event.event_type == "release" and event.button == "right":
-            self.find_cities()
+            self.remove_building_positions(event.x, event.y)
 
         if event.event_type == "release":
             self.count_cities_by_state()
@@ -123,7 +130,7 @@ class BuildingsMode(Mode):
         for building_type, positions in building_types.items():
             if not positions:
                 positions = [(0, 0)]  # Próbka z lewego górnego rogu obrazu
-                
+
             pixel_sampler = PixelSampler(
                 self.map_controller.layer_manager.layers.get("province"),
                 positions,
@@ -140,7 +147,7 @@ class BuildingsMode(Mode):
         Znajduje współrzędne ikon odpowiadających próbce na warstwie.
         """
         layer = self.map_controller.layer_manager.get_layer("buildings")
-        
+
         if layer is None:
             return []
 
