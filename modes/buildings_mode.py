@@ -148,7 +148,7 @@ class BuildingsMode(Mode):
 
     def find_cities(self):
         """
-        Znajduje współrzędne ikon odpowiadających próbce na warstwie.
+        Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
         """
         layer = self.map_controller.layer_manager.get_layer("buildings")
 
@@ -162,14 +162,33 @@ class BuildingsMode(Mode):
 
         layer_width, layer_height = layer.width(), layer.height()
 
+        # Buforowanie danych pikseli warstwy
+        layer_pixels = [
+            [layer.pixel(x, y) for y in range(layer_height)]
+            for x in range(layer_width)
+        ]
+
         cities = []
         farms = []
 
         for icon_type, sample_icon in icon_data.items():
             icon_width, icon_height = sample_icon.width(), sample_icon.height()
+
+            # Buforowanie danych pikseli ikony
+            sample_pixels = [
+                [sample_icon.pixel(ix, iy) for iy in range(icon_height)]
+                for ix in range(icon_width)
+            ]
+
+            # Maskowanie przezroczystości
+            transparency_mask = [
+                [QColor(sample_pixels[ix][iy]).alpha() > 0 for iy in range(icon_height)]
+                for ix in range(icon_width)
+            ]
+
             for x in range(layer_width - icon_width + 1):
                 for y in range(layer_height - icon_height + 1):
-                    if self._is_icon_at_position(sample_icon, layer, x, y):
+                    if self._is_icon_at_position(sample_pixels, transparency_mask, layer_pixels, x, y):
                         center_x = x + icon_width // 2
                         center_y = y + icon_height // 2
                         if icon_type == "city":
@@ -180,17 +199,16 @@ class BuildingsMode(Mode):
         self.cities = cities
         self.farms = farms
 
-    def _is_icon_at_position(self, sample_icon, layer, x, y):
+    def _is_icon_at_position(self, sample_pixels, transparency_mask, layer_pixels, x, y):
         """
-        Sprawdza, czy ikona znajduje się w określonej pozycji w warstwie.
+        Sprawdza, czy ikona znajduje się w określonej pozycji w warstwie z optymalizacją.
         """
-        icon_width, icon_height = sample_icon.width(), sample_icon.height()
+        icon_width, icon_height = len(sample_pixels), len(sample_pixels[0])
 
         for ix in range(icon_width):
             for iy in range(icon_height):
-                sample_pixel = sample_icon.pixel(ix, iy)
-                if QColor(sample_pixel).alpha() == 0:
+                if not transparency_mask[ix][iy]:
                     continue  # Ignoruj przezroczyste piksele
-                if sample_pixel != layer.pixel(x + ix, y + iy):
-                    return False
+                if sample_pixels[ix][iy] != layer_pixels[x + ix][y + iy]:
+                    return False  # Rozbieżność w pikselach
         return True
