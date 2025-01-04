@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
 import math
-
+import time
 
 class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
@@ -150,6 +150,7 @@ class BuildingsMode(Mode):
         """
         Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
         """
+        start_time = time.time()
         layer = self.map_controller.layer_manager.get_layer("buildings")
 
         if layer is None:
@@ -205,7 +206,9 @@ class BuildingsMode(Mode):
 
         self.cities = cities
         self.farms = farms
-
+        end_time = time.time()
+        print(f"Znaleziono {len(cities)} miast i {len(farms)} farm w {end_time - start_time:.2f} sekund.")
+        
     def _is_icon_at_position(self, sample_pixels, transparency_mask, layer_pixels, x, y):
         """
         Sprawdza, czy ikona znajduje się w określonej pozycji w warstwie z optymalizacją.
