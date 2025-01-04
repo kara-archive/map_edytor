@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
 import cv2
 import numpy as np
-
+import time
 
 class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
@@ -133,6 +133,7 @@ class BuildingsMode(Mode):
         :param image: Obraz warstwy "buildings" jako macierz NumPy.
         :return: Lista współrzędnych (x, y) dopasowanych ikon (środek).
         """
+        start_time = time.time()
         # Konwersja QImage na macierz NumPy
         icon = self._convert_qimage_to_numpy(sample_icon)
         image = self._convert_qimage_to_numpy(image)
@@ -156,7 +157,8 @@ class BuildingsMode(Mode):
             (int(pt[0] + icon_width / 2), int(pt[1] + icon_height / 2))  # Środek ikony
             for pt in zip(*locations[::-1])
         ]
-
+        end_time = time.time()
+        print(f"Wyszukiwanie {sample_icon} trwało {end_time - start_time:.2f} sekund.")
         return coordinates
 
 
