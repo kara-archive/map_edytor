@@ -168,12 +168,17 @@ class BuildingsMode(Mode):
             for x in range(layer_width)
         ]
 
+        # Szacowanie obszarów przezroczystych
+
+
         cities = []
         farms = []
 
         for icon_type, sample_icon in icon_data.items():
             icon_width, icon_height = sample_icon.width(), sample_icon.height()
-
+            pix = icon_width - 1
+            transparent_areas = self.estimate_transparent_areas(layer_pixels, pix)
+            
             # Buforowanie danych pikseli ikony
             sample_pixels = [
                 [sample_icon.pixel(ix, iy) for iy in range(icon_height)]
@@ -188,6 +193,8 @@ class BuildingsMode(Mode):
 
             for x in range(layer_width - icon_width + 1):
                 for y in range(layer_height - icon_height + 1):
+                    if transparent_areas[x][y]:
+                        continue  # Pomijanie obszarów przezroczystych
                     if self._is_icon_at_position(sample_pixels, transparency_mask, layer_pixels, x, y):
                         center_x = x + icon_width // 2
                         center_y = y + icon_height // 2
@@ -212,3 +219,22 @@ class BuildingsMode(Mode):
                 if sample_pixels[ix][iy] != layer_pixels[x + ix][y + iy]:
                     return False  # Rozbieżność w pikselach
         return True
+
+    def estimate_transparent_areas(self, layer_pixels, pix=4):
+        """
+        Szacuje obszary przezroczyste, aby zoptymalizować proces wyszukiwania ikon.
+        Iteruje co zadany piksel (domyślnie co 4 piksele).
+        """
+        layer_width = len(layer_pixels)
+        layer_height = len(layer_pixels[0])
+        transparent_areas = [[True] * layer_height for _ in range(layer_width)]
+
+        for x in range(0, layer_width, pix):
+            for y in range(0, layer_height, pix):
+                if QColor(layer_pixels[x][y]).alpha() != 0:
+                    for ix in range(pix):
+                        for iy in range(pix):
+                            if x + ix < layer_width and y + iy < layer_height:
+                                transparent_areas[x + ix][y + iy] = False
+
+        return transparent_areas
