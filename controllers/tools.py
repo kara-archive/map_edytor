@@ -70,7 +70,7 @@ class Tools:
         painter = QPainter(layer)
         painter.setCompositionMode(QPainter.CompositionMode_Clear)  # Ustaw tryb usuwania
         painter.setBrush(Qt.transparent)
-        painter.drawEllipse(x - radius, y - radius, radius * 2, radius * 2)
+        painter.drawRect(x - radius, y - radius, radius * 2, radius * 2)
         painter.end()
 
         # Odświeżenie graficznej reprezentacji warstwy

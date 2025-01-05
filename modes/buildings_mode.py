@@ -3,7 +3,6 @@ from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
-import math
 import time
 
 class BuildingsMode(Mode):
@@ -65,16 +64,15 @@ class BuildingsMode(Mode):
         else:
             raise ValueError(f"Nieznany typ budynku: {building_type}")
 
-    def remove_building_positions(self, x, y, radius=20):
-
-        # Filtruj pozycje, które mają zostać zachowane (poza promieniem)
+    def remove_building_positions(self, x, y, size=20):
+        # Filtruj pozycje, które mają zostać zachowane (poza kwadratem)
         self.cities = [
             (bx, by) for bx, by in self.cities
-            if math.sqrt((bx - x) ** 2 + (by - y) ** 2) > radius
+            if not (x - size <= bx <= x + size and y - size <= by <= y + size)
         ]
         self.farms = [
             (bx, by) for bx, by in self.farms
-            if math.sqrt((bx - x) ** 2 + (by - y) ** 2) > radius
+            if not (x - size <= bx <= x + size and y - size <= by <= y + size)
         ]
 
     def handle_event(self, event):
