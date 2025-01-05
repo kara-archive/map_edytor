@@ -1,9 +1,10 @@
 from controllers.tools import Tools, PixelSampler
 from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap, QColor # type: ignore
-from PyQt5.QtCore import QSize # type: ignore
+from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
 import time
+from threading import Thread
 
 class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
@@ -91,6 +92,22 @@ class BuildingsMode(Mode):
             self.count_cities_by_state()
             Mode.end_snap(self, "buildings")
 
+    def start_buildings_timer(self):
+        if not hasattr(self, '_buildings_timer'):
+            self._buildings_timer = QTimer()
+            self._buildings_timer.setSingleShot(True)
+            self._buildings_timer.timeout.connect(self._process_buildings)
+
+        self._buildings_timer.start(1000)
+
+    def _process_buildings(self):
+
+        def process():
+            self.find_cities()
+            self.count_cities_by_state()
+
+        thread = Thread(target=process)
+        thread.start()
 
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""

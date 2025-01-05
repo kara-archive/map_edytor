@@ -55,3 +55,9 @@ class ModeManager(QObject):
 
     def get_active_state(self):
         return self.active_state
+
+    def init_modes(self):
+        print("Inicjalizacja trybów...")
+        self.mode_manager.province_mode.sample_provinces()
+        self.mode_manager.buildings_mode.find_cities()
+        self.mode_manager.buildings_mode.count_cities_by_state()        

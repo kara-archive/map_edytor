@@ -325,9 +325,7 @@ class ButtonPanel(QWidget):
             for file_name in os.listdir(temp_dir):
                 os.remove(os.path.join(temp_dir, file_name))
             os.rmdir(temp_dir)
-            self.map_controller.mode_manager.province_mode.sample_provinces()
-            self.map_controller.mode_manager.buildings_mode.find_cities()
-            self.map_controller.mode_manager.buildings_mode.count_cities_by_state()
+            self.map_controller.init_modes()
             self.state_panel.update_states()
 
         print("Dane zostały pomyślnie przywrócone.")

@@ -36,6 +36,12 @@ class MapController:
 
             # Inicjalizuj elementy warstw
             self.layer_manager.initialize_layer_items(self.scene, self.cv_image)
+            
+    def init_modes(self):
+        print("Inicjalizacja trybów...")
+        self.mode_manager.province_mode.sample_provinces()
+        self.mode_manager.buildings_mode.find_cities()
+        self.mode_manager.buildings_mode.count_cities_by_state()        
 
     def update_scene(self):
         """Odświeża obraz na scenie."""
