@@ -139,11 +139,11 @@ class BuildingsMode(Mode):
         image = self._convert_qimage_to_numpy(image)
 
         # Przekształcenie obrazu do skali szarości
-        icon_gray = cv2.cvtColor(icon, cv2.COLOR_BGRA2GRAY)
-        image_gray = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
+        icon_gray = cvtColor(icon, COLOR_BGRA2GRAY)
+        image_gray = cvtColor(image, COLOR_BGRA2GRAY)
 
         # Wykonanie dopasowania szablonu
-        result = cv2.matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
+        result = matchTemplate(image_gray, icon_gray, TM_CCOEFF_NORMED)
 
         # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
         threshold = 0.7
