@@ -1,4 +1,4 @@
-from controllers.tools import Tools, PixelSampler
+from controllers.tools import fill, PixelSampler
 from controllers.data import DATA
 from PyQt5.QtGui import QImage, QColor, QPainter, QPixmap
 from modes.base_mode import Mode
@@ -62,8 +62,7 @@ class ProvinceMode(Mode):
         if target_color == fill_color:
             return
 
-        # Użycie funkcji fill z Tools
-        Tools.fill(layer, x, y, fill_color.getRgb()[:3])
+        fill(layer, x, y, fill_color.getRgb()[:3])
 
         # Odśwież QGraphicsPixmapItem dla tej warstwy
         pixmap_item = self.map_controller.layer_manager.layer_items.get("province")

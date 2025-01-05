@@ -1,110 +1,100 @@
 from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt
 
-class Tools:
-    @staticmethod
-    def fill(layer, x, y, color):
-        # Pobranie wymiarów obrazu
-        height, width = layer.height(), layer.width()
 
-        fill_color = (color[0], color[1], color[2])  # RGB
-        start_color = QColor(layer.pixel(x, y)).getRgb()[:3]
-        if start_color == fill_color or start_color in [(0, 0, 0), (47, 74, 113)]:
-            print("Debug: Kolor startowy i docelowy są takie same lub czarny.")
-            return
 
-        # BFS z liniowym przetwarzaniem
-        queue = [(x, y)]
-        visited = set()
+def fill(layer, x, y, color):
+    # Pobranie wymiarów obrazu
+    height, width = layer.height(), layer.width()
 
-        while queue:
-            current_x, current_y = queue.pop(0)
-            if (current_x, current_y) in visited:
-                continue
-            visited.add((current_x, current_y))
+    fill_color = (color[0], color[1], color[2])  # RGB
+    start_color = QColor(layer.pixel(x, y)).getRgb()[:3]
+    if start_color == fill_color or start_color in [(0, 0, 0), (47, 74, 113)]:
+        print("Debug: Kolor startowy i docelowy są takie same lub czarny.")
+        return
 
-            # Zabezpieczenie przed przekroczeniem granic
-            if current_x < 0 or current_y < 0 or current_x >= width or current_y >= height:
-                continue
+    # BFS z liniowym przetwarzaniem
+    queue = [(x, y)]
+    visited = set()
 
-            # Sprawdź kolor bieżącego piksela
-            current_pixel = QColor(layer.pixel(current_x, current_y)).getRgb()[:3]
-            if current_pixel != start_color:
-                continue
+    while queue:
+        current_x, current_y = queue.pop(0)
+        if (current_x, current_y) in visited:
+            continue
+        visited.add((current_x, current_y))
 
-            # Wypełnij linię w prawo
-            left_x, right_x = current_x, current_x
-            while left_x > 0 and QColor(layer.pixel(left_x - 1, current_y)).getRgb()[:3] == start_color:
-                left_x -= 1
-            while right_x < width - 1 and QColor(layer.pixel(right_x + 1, current_y)).getRgb()[:3] == start_color:
-                right_x += 1
+        # Zabezpieczenie przed przekroczeniem granic
+        if current_x < 0 or current_y < 0 or current_x >= width or current_y >= height:
+            continue
 
-            # Wypełnij linię i dodaj sąsiadów do kolejki
-            for fill_x in range(left_x, right_x + 1):
-                layer.setPixel(fill_x, current_y, QColor(*fill_color).rgba())
-                if current_y > 0:  # Dodaj linię powyżej
-                    queue.append((fill_x, current_y - 1))
-                if current_y < height - 1:  # Dodaj linię poniżej
-                    queue.append((fill_x, current_y + 1))
+        # Sprawdź kolor bieżącego piksela
+        current_pixel = QColor(layer.pixel(current_x, current_y)).getRgb()[:3]
+        if current_pixel != start_color:
+            continue
 
-        return layer
+        # Wypełnij linię w prawo
+        left_x, right_x = current_x, current_x
+        while left_x > 0 and QColor(layer.pixel(left_x - 1, current_y)).getRgb()[:3] == start_color:
+            left_x -= 1
+        while right_x < width - 1 and QColor(layer.pixel(right_x + 1, current_y)).getRgb()[:3] == start_color:
+            right_x += 1
 
-    @staticmethod
-    def erase_area(map_controller, layer_manager, layer_name, x, y, radius=5):
-        """
-        Usuwa obszar z podanej warstwy, ustawiając piksele w obszarze na przezroczyste.
+        # Wypełnij linię i dodaj sąsiadów do kolejki
+        for fill_x in range(left_x, right_x + 1):
+            layer.setPixel(fill_x, current_y, QColor(*fill_color).rgba())
+            if current_y > 0:  # Dodaj linię powyżej
+                queue.append((fill_x, current_y - 1))
+            if current_y < height - 1:  # Dodaj linię poniżej
+                queue.append((fill_x, current_y + 1))
 
-        :param layer_manager: Obiekt LayerManager odpowiedzialny za warstwy.
-        :param layer_name: Nazwa warstwy, na której działa gumka.
-        :param x: Współrzędna X środka gumki.
-        :param y: Współrzędna Y środka gumki.
-        :param radius: Promień gumki.
-        """
-        # Pobierz warstwę z LayerManager
-        layer = layer_manager.get_layer(layer_name)
-        if layer is None:
-            print(f"Brak warstwy '{layer_name}' do usuwania.")
-            return
+    return layer
 
-        # Usuwanie (rysowanie przezroczystości)
-        painter = QPainter(layer)
-        painter.setCompositionMode(QPainter.CompositionMode_Clear)  # Ustaw tryb usuwania
-        painter.setBrush(Qt.transparent)
-        painter.drawRect(x - radius, y - radius, radius * 2, radius * 2)
-        painter.end()
 
-        # Odświeżenie graficznej reprezentacji warstwy
-        layer_manager.refresh_layer(layer_name)
+def erase_area(layer_manager, layer_name, x, y, radius=5):
+    # Pobierz warstwę z LayerManager
+    layer = layer_manager.get_layer(layer_name)
+    if layer is None:
+        print(f"Brak warstwy '{layer_name}' do usuwania.")
+        return
 
-    @staticmethod
-    def draw_shape(layer_manager, layer_name, shape, *args, **kwargs):
-        """
-        Rysuje kształt na podanej warstwie.
-        :param shape: Typ kształtu (np. 'ellipse', 'rectangle', 'line').
-        :param args: Argumenty definiujące położenie i wymiary kształtu.
-        :param kwargs: Opcjonalne argumenty, np. kolor, szerokość linii.
-        """
-        layer = layer_manager.get_layer(layer_name)
-        if layer is None:
-            raise ValueError(f"Warstwa '{layer_name}' nie istnieje.")
+    # Usuwanie (rysowanie przezroczystości)
+    painter = QPainter(layer)
+    painter.setCompositionMode(QPainter.CompositionMode_Clear)  # Ustaw tryb usuwania
+    painter.setBrush(Qt.transparent)
+    painter.drawRect(x - radius, y - radius, radius * 2, radius * 2)
+    painter.end()
 
-        painter = QPainter(layer)
-        pen = QPen(kwargs.get("color", Qt.black))
-        pen.setWidth(kwargs.get("width", 1))
-        painter.setPen(pen)
+    # Odświeżenie graficznej reprezentacji warstwy
+    layer_manager.refresh_layer(layer_name)
 
-        if shape == "ellipse":
-            x, y, w, h = args
-            painter.drawEllipse(x, y, w, h)
-        elif shape == "rectangle":
-            x, y, w, h = args
-            painter.drawRect(x, y, w, h)
-        elif shape == "line":
-            x1, y1, x2, y2 = args
-            painter.drawLine(x1, y1, x2, y2)
+def draw_shape(layer_manager, layer_name, shape, *args, **kwargs):
+    """
+    Rysuje kształt na podanej warstwie.
+    :param shape: Typ kształtu (np. 'ellipse', 'rectangle', 'line').
+    :param args: Argumenty definiujące położenie i wymiary kształtu.
+    :param kwargs: Opcjonalne argumenty, np. kolor, szerokość linii.
+    """
+    layer = layer_manager.get_layer(layer_name)
+    if layer is None:
+        raise ValueError(f"Warstwa '{layer_name}' nie istnieje.")
 
-        painter.end()
-        layer_manager.refresh_layer(layer_name)
+    painter = QPainter(layer)
+    pen = QPen(kwargs.get("color", Qt.black))
+    pen.setWidth(kwargs.get("width", 1))
+    painter.setPen(pen)
+
+    if shape == "ellipse":
+        x, y, w, h = args
+        painter.drawEllipse(x, y, w, h)
+    elif shape == "rectangle":
+        x, y, w, h = args
+        painter.drawRect(x, y, w, h)
+    elif shape == "line":
+        x1, y1, x2, y2 = args
+        painter.drawLine(x1, y1, x2, y2)
+
+    painter.end()
+    layer_manager.refresh_layer(layer_name)
 
 class PixelSampler(dict):
     """Klasa odpowiedzialna za próbkowanie pikseli na mapie."""

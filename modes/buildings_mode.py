@@ -1,4 +1,4 @@
-from controllers.tools import Tools, PixelSampler
+from controllers.tools import erase_area, PixelSampler
 from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
@@ -119,8 +119,8 @@ class BuildingsMode(Mode):
 
     def erase_building(self, event):
         """Usuwa budynki w promieniu i zapisuje operację."""
-        radius = 20
-        Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "buildings", event.x, event.y, radius)
+        radius = 15
+        erase_area(self.map_controller.layer_manager, "buildings", event.x, event.y, radius)
 
     def _draw_icon(self, building_layer, x, y):
         """Rysuje ikonę budynku na warstwie."""
@@ -190,7 +190,7 @@ class BuildingsMode(Mode):
         for icon_type, sample_icon in icon_data.items():
             icon_width, icon_height = sample_icon.width(), sample_icon.height()
 
-            
+
             # Buforowanie danych pikseli ikony
             sample_pixels = [
                 [sample_icon.pixel(ix, iy) for iy in range(icon_height)]
@@ -231,4 +231,3 @@ class BuildingsMode(Mode):
                 if sample_pixels[ix][iy] != layer_pixels[x + ix][y + iy]:
                     return False  # Rozbieżność w pikselach
         return True
-

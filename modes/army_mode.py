@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QImage, QPainter, QColor # type: ignore
-from controllers.tools import Tools
+from controllers.tools import erase_area
 import numpy as np # type: ignore
 from modes.base_mode import Mode
 
@@ -59,7 +59,7 @@ class ArmyMode:
         if event.event_type in {"click", "move"}:
             radius = 20  # Promień gumki
             x, y = event.x, event.y
-            Tools.erase_area(self.map_controller, self.map_controller.layer_manager, "army", x, y, radius)
+            erase_area(self.map_controller.layer_manager, "army", x, y, radius)
             if event.event_type == "click":
                 self.map_controller.snapshot_manager.end_snap("army")
         elif event.event_type == "release":
