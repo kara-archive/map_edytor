@@ -1,9 +1,9 @@
 from controllers.tools import flood_fill, PixelSampler
 from controllers.data import DATA
-from PyQt5.QtGui import QImage, QColor, QPainter, QPixmap
+from PyQt5.QtGui import QColor
 from modes.base_mode import Mode
 from PyQt5.QtWidgets import QPushButton # type: ignore
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize # type: ignore
 
 class ProvinceMode(Mode):
     """Obsługuje tryb prowincji."""

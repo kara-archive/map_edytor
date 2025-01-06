@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QImage, QPainter, QColor # type: ignore
+from PyQt5.QtGui import QImage, QColor # type: ignore
 from controllers.tools import erase_area, draw_icon
 from modes.base_mode import Mode
 
@@ -40,7 +40,7 @@ class ArmyMode:
         # Przekształć ikonę armii
         recolored_icon = self.recolor_icon(self.army_icon.copy(), state_color)
 
-        army_layer = draw_icon(self.layer_manager, army_layer, recolored_icon, x, y)
+        army_layer = draw_icon(army_layer, recolored_icon, x, y)
         self.map_controller.layer_manager.refresh_layer("army")
 
     def erase_army(self, event):
