@@ -1,4 +1,4 @@
-from controllers.tools import fill, PixelSampler
+from controllers.tools import flood_fill, PixelSampler
 from controllers.data import DATA
 from PyQt5.QtGui import QImage, QColor, QPainter, QPixmap
 from modes.base_mode import Mode
@@ -30,7 +30,7 @@ class ProvinceMode(Mode):
             else:
                 print("ProvinceMode: Brak aktywnego państwa lub koloru próbki.")
                 return
-            self.flood_fill(event.x, event.y, fill_color)
+            self.color_fill(event.x, event.y, fill_color)
         if event.event_type == "release":
             self.end_snap("province")
             self.sample_provinces()
@@ -38,28 +38,11 @@ class ProvinceMode(Mode):
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
 
-    def copy_image(self, cv_image):
-        # Jeśli warstwa ma być zainicjalizowana obrazem bazowym
-        if cv_image is not None:
-            if cv_image.format() != QImage.Format_RGBA8888:
-                cv_image = cv_image.convertToFormat(QImage.Format_RGBA8888)
-                print("Dodano kanał alfa do obrazu bazowego.")
 
-            self.map_controller.layer_manager.layers["province"] = cv_image.copy()
-            print(f"Skopiowano cv_image do warstwy 'province' (z_value = 1)")
-        else:
-            print("ProvinceMode: cv_image jest None")
-
-    def flood_fill(self, x, y, color):
+    def color_fill(self, x, y, color):
         layer = self.map_controller.layer_manager.get_layer("province")
-
-        target_color = QColor(layer.pixel(x, y))
         fill_color = QColor(color)
-
-        if target_color == fill_color:
-            return
-
-        layer = fill(layer, x, y, fill_color.getRgb()[:3])
+        layer = flood_fill(layer, x, y, fill_color.getRgb()[:3])
         self.map_controller.layer_manager.refresh_layer("province")
 
 

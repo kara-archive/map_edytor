@@ -105,6 +105,7 @@ class BuildingsMode(Mode):
 
         thread = Thread(target=process)
         thread.start()
+        thread.join()
 
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""

@@ -1,14 +1,13 @@
 from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt
 
-def fill(layer, x, y, color):
+def flood_fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
     height, width = layer.height(), layer.width()
 
     fill_color = (color[0], color[1], color[2])  # RGB
     start_color = QColor(layer.pixel(x, y)).getRgb()[:3]
-    if start_color == fill_color or start_color in [(0, 0, 0), (47, 74, 113)]:
-        print("Debug: Kolor startowy i docelowy są takie same lub czarny.")
+    if start_color in [(0, 0, 0), (47, 74, 113), fill_color]:
         return
 
     # BFS z liniowym przetwarzaniem

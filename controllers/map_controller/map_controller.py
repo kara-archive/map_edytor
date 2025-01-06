@@ -1,9 +1,10 @@
 from PyQt5.QtGui import QImage, QPixmap, QColor, QPainter # type: ignore
 from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
 import os
-from controllers.map_controller.layer_manager import LayerManager
-from controllers.map_controller.snapshot_manager import SnapshotManager
-from controllers.map_controller.mode_manager import ModeManager
+from .layer_manager import LayerManager
+from .snapshot_manager import SnapshotManager
+from .mode_manager import ModeManager
+from threading import Thread
 
 
 class MapController:
@@ -36,12 +37,16 @@ class MapController:
 
             # Inicjalizuj elementy warstw
             self.layer_manager.initialize_layer_items(self.scene, self.cv_image)
-            
+
     def init_modes(self):
-        print("Inicjalizacja trybów...")
-        self.mode_manager.province_mode.sample_provinces()
-        self.mode_manager.buildings_mode.find_cities()
-        self.mode_manager.buildings_mode.count_cities_by_state()        
+        def process():
+            self.mode_manager.province_mode.sample_provinces()
+            self.mode_manager.buildings_mode.find_cities()
+            self.mode_manager.buildings_mode.count_cities_by_state()
+        thread = Thread(target=process)
+        thread.start()
+        thread.join()
+
 
     def update_scene(self):
         """Odświeża obraz na scenie."""

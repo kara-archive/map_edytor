@@ -273,7 +273,6 @@ class ButtonPanel(QWidget):
                 print(f"Błąd podczas wczytywania danych: {e}")
 
 
-
     def load(self, input_zip_path):
         """
         Importuje dane z pliku ZIP i przywraca je do stanu aplikacji.
