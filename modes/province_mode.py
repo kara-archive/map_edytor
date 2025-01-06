@@ -2,6 +2,8 @@ from controllers.tools import flood_fill, PixelSampler
 from controllers.data import DATA
 from PyQt5.QtGui import QImage, QColor, QPainter, QPixmap
 from modes.base_mode import Mode
+from PyQt5.QtWidgets import QPushButton # type: ignore
+from PyQt5.QtCore import QSize
 
 class ProvinceMode(Mode):
     """Obsługuje tryb prowincji."""
@@ -12,37 +14,54 @@ class ProvinceMode(Mode):
         self.active_state = None
         self.mode_manager = mode_manager
         self.layer = self.map_controller.layer_manager.get_layer("province")
+        self.fill_color = None
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""
         if self.active_state != self.mode_manager.active_state:
             self.active_state = self.mode_manager.active_state
             self.sampled_color = None
-        if event.event_type == "click":
-            self.start_snap("province")
+            self.setup_menu()
+
         if event.event_type == "click" and event.button == "right":
              self.get_color_at(event.x, event.y)
+             self.setup_menu()
         elif event.button == "left":
             if self.sampled_color:
-                fill_color = self.sampled_color
+                self.fill_color = self.sampled_color
             elif self.active_state and hasattr(self.active_state, 'color'):
-                fill_color = self.active_state.color
+                self.fill_color = self.active_state.color
             else:
                 print("ProvinceMode: Brak aktywnego państwa lub koloru próbki.")
                 return
-            self.color_fill(event.x, event.y, fill_color)
-        if event.event_type == "release":
-            self.end_snap("province")
-            self.sample_provinces()
+            
+            if event.event_type == "click":
+                self.start_snap("province")
+            self.color_fill(event.x, event.y, self.fill_color)
+            if event.event_type == "release":
+                self.end_snap("province")
+                self.sample_provinces()
 
     def setup_menu(self):
-        self.map_controller.button_panel.update_dynamic_menu([])
+        color_preview = QPushButton()
+        color_preview.setFixedSize(QSize(20, 20))
+        color = None
+        if self.active_state != self.mode_manager.active_state:
+            self.active_state = self.mode_manager.active_state
+            color = self.active_state.color
+        if self.active_state and hasattr(self.active_state, 'color'):
+            color = self.active_state.color
+        if self.sampled_color:
+            color = self.sampled_color
+        if color:
+            color_preview.setStyleSheet(f"background-color: {color.name()}; border: 1px solid black;")
 
+        self.map_controller.button_panel.update_dynamic_menu([color_preview])
 
     def color_fill(self, x, y, color):
         layer = self.map_controller.layer_manager.get_layer("province")
-        fill_color = QColor(color)
-        layer = flood_fill(layer, x, y, fill_color.getRgb()[:3])
+        color = QColor(color)
+        layer = flood_fill(layer, x, y, self.fill_color.getRgb()[:3])
         self.map_controller.layer_manager.refresh_layer("province")
 
 
@@ -50,8 +69,6 @@ class ProvinceMode(Mode):
         states = self.map_controller.state_controller.get_states()
         image = self.mode_manager.layer_manager.layers.get("province")
         province_counts = PixelSampler(image, DATA.provinces, states)
-
-        # Przypisanie liczby prowincji do obiektów State
         for state in states:
             state.provinces = province_counts.get(state.name, 0)
 

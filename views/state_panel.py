@@ -33,8 +33,7 @@ class StatePanel(QWidget):
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_content = QWidget()
-        self.scroll_layout = QVBoxLayout(self.scroll_content
-        )
+        self.scroll_layout = QVBoxLayout(self.scroll_content)
         self.scroll_layout.setAlignment(Qt.AlignTop)
         self.scroll_content.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
@@ -47,7 +46,7 @@ class StatePanel(QWidget):
         # Timer do odświeżania widoku co sekundę
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_states)
-        self.timer.start(2000)  # Odświeżanie co 1000 ms (1 sekunda)
+        self.timer.start(2000)
 
         # Pierwsze wywołanie aktualizacji
         self.update_states()
@@ -67,7 +66,7 @@ class StatePanel(QWidget):
         # Kontener dla elementu
         container = QWidget()
         container_layout = QVBoxLayout(container)
-        container_layout.setContentsMargins(5, 5, 5, 5)
+        container_layout.setContentsMargins(3, 3, 3, 3)
 
         # Górna linijka: Kolor + przycisk
         top_layout = QHBoxLayout()
