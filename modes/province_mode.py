@@ -11,7 +11,7 @@ class ProvinceMode(Mode):
         self.sampled_color = None
         self.active_state = None
         self.mode_manager = mode_manager
-        self.layer = self.map_controller.layer_manager.layers.get("province")
+        self.layer = self.map_controller.layer_manager.get_layer("province")
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""

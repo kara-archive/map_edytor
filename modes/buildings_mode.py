@@ -136,7 +136,7 @@ class BuildingsMode(Mode):
 
         for building_type, positions in building_types.items():
             if not positions:
-                positions = [(0, 0)]  # Próbka z lewego górnego rogu obrazu
+                positions = [(0, 0)]  # bug, że gdy nie ma budynków to nie odświerza liczby
 
             pixel_sampler = PixelSampler(
                 self.map_controller.layer_manager.layers.get("province"),
