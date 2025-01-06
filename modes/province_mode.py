@@ -21,7 +21,7 @@ class ProvinceMode(Mode):
         if event.event_type == "click":
             self.start_snap("province")
         if event.event_type == "click" and event.button == "right":
-            self.sampled_color = self.get_color_at(event.x, event.y)
+             self.get_color_at(event.x, event.y)
         elif event.button == "left":
             if self.sampled_color:
                 fill_color = self.sampled_color
@@ -52,9 +52,6 @@ class ProvinceMode(Mode):
 
     def flood_fill(self, x, y, color):
         layer = self.map_controller.layer_manager.get_layer("province")
-        if layer is None:
-            print("ProvinceMode: Warstwa 'province' nie została znaleziona.")
-            return
 
         target_color = QColor(layer.pixel(x, y))
         fill_color = QColor(color)
@@ -62,16 +59,8 @@ class ProvinceMode(Mode):
         if target_color == fill_color:
             return
 
-        fill(layer, x, y, fill_color.getRgb()[:3])
-
-        # Odśwież QGraphicsPixmapItem dla tej warstwy
-        pixmap_item = self.map_controller.layer_manager.layer_items.get("province")
-        if pixmap_item:
-            pixmap = QPixmap.fromImage(layer)
-            pixmap_item.setPixmap(pixmap)
-
-        self.map_controller.layer_manager.set_visibility("province", True)
-        print(f"Warstwa 'province' została zaktualizowana.")
+        layer = fill(layer, x, y, fill_color.getRgb()[:3])
+        self.map_controller.layer_manager.refresh_layer("province")
 
 
     def sample_provinces(self):
@@ -82,10 +71,9 @@ class ProvinceMode(Mode):
         # Przypisanie liczby prowincji do obiektów State
         for state in states:
             state.provinces = province_counts.get(state.name, 0)
-            print(f"Państwo {state.name} ma {state.provinces} prowincji")
 
     def get_color_at(self, x, y):
         layer = self.map_controller.layer_manager.get_layer("province")
         if layer is None:
             return None
-        return QColor(layer.pixel(x, y))
+        self.sampled_color = QColor(layer.pixel(x, y))

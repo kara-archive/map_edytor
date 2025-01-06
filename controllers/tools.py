@@ -1,8 +1,6 @@
 from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt
 
-
-
 def fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
     height, width = layer.height(), layer.width()
@@ -49,52 +47,22 @@ def fill(layer, x, y, color):
 
     return layer
 
-
-def erase_area(layer_manager, layer_name, x, y, radius=5):
-    # Pobierz warstwę z LayerManager
-    layer = layer_manager.get_layer(layer_name)
-    if layer is None:
-        print(f"Brak warstwy '{layer_name}' do usuwania.")
-        return
-
+def erase_area(layer, x, y, radius=5):
     # Usuwanie (rysowanie przezroczystości)
     painter = QPainter(layer)
     painter.setCompositionMode(QPainter.CompositionMode_Clear)  # Ustaw tryb usuwania
     painter.setBrush(Qt.transparent)
     painter.drawRect(x - radius, y - radius, radius * 2, radius * 2)
     painter.end()
+    return(layer)
 
-    # Odświeżenie graficznej reprezentacji warstwy
-    layer_manager.refresh_layer(layer_name)
-
-def draw_shape(layer_manager, layer_name, shape, *args, **kwargs):
-    """
-    Rysuje kształt na podanej warstwie.
-    :param shape: Typ kształtu (np. 'ellipse', 'rectangle', 'line').
-    :param args: Argumenty definiujące położenie i wymiary kształtu.
-    :param kwargs: Opcjonalne argumenty, np. kolor, szerokość linii.
-    """
-    layer = layer_manager.get_layer(layer_name)
-    if layer is None:
-        raise ValueError(f"Warstwa '{layer_name}' nie istnieje.")
+def draw_icon(layer_manager, layer, icon, x, y):
+    """Rysuje ikonę budynku na warstwie."""
 
     painter = QPainter(layer)
-    pen = QPen(kwargs.get("color", Qt.black))
-    pen.setWidth(kwargs.get("width", 1))
-    painter.setPen(pen)
-
-    if shape == "ellipse":
-        x, y, w, h = args
-        painter.drawEllipse(x, y, w, h)
-    elif shape == "rectangle":
-        x, y, w, h = args
-        painter.drawRect(x, y, w, h)
-    elif shape == "line":
-        x1, y1, x2, y2 = args
-        painter.drawLine(x1, y1, x2, y2)
-
+    painter.drawImage(x - icon.width() // 2, y - icon.height() // 2, icon)
     painter.end()
-    layer_manager.refresh_layer(layer_name)
+    return layer
 
 class PixelSampler(dict):
     """Klasa odpowiedzialna za próbkowanie pikseli na mapie."""

@@ -1,9 +1,8 @@
-from controllers.tools import erase_area, PixelSampler
+from controllers.tools import erase_area, draw_icon, PixelSampler
 from PyQt5.QtGui import QImage, QPainter, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
-import time
 from threading import Thread
 
 class BuildingsMode(Mode):
@@ -82,11 +81,9 @@ class BuildingsMode(Mode):
 
         if event.event_type == "click" and event.button == "left":
             self.add_building(event.x, event.y)
-            self.add_building_position(event.x, event.y, self.active_icon)
 
         if event.event_type in {"move", "click"} and event.button == "right":
             self.erase_building(event)
-            self.remove_building_positions(event.x, event.y)
 
         if event.event_type == "release":
             self.count_cities_by_state()
@@ -112,27 +109,18 @@ class BuildingsMode(Mode):
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
-        if building_layer is None:
-            print("Nie można znaleźć warstwy 'buildings'.")
-            return
-        self._draw_icon(building_layer, x, y)
+        building_layer = draw_icon(self.layer_manager, building_layer, self.building_icon, x, y)
+        self.map_controller.layer_manager.refresh_layer("buildings")
+        self.add_building_position(x, y, self.active_icon)
 
     def erase_building(self, event):
         """Usuwa budynki w promieniu i zapisuje operację."""
+        building_layer = self.map_controller.layer_manager.get_layer("buildings")
         radius = 15
-        erase_area(self.map_controller.layer_manager, "buildings", event.x, event.y, radius)
-
-    def _draw_icon(self, building_layer, x, y):
-        """Rysuje ikonę budynku na warstwie."""
-        painter = QPainter(building_layer)
-        if not painter.isActive():
-            print("Painter nie jest aktywny!")
-            return
-        painter.drawImage(x - self.building_icon.width() // 2, y - self.building_icon.height() // 2, self.building_icon)
-        painter.end()
-
-        # Odświeżenie warstwy
+        building_layer = erase_area(building_layer, event.x, event.y, radius)
         self.map_controller.layer_manager.refresh_layer("buildings")
+        self.remove_building_positions(event.x, event.y)
+
 
     def count_cities_by_state(self):
         """
@@ -158,14 +146,11 @@ class BuildingsMode(Mode):
 
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, building_type, pixel_sampler.get(state.name, 0))
-                print(f"Państwo {state.name} ma {getattr(state, building_type)} budynków typu '{building_type}'.")
-
 
     def find_cities(self):
         """
         Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
         """
-        start_time = time.time()
         layer = self.map_controller.layer_manager.get_layer("buildings")
 
         if layer is None:
@@ -215,8 +200,6 @@ class BuildingsMode(Mode):
 
         self.cities = cities
         self.farms = farms
-        end_time = time.time()
-        print(f"Znaleziono {len(cities)} miast i {len(farms)} farm w {end_time - start_time:.2f} sekund.")
 
     def _is_icon_at_position(self, sample_pixels, transparency_mask, layer_pixels, x, y):
         """
