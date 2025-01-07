@@ -63,10 +63,3 @@ class RoadsMode(Mode):
             if self.preview_item:
                 self.map_controller.scene.removeItem(self.preview_item)
                 self.preview_item = None
-class drawPath:
-    def start_path():
-        pass
-    def draw_path():
-        pass
-    def end_path():
-        pass

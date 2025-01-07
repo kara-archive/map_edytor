@@ -80,11 +80,12 @@ class MapController:
 
         # Nakładanie widocznych warstw
         for layer_name in self.layer_manager.layers:
-            layer_data = self.layer_manager.get_layer(layer_name)
-            if layer_data is not None:
-                painter = QPainter(flattened_image)
-                painter.drawImage(0, 0, layer_data)
-                painter.end()
+            if layer_name in self.layer_manager.visible_layers:
+                layer_data = self.layer_manager.get_layer(layer_name)
+                if layer_data is not None:
+                    painter = QPainter(flattened_image)
+                    painter.drawImage(0, 0, layer_data)
+                    painter.end()
 
         return flattened_image
 
