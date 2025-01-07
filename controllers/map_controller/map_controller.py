@@ -79,7 +79,7 @@ class MapController:
         flattened_image = flattened_image.convertToFormat(QImage.Format_RGBA8888)
 
         # Nakładanie widocznych warstw
-        for layer_name in self.layer_manager.visible_layers:
+        for layer_name in self.layer_manager.layers:
             layer_data = self.layer_manager.get_layer(layer_name)
             if layer_data is not None:
                 painter = QPainter(flattened_image)

@@ -3,7 +3,7 @@ from controllers.data import DATA
 from PyQt5.QtGui import QColor
 from modes.base_mode import Mode
 from PyQt5.QtWidgets import QPushButton # type: ignore
-from PyQt5.QtCore import QSize, QTimer # type: ignore
+from PyQt5.QtCore import QSize # type: ignore
 
 class ProvinceMode(Mode):
     """Obsługuje tryb prowincji."""
@@ -45,7 +45,7 @@ class ProvinceMode(Mode):
 
     def setup_menu(self):
         color_preview = QPushButton()
-        color_preview.setFixedSize(QSize(20, 20))
+        color_preview.setFixedSize(QSize(40, 40))
         color = None
         if self.active_state != self.mode_manager.active_state:
             self.active_state = self.mode_manager.active_state
@@ -58,6 +58,8 @@ class ProvinceMode(Mode):
 
         if color:
             color_preview.setStyleSheet(f"background-color: {color.name()}; border: 1px solid black;")
+        else:
+            color_preview.setStyleSheet(f"border: 1px solid black;")
 
         self.map_controller.button_panel.update_dynamic_menu([color_preview])
 
