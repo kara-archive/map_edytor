@@ -16,7 +16,7 @@ class RoadsMode(Mode):
         """Obsługuje zdarzenia myszy."""
         if event.event_type == "click":
             Mode.start_snap(self, "roads")
-        if event.button == "right":
+        if event.button == "right" and event.event_type in {"click", "move"}:
             self._zmazuj(event)
         elif event.button == "left":
             self._rysuj(event)
@@ -28,9 +28,10 @@ class RoadsMode(Mode):
 
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
-        if event.event_type in {"click", "move"}:
-            radius = 15  # Promień gumki
-            erase_area(self.map_controller.layer_manager, "roads", event.x, event.y, radius)
+        roads_layer = self.layer_manager.get_layer("roads")
+        radius = 15  # Promień gumki
+        erase_area(roads_layer, event.x, event.y, radius)
+        self.layer_manager.refresh_layer("roads")
 
     def _rysuj(self, event):
         """Obsługuje zdarzenia związane z rysowaniem (lewy przycisk myszy)."""
@@ -50,7 +51,7 @@ class RoadsMode(Mode):
             self.preview_item.setPath(self.path)
 
         elif event.event_type == "release":
-            roads_layer = self.map_controller.layer_manager.get_layer("roads")
+            roads_layer = self.layer_manager.get_layer("roads")
             painter = QPainter(roads_layer)
             pen = QPen(QColor(128, 128, 128, 255))
             pen.setWidth(2)
@@ -59,7 +60,7 @@ class RoadsMode(Mode):
             painter.end()
 
             # Odświeżenie warstwy
-            self.map_controller.layer_manager.refresh_layer("roads")
+            self.layer_manager.refresh_layer("roads")
 
             # Usunięcie podglądu
             self.last_position = None
