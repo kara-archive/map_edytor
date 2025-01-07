@@ -2,11 +2,10 @@ from PyQt5.QtGui import QImage, QColor # type: ignore
 from controllers.tools import erase_area, draw_icon
 from modes.base_mode import Mode
 
-class ArmyMode:
+class ArmyMode(Mode):
     """Obsługuje tryb armii."""
     def __init__(self, mode_manager, map_controller):
-        Mode.__init__(self, map_controller)
-        self.map_controller = map_controller
+        super().__init__(map_controller)
         self.mode_manager = mode_manager
         self.army_icon = QImage("icons/army.png")
         if self.army_icon.isNull():
@@ -15,16 +14,13 @@ class ArmyMode:
 
     def handle_event(self, event):
         if event.event_type == "click":
-            Mode.start_snap(self, "army")
+            self.start_snap("army")
         if event.event_type == "click" and event.button == "left":
             self.add_army(event.x, event.y)
         elif event.button == "right":
             self.erase_army(event)
         if event.event_type == "release":
-            Mode.end_snap(self, "army")
-
-    def setup_menu(self):
-        self.map_controller.button_panel.update_dynamic_menu([])
+            self.end_snap("army")
 
     def add_army(self, x, y):
         """Dodaje ikonę armii na warstwę z kolorem wybranego państwa."""

@@ -9,11 +9,10 @@ class ProvinceMode(Mode):
     """Obsługuje tryb prowincji."""
     def __init__(self, mode_manager, map_controller):
         super().__init__(map_controller)
-        self.map_controller = map_controller
+        self.mode_manager = mode_manager
         self.sampled_color = None
         self.active_state = None
-        self.mode_manager = mode_manager
-        self.layer = self.map_controller.layer_manager.get_layer("province")
+        self.layer = self.layer_manager.get_layer("province")
         self.fill_color = None
 
 

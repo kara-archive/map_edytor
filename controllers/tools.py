@@ -1,5 +1,7 @@
 from PyQt5.QtGui import QPainter, QColor, QPainter, QColor
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor
+from PyQt5.QtWidgets import QGraphicsPathItem
 
 def flood_fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
@@ -149,3 +151,36 @@ class IconFinder(list):
                 if self.sample_pixels[ix][iy] != self.layer_pixels[x + ix][y + iy]:
                     return False  # Rozbieżność w pikselach
         return True
+
+
+class DrawPath:
+    def __init__(self, layer, color=QColor(128, 128, 128, 255), width=2):
+        self.layer = layer
+        self.color = color
+        self.width = width
+        self.path = QPainterPath()
+        self.preview_item = None
+
+    def start_path(self, x, y, scene):
+        self.path.moveTo(x, y)
+        if self.preview_item is None:
+            self.preview_item = QGraphicsPathItem()
+            self.preview_item.setPen(QPen(self.color, self.width))
+            scene.addItem(self.preview_item)
+        self.preview_item.setPath(self.path)
+
+    def update_path(self, x, y):
+        self.path.lineTo(x, y)
+        if self.preview_item:
+            self.preview_item.setPath(self.path)
+
+    def end_path(self, scene):
+        painter = QPainter(self.layer)
+        pen = QPen(self.color)
+        pen.setWidth(self.width)
+        painter.setPen(pen)
+        painter.drawPath(self.path)
+        painter.end()
+        if self.preview_item:
+            scene.removeItem(self.preview_item)
+            self.preview_item = None

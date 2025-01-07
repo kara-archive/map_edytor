@@ -9,14 +9,15 @@ class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
 
     def __init__(self, mode_manager, map_controller):
-        Mode.__init__(self, map_controller)
+        super().__init__(map_controller)
+        self.mode_manager = mode_manager
         self.snap = False
         self.cities = []
         self.farms = []
-        self.map_controller = map_controller
         self.building_icons = {
             "city": QImage("icons/city.png"),
             "farm": QImage("icons/farm.png"),
+            'capital': QImage("icons/capital.png"),
         }
 
         self.building_icon = self.building_icons["city"]
@@ -40,9 +41,19 @@ class BuildingsMode(Mode):
         f_button.setIconSize(QSize(40, 40))
         f_button.setFixedSize(50, 50)
         f_button.clicked.connect(lambda: self.set_icon_type("farm"))
+       
+        c_button = QPushButton()
+        c_button.setIcon(self.get_icon_from_image(self.building_icons["capital"]))  # Konwertuj QImage na QIcon
+        c_button.setIconSize(QSize(40, 40))
+        c_button.setFixedSize(50, 50)
+        c_button.clicked.connect(lambda: self.set_capital())
 
         # Aktualizacja dynamicznego menu
-        self.map_controller.button_panel.update_dynamic_menu([m_button, f_button])
+        self.map_controller.button_panel.update_dynamic_menu([m_button, f_button, c_button])
+
+    def set_capital(self):
+        self.set_icon_type("capital")
+        #self.state_controller.set_capital(event.x, event.y)
 
     def get_icon_from_image(self, image):
         pixmap = QPixmap.fromImage(image)
@@ -61,6 +72,8 @@ class BuildingsMode(Mode):
             self.cities.append((x, y))
         elif building_type == "farm":
             self.farms.append((x, y))
+        elif building_type == "capital":
+            print(f"Dodano stolicę ({x}, {y}) #TODO")
         else:
             raise ValueError(f"Nieznany typ budynku: {building_type}")
 

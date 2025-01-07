@@ -1,9 +1,8 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy # type: ignore
-from PyQt5.QtGui import QColor # type: ignore
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy, QShortcut  # type: ignore
+from PyQt5.QtGui import QColor, QKeySequence # type: ignore
 from PyQt5.QtCore import QSize, pyqtSignal # type: ignore
 from controllers.state_controller import State
 from PyQt5.QtCore import QTimer, Qt # type: ignore
-
 
 class StatePanel(QWidget):
     """Panel zarządzający państwami."""
@@ -14,6 +13,7 @@ class StatePanel(QWidget):
         self.active_state = None
         self.controller = controller
         self.init_ui()
+        self.initialize_shortcuts()  # Inicjalizacja skrótów klawiszowych
         self.update_states()
 
     def init_ui(self):
@@ -42,7 +42,6 @@ class StatePanel(QWidget):
 
         self.setMaximumWidth(400)
 
-
         # Timer do odświeżania widoku co sekundę
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_states)
@@ -50,7 +49,6 @@ class StatePanel(QWidget):
 
         # Pierwsze wywołanie aktualizacji
         self.update_states()
-
 
     def update_states(self):
         """Aktualizuje widok listy państw."""
@@ -99,7 +97,6 @@ class StatePanel(QWidget):
             self.active_state_changed.emit(state)
             self.update_states()
 
-
     def edit_state(self, state):
         """Edytuje istniejące państwo."""
         dialog = AddStateDialog(self, state)
@@ -119,6 +116,23 @@ class StatePanel(QWidget):
                 self.controller.add_state(new_state)
                 self.update_states()
 
+    def initialize_shortcuts(self):
+        """Inicjalizuje skróty klawiszowe na podstawie `self.shortcuts`."""
+        self.next_state_shortcut = QShortcut(QKeySequence("Tab"), self)
+        self.next_state_shortcut.activated.connect(self.select_next_state)
+
+    def select_next_state(self):
+        """Przełącza na kolejne państwo."""
+        states = self.controller.get_states()
+        if not states:
+            return
+
+        if self.active_state is None:
+            self.set_active_state(states[0])
+        else:
+            current_index = states.index(self.active_state)
+            next_index = (current_index + 1) % len(states)
+            self.set_active_state(states[next_index])
 
 
 class AddStateDialog(QDialog):
