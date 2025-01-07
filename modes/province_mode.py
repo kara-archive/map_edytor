@@ -3,7 +3,7 @@ from controllers.data import DATA
 from PyQt5.QtGui import QColor
 from modes.base_mode import Mode
 from PyQt5.QtWidgets import QPushButton # type: ignore
-from PyQt5.QtCore import QSize # type: ignore
+from PyQt5.QtCore import QSize, QTimer # type: ignore
 
 class ProvinceMode(Mode):
     """Obsługuje tryb prowincji."""
@@ -15,6 +15,7 @@ class ProvinceMode(Mode):
         self.mode_manager = mode_manager
         self.layer = self.map_controller.layer_manager.get_layer("province")
         self.fill_color = None
+
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""
@@ -34,7 +35,7 @@ class ProvinceMode(Mode):
             else:
                 print("ProvinceMode: Brak aktywnego państwa lub koloru próbki.")
                 return
-            
+
             if event.event_type == "click":
                 self.start_snap("province")
             self.color_fill(event.x, event.y, self.fill_color)
@@ -49,10 +50,12 @@ class ProvinceMode(Mode):
         if self.active_state != self.mode_manager.active_state:
             self.active_state = self.mode_manager.active_state
             color = self.active_state.color
+            self.sampled_color = None
         if self.active_state and hasattr(self.active_state, 'color'):
             color = self.active_state.color
         if self.sampled_color:
             color = self.sampled_color
+
         if color:
             color_preview.setStyleSheet(f"background-color: {color.name()}; border: 1px solid black;")
 
