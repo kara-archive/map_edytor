@@ -2,6 +2,8 @@ from PyQt5.QtGui import QPainter, QColor, QPainter, QColor
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor
 from PyQt5.QtWidgets import QGraphicsPathItem
+import cv2 as cv
+import numpy as np
 
 def flood_fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
@@ -65,6 +67,52 @@ def draw_icon(layer, icon, x, y):
     painter.end()
     return layer
 
+def find_icons(sample_icon, image):
+    """
+    Wyszukuje współrzędne ikon w obrazie za pomocą dopasowywania szablonu.
+
+    :param sample_icon: QImage ikony do wyszukiwania (np. "city" lub "farm").
+    :param image: Obraz warstwy "buildings" jako macierz NumPy.
+    :return: Lista współrzędnych (x, y) dopasowanych ikon (środek).
+    """
+    # Konwersja QImage na macierz NumPy
+    icon = _convert_qimage_to_numpy(sample_icon)
+    image = _convert_qimage_to_numpy(image)
+
+    # Przekształcenie obrazu do skali szarości
+    icon_gray = cvtColor(icon, COLOR_BGRA2GRAY)
+    image_gray = cvtColor(image, COLOR_BGRA2GRAY)
+
+    # Wykonanie dopasowania szablonu
+    result = matchTemplate(image_gray, icon_gray, TM_CCOEFF_NORMED)
+
+    # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
+    threshold = 0.7
+    locations = np.where(result >= threshold)
+
+    # Wymiary ikony
+    icon_height, icon_width = icon_gray.shape
+
+    # Konwersja współrzędnych do listy punktów (x, y)
+    coordinates = [
+        (int(pt[0] + icon_width / 2), int(pt[1] + icon_height / 2))  # Środek ikony
+        for pt in zip(*locations[::-1])
+    ]
+    return coordinates
+
+
+
+def _convert_qimage_to_numpy(qimage):
+    """
+    Konwertuje QImage na macierz NumPy bez wymuszania formatu.
+    Zakłada, że obraz jest w formacie RGBA8888.
+    """
+    width = qimage.width()
+    height = qimage.height()
+    ptr = qimage.bits()
+    ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
+    return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
+
 
 class PixelSampler(dict):
     """Klasa odpowiedzialna za próbkowanie pikseli na mapie."""
@@ -104,6 +152,8 @@ class PixelSampler(dict):
         """Porównuje dwa kolory z uwzględnieniem tolerancji."""
         return all(abs(int(c1) - int(c2)) <= tolerance for c1, c2 in zip(color1, color2))
 
+
+
 class IconFinder(list):
     def __init__(self, sample_icon, layer):
         super().__init__()
@@ -130,7 +180,7 @@ class IconFinder(list):
             for ix in range(self.icon_width)
         ]
         self.extend(self.find_icon_positions())
-    
+
     def find_icon_positions(self):
         positions = []
 

@@ -1,10 +1,11 @@
-from controllers.tools import erase_area, draw_icon, PixelSampler, IconFinder
+from controllers.tools import erase_area, draw_icon, PixelSampler, IconFinder, find_icons
 from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
 from threading import Thread
 import time
+
 class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
 
@@ -172,8 +173,8 @@ class BuildingsMode(Mode):
         if layer is None:
             return []
         start_time = time.time()
-        self.cities = IconFinder(self.building_icons["city"], layer)
+        self.cities = find_icons(self.building_icons["city"], layer)
         mid_time = time.time()
-        self.farms = IconFinder(self.building_icons["farm"], layer)
+        self.farms = find_icons(self.building_icons["farm"], layer)
         end_time = time.time()
         print(f"Czas środkowy {mid_time - start_time}, Czas końcowy {end_time - start_time}")
