@@ -173,8 +173,8 @@ class BuildingsMode(Mode):
         if layer is None:
             return []
         start_time = time.time()
-        self.cities = find_icons(self.building_icons["city"], layer)
+        self.cities = IconFinder(self.building_icons["city"], layer)
         mid_time = time.time()
-        self.farms = find_icons(self.building_icons["farm"], layer)
+        self.farms = IconFinder(self.building_icons["farm"], layer)
         end_time = time.time()
         print(f"Czas środkowy {mid_time - start_time}, Czas końcowy {end_time - start_time}")
