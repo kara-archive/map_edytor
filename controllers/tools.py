@@ -2,8 +2,6 @@ from PyQt5.QtGui import QPainter, QColor, QPainter, QColor
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor
 from PyQt5.QtWidgets import QGraphicsPathItem
-import cv2 as cv
-import numpy as np
 
 def flood_fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
