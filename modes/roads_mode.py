@@ -47,3 +47,4 @@ class RoadsMode(Mode):
             self.draw_path.end_path(self.map_controller.scene)
             self.layer_manager.refresh_layer("roads")
             self.last_position = None
+            delattr(self, 'draw_path')
