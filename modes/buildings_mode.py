@@ -3,12 +3,7 @@ from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
-<<<<<<< HEAD
-from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
-import numpy as np
-=======
 from threading import Thread
->>>>>>> numpy_cv
 import time
 
 class BuildingsMode(Mode):
@@ -172,57 +167,14 @@ class BuildingsMode(Mode):
         """
         Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
         """
-<<<<<<< HEAD
-        start_time = time.time()
-        # Konwersja QImage na macierz NumPy
-        icon = self._convert_qimage_to_numpy(sample_icon)
-        image = self._convert_qimage_to_numpy(image)
-
-        # Przekształcenie obrazu do skali szarości
-        icon_gray = cvtColor(icon, COLOR_BGRA2GRAY)
-        image_gray = cvtColor(image, COLOR_BGRA2GRAY)
-
-        # Wykonanie dopasowania szablonu
-        result = matchTemplate(image_gray, icon_gray, TM_CCOEFF_NORMED)
-
-        # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
-        threshold = 0.7
-        locations = np.where(result >= threshold)
-
-        # Wymiary ikony
-        icon_height, icon_width = icon_gray.shape
-
-        # Konwersja współrzędnych do listy punktów (x, y)
-        coordinates = [
-            (int(pt[0] + icon_width / 2), int(pt[1] + icon_height / 2))  # Środek ikony
-            for pt in zip(*locations[::-1])
-        ]
-        end_time = time.time()
-        print(f"Wyszukiwanie {sample_icon} trwało {end_time - start_time:.2f} sekund.")
-        return coordinates
-
-
-
-    def _convert_qimage_to_numpy(self, qimage):
-        """
-        Konwertuje QImage na macierz NumPy bez wymuszania formatu.
-        Zakłada, że obraz jest w formacie RGBA8888.
-        """
-        width = qimage.width()
-        height = qimage.height()
-        ptr = qimage.bits()
-        ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
-        return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
-=======
 
         layer = self.map_controller.layer_manager.get_layer("buildings")
 
         if layer is None:
             return []
         start_time = time.time()
-        self.cities = IconFinder(self.building_icons["city"], layer)
+        self.cities = find_icons(self.building_icons["city"], layer)
         mid_time = time.time()
-        self.farms = IconFinder(self.building_icons["farm"], layer)
+        self.farms = find_icons(self.building_icons["farm"], layer)
         end_time = time.time()
         print(f"Czas środkowy {mid_time - start_time}, Czas końcowy {end_time - start_time}")
->>>>>>> numpy_cv
