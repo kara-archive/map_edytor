@@ -1,9 +1,10 @@
 from PyQt5.QtGui import QImage, QPixmap, QColor, QPainter # type: ignore
 from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
 import os
-from controllers.map_controller.layer_manager import LayerManager
-from controllers.map_controller.snapshot_manager import SnapshotManager
-from controllers.map_controller.mode_manager import ModeManager
+from .layer_manager import LayerManager
+from .snapshot_manager import SnapshotManager
+from .mode_manager import ModeManager
+from threading import Thread
 
 
 class MapController:
@@ -12,7 +13,7 @@ class MapController:
         self.scene = None
         self.state_controller = None
         self.button_panel = None
-        self.layer_manager = LayerManager(self)
+        self.layer_manager = LayerManager(map_controller=self)
         self.snapshot_manager = SnapshotManager(map_controller=self)
         self.mode_manager = ModeManager(map_controller=self)
 
@@ -36,6 +37,16 @@ class MapController:
 
             # Inicjalizuj elementy warstw
             self.layer_manager.initialize_layer_items(self.scene, self.cv_image)
+
+    def init_modes(self):
+        def process():
+            self.mode_manager.province_mode.sample_provinces()
+            self.mode_manager.buildings_mode.find_cities()
+            self.mode_manager.buildings_mode.count_cities_by_state()
+        thread = Thread(target=process)
+        thread.start()
+        thread.join()
+
 
     def update_scene(self):
         """Odświeża obraz na scenie."""
@@ -68,12 +79,13 @@ class MapController:
         flattened_image = flattened_image.convertToFormat(QImage.Format_RGBA8888)
 
         # Nakładanie widocznych warstw
-        for layer_name in self.layer_manager.visible_layers:
-            layer_data = self.layer_manager.get_layer(layer_name)
-            if layer_data is not None:
-                painter = QPainter(flattened_image)
-                painter.drawImage(0, 0, layer_data)
-                painter.end()
+        for layer_name in self.layer_manager.layers:
+            if layer_name in self.layer_manager.visible_layers:
+                layer_data = self.layer_manager.get_layer(layer_name)
+                if layer_data is not None:
+                    painter = QPainter(flattened_image)
+                    painter.drawImage(0, 0, layer_data)
+                    painter.end()
 
         return flattened_image
 

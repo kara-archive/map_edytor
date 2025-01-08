@@ -33,10 +33,12 @@ class ModeManager(QObject):
             "buildings": 2,
             "army": 3
         }
+        
     def set_mode(self, mode_name=None):
         """Ustawia aktywny tryb."""
         self.active_mode = self.modes.get(mode_name)
         self.active_mode_name = mode_name
+        self.active_mode.setup_menu()
 
     def get_mode(self):
         return self.active_mode_name
@@ -49,9 +51,11 @@ class ModeManager(QObject):
     def update_active_state(self, state):
         """Aktualizuje aktywny stan w trybie prowincji."""
         if state is None:
-            print("ProvinceMode: Ustawiony stan jest None!")
+            return
         else:
             self.active_state = state
+            if self.active_mode:
+                self.active_mode.setup_menu()   
 
     def get_active_state(self):
         return self.active_state

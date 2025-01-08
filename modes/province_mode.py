@@ -1,92 +1,83 @@
-from controllers.tools import Tools, PixelSampler
+from controllers.tools import flood_fill, PixelSampler
 from controllers.data import DATA
-from PyQt5.QtGui import QImage, QColor, QPainter, QPixmap
+from PyQt5.QtGui import QColor
 from modes.base_mode import Mode
+from PyQt5.QtWidgets import QPushButton # type: ignore
+from PyQt5.QtCore import QSize # type: ignore
 
 class ProvinceMode(Mode):
     """Obsługuje tryb prowincji."""
     def __init__(self, mode_manager, map_controller):
         super().__init__(map_controller)
-        self.map_controller = map_controller
+        self.mode_manager = mode_manager
         self.sampled_color = None
         self.active_state = None
-        self.mode_manager = mode_manager
-        self.layer = self.map_controller.layer_manager.layers.get("province")
+        self.layer = self.layer_manager.get_layer("province")
+        self.fill_color = None
+
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""
         if self.active_state != self.mode_manager.active_state:
             self.active_state = self.mode_manager.active_state
             self.sampled_color = None
-        if event.event_type == "click":
-            self.start_snap("province")
+            self.setup_menu()
+
         if event.event_type == "click" and event.button == "right":
-            self.sampled_color = self.get_color_at(event.x, event.y)
+             self.get_color_at(event.x, event.y)
+             self.setup_menu()
         elif event.button == "left":
             if self.sampled_color:
-                fill_color = self.sampled_color
+                self.fill_color = self.sampled_color
             elif self.active_state and hasattr(self.active_state, 'color'):
-                fill_color = self.active_state.color
+                self.fill_color = self.active_state.color
             else:
                 print("ProvinceMode: Brak aktywnego państwa lub koloru próbki.")
                 return
-            self.flood_fill(event.x, event.y, fill_color)
-        if event.event_type == "release":
-            self.end_snap("province")
-            self.sample_provinces()
+
+            if event.event_type == "click":
+                self.start_snap("province")
+            self.color_fill(event.x, event.y, self.fill_color)
+            if event.event_type == "release":
+                self.end_snap("province")
+                self.sample_provinces()
 
     def setup_menu(self):
-        self.map_controller.button_panel.update_dynamic_menu([])
+        color_preview = QPushButton()
+        color_preview.setFixedSize(QSize(40, 40))
+        color = None
+        if self.active_state != self.mode_manager.active_state:
+            self.active_state = self.mode_manager.active_state
+            color = self.active_state.color
+            self.sampled_color = None
+        if self.active_state and hasattr(self.active_state, 'color'):
+            color = self.active_state.color
+        if self.sampled_color:
+            color = self.sampled_color
 
-    def copy_image(self, cv_image):
-        # Jeśli warstwa ma być zainicjalizowana obrazem bazowym
-        if cv_image is not None:
-            if cv_image.format() != QImage.Format_RGBA8888:
-                cv_image = cv_image.convertToFormat(QImage.Format_RGBA8888)
-                print("Dodano kanał alfa do obrazu bazowego.")
-
-            self.map_controller.layer_manager.layers["province"] = cv_image.copy()
-            print(f"Skopiowano cv_image do warstwy 'province' (z_value = 1)")
+        if color:
+            color_preview.setStyleSheet(f"background-color: {color.name()}; border: 1px solid black;")
         else:
-            print("ProvinceMode: cv_image jest None")
+            color_preview.setStyleSheet(f"border: 1px solid black;")
 
-    def flood_fill(self, x, y, color):
+        self.map_controller.button_panel.update_dynamic_menu([color_preview])
+
+    def color_fill(self, x, y, color):
         layer = self.map_controller.layer_manager.get_layer("province")
-        if layer is None:
-            print("ProvinceMode: Warstwa 'province' nie została znaleziona.")
-            return
-
-        target_color = QColor(layer.pixel(x, y))
-        fill_color = QColor(color)
-
-        if target_color == fill_color:
-            return
-
-        # Użycie funkcji fill z Tools
-        Tools.fill(layer, x, y, fill_color.getRgb()[:3])
-
-        # Odśwież QGraphicsPixmapItem dla tej warstwy
-        pixmap_item = self.map_controller.layer_manager.layer_items.get("province")
-        if pixmap_item:
-            pixmap = QPixmap.fromImage(layer)
-            pixmap_item.setPixmap(pixmap)
-
-        self.map_controller.layer_manager.set_visibility("province", True)
-        print(f"Warstwa 'province' została zaktualizowana.")
+        color = QColor(color)
+        layer = flood_fill(layer, x, y, self.fill_color.getRgb()[:3])
+        self.map_controller.layer_manager.refresh_layer("province")
 
 
     def sample_provinces(self):
         states = self.map_controller.state_controller.get_states()
         image = self.mode_manager.layer_manager.layers.get("province")
         province_counts = PixelSampler(image, DATA.provinces, states)
-
-        # Przypisanie liczby prowincji do obiektów State
         for state in states:
             state.provinces = province_counts.get(state.name, 0)
-            print(f"Państwo {state.name} ma {state.provinces} prowincji")
 
     def get_color_at(self, x, y):
         layer = self.map_controller.layer_manager.get_layer("province")
         if layer is None:
             return None
-        return QColor(layer.pixel(x, y))
+        self.sampled_color = QColor(layer.pixel(x, y))

@@ -2,7 +2,6 @@ import os
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QPushButton, QFileDialog, QShortcut, QCheckBox, QHBoxLayout # type: ignore
 from PyQt5.QtCore import QTimer, pyqtSignal # type: ignore
 from PyQt5.QtGui import QKeySequence # type: ignore
-import os
 import zipfile
 from controllers.data import DATA
 
@@ -16,8 +15,10 @@ class ButtonPanel(QWidget):
         self.map_view = map_view
         self.state_controller = state_controller
         self.state_panel = state_panel
+        self.obecna_tura = None
         layout = QVBoxLayout()
         self.setLayout(layout)
+        self.setMaximumWidth(150)  # Ustawienie maksymalnej szerokości
 
 
 
@@ -68,7 +69,7 @@ class ButtonPanel(QWidget):
         # Zmienna do przechowywania aktywnego trybu
         self.current_mode = None
 
-        self.shortcuts = {"q": "army", "w": "buildings", "e": "province", "r": "roads"}
+        self.shortcuts = {"q": "army", "w": "buildings", "r": "province", "e": "roads"}
         self.initialize_shortcuts()
 
         # Odstęp
@@ -125,9 +126,8 @@ class ButtonPanel(QWidget):
 
         # Dodanie widżetów do siatki
         for i, widget in enumerate(widgets):
-            row, col = divmod(i, 3)  # Rozmieszczenie w siatce: 3 kolumny
+            row, col = divmod(i, 2)  # Rozmieszczenie w siatce: 3 kolumny
             self.dynamic_menu_layout.addWidget(widget, row, col)
-
 
     def toggle_visibility(self, state, layer_name):
         """
@@ -147,8 +147,6 @@ class ButtonPanel(QWidget):
         self.current_mode = mode
         self.highlight_active_button()  # Aktualizuje wygląd przycisków
         self.active_mode.emit(mode)  # Emituje sygnał, aby zmienić tryb
-        self.map_controller.mode_manager.active_mode.setup_menu()
-
 
     def initialize_shortcuts(self):
         """Inicjalizuje skróty klawiszowe na podstawie `self.shortcuts`."""
@@ -174,7 +172,6 @@ class ButtonPanel(QWidget):
         if self.current_mode in buttons:
             buttons[self.current_mode].setStyleSheet("font-weight: 800;")
 
-
     def get_last_turn(self):
         """Zwraca numer ostatniej zapisanej tury."""
         try:
@@ -189,8 +186,8 @@ class ButtonPanel(QWidget):
 
     def update_export_button(self):
         """Aktualizuje tekst przycisku eksportu tury."""
-        obecna_tura = self.get_last_turn() + 1
-        self.export_turn_button.setText(f"Eksport {obecna_tura} Tury")
+        self.obecna_tura = self.get_last_turn() + 1
+        self.export_turn_button.setText(f"Eksport {self.obecna_tura} Tury")
 
     def load_states(self):
         """Wczytuje stany z pliku CSV."""
@@ -225,7 +222,6 @@ class ButtonPanel(QWidget):
             except Exception as e:
                 print(f"Błąd podczas zapisywania danych: {e}")
 
-
     def save(self, output_zip_path):
         """
         Eksportuje cv_image, warstwy, dane z DATA oraz CSV ze stanami jako ZIP bez kompresji.
@@ -259,7 +255,6 @@ class ButtonPanel(QWidget):
                 os.remove(os.path.join(temp_dir, file_name))
             os.rmdir(temp_dir)
 
-
     def load_data(self):
         """
         Wywołuje okno dialogowe do wyboru pliku ZIP i ładuje dane.
@@ -271,8 +266,6 @@ class ButtonPanel(QWidget):
                 print(f"Pomyślnie wczytano dane z {file_path}.")
             except Exception as e:
                 print(f"Błąd podczas wczytywania danych: {e}")
-
-
 
     def load(self, input_zip_path):
         """
@@ -325,8 +318,7 @@ class ButtonPanel(QWidget):
             for file_name in os.listdir(temp_dir):
                 os.remove(os.path.join(temp_dir, file_name))
             os.rmdir(temp_dir)
-            self.map_controller.mode_manager.province_mode.sample_provinces()
-            self.map_controller.mode_manager.buildings_mode.count_cities_by_state()
+            self.map_controller.init_modes()
             self.state_panel.update_states()
 
         print("Dane zostały pomyślnie przywrócone.")

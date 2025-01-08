@@ -6,16 +6,17 @@ class Mode:
         self.map_controller = map_controller
         self.layer_manager = map_controller.layer_manager
         self.snapshot_manager = map_controller.snapshot_manager
-
+                
     def handle_event(self, event):
 
         raise NotImplementedError
 
     def start_snap(self, name):
-            print("start_snap")
             self.snapshot_manager.start_snap(name)
 
 
     def end_snap(self, name):
             self.snapshot_manager.end_snap(name)
-            print("end_snap")
+
+    def setup_menu(self):
+        self.map_controller.button_panel.update_dynamic_menu([])

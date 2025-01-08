@@ -44,21 +44,18 @@ class LayerManager:
             return
 
         layer_data = self.layers[layer_name]
-        print(f"Odświeżanie warstwy '{layer_name}', wymiary: {layer_data.width()}x{layer_data.height()}")
 
         pixmap = QPixmap.fromImage(layer_data)
 
         if layer_name in self.layer_items:
             pixmap_item = self.layer_items[layer_name]
             pixmap_item.setPixmap(pixmap)
-            print(f"Zaktualizowano pixmapę dla warstwy '{layer_name}'")
         else:
             print(f"Warstwa '{layer_name}' nie posiada przypisanego QGraphicsPixmapItem")
 
         # Dodatkowa kontrola widoczności warstwy
         if layer_name not in self.visible_layers:
             print(f"Warstwa '{layer_name}' nie jest widoczna. Ustawiam widoczność na True.")
-            self.set_visibility(layer_name, True)
 
     def refresh_all_layers(self):
         for layer_name in self.visible_layers:

@@ -1,5 +1,6 @@
 import copy
 from PyQt5.QtGui import QImage
+from PyQt5.QtCore import QTimer
 
 class SnapshotManager:
     """Zarządza snapshotami delta stanu aplikacji."""
@@ -28,6 +29,7 @@ class SnapshotManager:
         self.future.append(last_snapshot)
         self._apply_delta(last_snapshot, undo=True)
 
+
     def redo(self):
         if not self.future:
             print("Brak snapshotów do przywrócenia.")
@@ -41,6 +43,10 @@ class SnapshotManager:
         for layer_name, layer_data in layers_delta.items():
             self.map_controller.layer_manager.layers[layer_name] = layer_data["before"] if undo else layer_data["after"]
             self.map_controller.layer_manager.refresh_layer(layer_name)
+            if layer_name == "buildings":
+                self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
+
+
 
     def start_snap(self, layer):
         self.before_layer = self._copy_layer(self.map_controller.layer_manager.get_layer(layer))

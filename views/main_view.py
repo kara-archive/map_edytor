@@ -69,7 +69,6 @@ class MainView(QMainWindow):
 
     def handle_active_state(self, state):
         """Obsługuje zmianę aktywnego stanu."""
-        print(state)
         self.map_controller.mode_manager.update_active_state(state)
 
     def _setup_shortcuts(self):
