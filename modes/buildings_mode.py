@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore
 from modes.base_mode import Mode
 from threading import Thread
-
+import time
 class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
 
@@ -41,7 +41,7 @@ class BuildingsMode(Mode):
         f_button.setIconSize(QSize(40, 40))
         f_button.setFixedSize(50, 50)
         f_button.clicked.connect(lambda: self.set_icon_type("farm"))
-       
+
         c_button = QPushButton()
         c_button.setIcon(self.get_icon_from_image(self.building_icons["capital"]))  # Konwertuj QImage na QIcon
         c_button.setIconSize(QSize(40, 40))
@@ -90,7 +90,7 @@ class BuildingsMode(Mode):
 
     def handle_event(self, event):
         if event.event_type == "click":
-            Mode.start_snap(self, "buildings")
+            self.start_snap("buildings")
 
         if event.event_type == "click" and event.button == "left":
             self.add_building(event.x, event.y)
@@ -100,7 +100,7 @@ class BuildingsMode(Mode):
 
         if event.event_type == "release":
             self.count_cities_by_state()
-            Mode.end_snap(self, "buildings")
+            self.end_snap("buildings")
 
     def start_buildings_timer(self):
         if not hasattr(self, '_buildings_timer'):
@@ -161,18 +161,19 @@ class BuildingsMode(Mode):
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, building_type, pixel_sampler.get(state.name, 0))
 
-        
+
     def find_cities(self):
         """
         Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
         """
+
         layer = self.map_controller.layer_manager.get_layer("buildings")
 
         if layer is None:
             return []
-
+        start_time = time.time()
         self.cities = IconFinder(self.building_icons["city"], layer)
+        mid_time = time.time()
         self.farms = IconFinder(self.building_icons["farm"], layer)
-
-
-
+        end_time = time.time()
+        print(f"Czas środkowy {mid_time - start_time}, Czas końcowy {end_time - start_time}")
