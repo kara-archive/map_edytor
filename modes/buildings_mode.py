@@ -1,4 +1,4 @@
-from controllers.tools import erase_area, draw_icon, PixelSampler, IconFinder, find_icons
+from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
 from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton # type: ignore

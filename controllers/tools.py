@@ -9,7 +9,7 @@ def flood_fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
     height, width = layer.height(), layer.width()
 
-    fill_color = (color[0], color[1], color[2])  # RGB
+    fill_color = (color[0], cTM_SQDIFFolor[1], color[2])  # RGB
     start_color = QColor(layer.pixel(x, y)).getRgb()[:3]
     if start_color in [(0, 0, 0), (47, 74, 113), fill_color]:
         return
@@ -151,56 +151,6 @@ class PixelSampler(dict):
     def _is_similar_color(color1, color2, tolerance):
         """Porównuje dwa kolory z uwzględnieniem tolerancji."""
         return all(abs(int(c1) - int(c2)) <= tolerance for c1, c2 in zip(color1, color2))
-
-
-
-class IconFinder(list):
-    def __init__(self, sample_icon, layer):
-        super().__init__()
-        self.sample_icon = sample_icon
-        self.layer = layer
-        self.layer_width, self.layer_height = layer.width(), layer.height()
-        self.icon_width, self.icon_height = sample_icon.width(), sample_icon.height()
-
-        # Buforowanie danych pikseli warstwy
-        self.layer_pixels = [
-            [layer.pixel(x, y) for y in range(self.layer_height)]
-            for x in range(self.layer_width)
-        ]
-
-        # Buforowanie danych pikseli ikony
-        self.sample_pixels = [
-            [sample_icon.pixel(ix, iy) for iy in range(self.icon_height)]
-            for ix in range(self.icon_width)
-        ]
-
-        # Maskowanie przezroczystości
-        self.transparency_mask = [
-            [QColor(self.sample_pixels[ix][iy]).alpha() > 0 for iy in range(self.icon_height)]
-            for ix in range(self.icon_width)
-        ]
-        self.extend(self.find_icon_positions())
-
-    def find_icon_positions(self):
-        positions = []
-
-        for x in range(self.layer_width - self.icon_width + 1):
-            for y in range(self.layer_height - self.icon_height + 1):
-                if self._is_icon_at_position(x, y):
-                    center_x = x + self.icon_width // 2
-                    center_y = y + self.icon_height // 2
-                    positions.append((center_x, center_y))
-
-        return positions
-
-    def _is_icon_at_position(self, x, y):
-        for ix in range(self.icon_width):
-            for iy in range(self.icon_height):
-                if not self.transparency_mask[ix][iy]:
-                    continue  # Ignoruj przezroczyste piksele
-                if self.sample_pixels[ix][iy] != self.layer_pixels[x + ix][y + iy]:
-                    return False  # Rozbieżność w pikselach
-        return True
 
 
 class DrawPath:
