@@ -11,22 +11,16 @@ def ensure_resources_exist():
 
     # Ścieżki do folderów wbudowanych w aplikację
     icons_path = os.path.join(base_path, "icons")
-    maps_path = os.path.join(base_path, "gotowe_mapki")
     tury_path = os.path.join(base_path, "Tury")
 
     # Ścieżki, gdzie mają być zapisane brakujące pliki
     output_icons = os.path.join(os.getcwd(), "icons")
-    output_maps = os.path.join(os.getcwd(), "gotowe_mapki")
     output_tury = os.path.join(os.getcwd(), "Tury")
 
     # Tworzenie folderów, jeśli nie istnieją
     if not os.path.exists(output_icons):
         print("Tworzę brakujący folder 'icons'")
         shutil.copytree(icons_path, output_icons)
-
-    if not os.path.exists(output_maps):
-        print("Tworzę brakujący folder 'gotowe_mapki'")
-        os.makedirs(output_maps, exist_ok=True)
 
     if not os.path.exists(output_tury):
         print("Tworzę brakujący folder 'Tury'")
