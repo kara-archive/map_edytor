@@ -27,6 +27,20 @@ class BuildingsMode(Mode):
         if self.building_icon.isNull():
             raise ValueError("Nie udało się załadować ikony budynku: icons/city.png")
 
+    def handle_event(self, event):
+        if event.event_type == "click":
+            self.start_snap("buildings")
+
+        if event.event_type == "click" and event.button == "left":
+            self.add_building(event.x, event.y)
+
+        if event.event_type in {"move", "click"} and event.button == "right":
+            self.erase_building(event)
+
+        if event.event_type == "release":
+            self.count_cities_by_state()
+            self.end_snap("buildings")
+
     def setup_menu(self):
         print("Setup menu dla BuildingsMode")
 
@@ -89,19 +103,6 @@ class BuildingsMode(Mode):
             if not (x - size <= bx <= x + size and y - size <= by <= y + size)
         ]
 
-    def handle_event(self, event):
-        if event.event_type == "click":
-            self.start_snap("buildings")
-
-        if event.event_type == "click" and event.button == "left":
-            self.add_building(event.x, event.y)
-
-        if event.event_type in {"move", "click"} and event.button == "right":
-            self.erase_building(event)
-
-        if event.event_type == "release":
-            self.count_cities_by_state()
-            self.end_snap("buildings")
 
     def start_buildings_timer(self):
         if not hasattr(self, '_buildings_timer'):
