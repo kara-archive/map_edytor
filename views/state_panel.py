@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy, QShortcut  # type: ignore
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy, QShortcut, QButtonGroup  # type: ignore
 from PyQt5.QtGui import QColor, QKeySequence # type: ignore
 from PyQt5.QtCore import QSize, pyqtSignal # type: ignore
 from controllers.state_controller import State
@@ -15,6 +15,8 @@ class StatePanel(QWidget):
         self.init_ui()
         self.initialize_shortcuts()  # Inicjalizacja skrótów klawiszowych
         self.update_states()
+        self.button_group = QButtonGroup(self)
+        self.button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
 
     def init_ui(self):
         """Inicjalizuje interfejs użytkownika."""
@@ -43,9 +45,9 @@ class StatePanel(QWidget):
         self.setMaximumWidth(400)
 
         # Timer do odświeżania widoku co sekundę
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_states)
-        self.timer.start(2000)
+        #self.timer = QTimer(self)
+        #self.timer.timeout.connect(self.update_states)
+        #self.timer.start(5000)
 
         # Pierwsze wywołanie aktualizacji
         self.update_states()
@@ -72,15 +74,21 @@ class StatePanel(QWidget):
         color_label.setFixedSize(QSize(20, 20))
         color_label.setStyleSheet(f"background-color: {state.color.name()}; border: 1px solid black;")
         button = QPushButton(state.name)
+        button.setCheckable(True)
         button.setMaximumWidth(200)
-                # Sprawdź, czy to ostatnio wybrane państwo
+
+        # Sprawdź, czy to ostatnio wybrane państwo
         if state == self.active_state:
+            button.setChecked(True)
             button.setStyleSheet("font-weight: bold;")  # Ustaw pogrubioną czcionkę
 
         button.clicked.connect(lambda _, s=state: self.set_active_state(s))
         color_label.clicked.connect(lambda _, s=state: self.edit_state(state))
         top_layout.addWidget(color_label)
         top_layout.addWidget(button)
+
+        # Dodanie przycisku do QButtonGroup
+        self.button_group.addButton(button)
 
         # Dolna linijka: Opis
         bottom_label = QLabel(f"P: {state.provinces} M: {state.cities}  F: {state.farms}")
@@ -165,7 +173,26 @@ class AddStateDialog(QDialog):
             self.setWindowTitle(f"Edytuj państwo: {state.name}")
 
     def choose_color(self):
-        color = QColorDialog.getColor()
+        # Tworzenie instancji QColorDialog
+        color_dialog = QColorDialog()
+
+        custom_colors = [
+            QColor(128, 0, 0),    # Dark Red
+            QColor(0, 128, 0),    # Dark Green
+            QColor(0, 0, 128),    # Dark Blue
+            QColor(128, 128, 0),  # Olive
+            QColor(128, 68, 0),  # Dark Orange
+            QColor(68, 0, 128),   # Indigo
+            QColor(0, 128, 128),  # Teal
+            QColor(128, 53, 90) # Hot Pink
+        ]
+
+        for i, color in enumerate(custom_colors):
+            color_dialog.setCustomColor(i, color)
+
+        # Wyświetlenie dialogu
+        color = color_dialog.getColor()
+
         if color.isValid():
             self.selected_color = color
             self.color_button.setStyleSheet(f"background-color: {color.name()};")

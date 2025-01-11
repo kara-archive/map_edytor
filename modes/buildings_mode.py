@@ -1,7 +1,7 @@
 from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
 from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
-from PyQt5.QtWidgets import QPushButton # type: ignore
+from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from modes.base_mode import Mode
 from threading import Thread
 import time
@@ -42,33 +42,42 @@ class BuildingsMode(Mode):
             self.end_snap("buildings")
 
     def setup_menu(self):
-        print("Setup menu dla BuildingsMode")
 
-        # Tworzenie przycisków z ikonami
-        m_button = QPushButton()
-        m_button.setIcon(self.get_icon_from_image(self.building_icons["city"]))  # Konwertuj QImage na QIcon
-        m_button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
-        m_button.setFixedSize(50, 50)  # Przyciski są kwadratowe
-        m_button.clicked.connect(lambda: self.set_icon_type("city"))
+        # Tworzenie QButtonGroup
+        self.button_group = QButtonGroup()
+        self.button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
 
-        f_button = QPushButton()
-        f_button.setIcon(self.get_icon_from_image(self.building_icons["farm"]))  # Konwertuj QImage na QIcon
-        f_button.setIconSize(QSize(40, 40))
-        f_button.setFixedSize(50, 50)
-        f_button.clicked.connect(lambda: self.set_icon_type("farm"))
+        # Definicja przycisków i ich właściwości
+        buttons_info = [
+            ("city", self.building_icons["city"], lambda: self.set_icon_type("city")),
+            ("farm", self.building_icons["farm"], lambda: self.set_icon_type("farm")),
+            ("capital", self.building_icons["capital"], lambda: self.set_icon_type("capital"))
+        ]
 
-        c_button = QPushButton()
-        c_button.setIcon(self.get_icon_from_image(self.building_icons["capital"]))  # Konwertuj QImage na QIcon
-        c_button.setIconSize(QSize(40, 40))
-        c_button.setFixedSize(50, 50)
-        c_button.clicked.connect(lambda: self.set_capital())
+        buttons = []
+
+        for mode, icon, callback in buttons_info:
+            button = QPushButton()
+            button.setIcon(self.get_icon_from_image(icon))  # Konwertuj QImage na QIcon
+            button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
+            button.setFixedSize(50, 50)  # Przyciski są kwadratowe
+            button.setCheckable(True)
+            button.clicked.connect(callback)
+            self.button_group.addButton(button)
+            buttons.append(button)
 
         # Aktualizacja dynamicznego menu
-        self.map_controller.button_panel.update_dynamic_menu([m_button, f_button, c_button])
+        self.map_controller.button_panel.update_dynamic_menu(buttons)
+
+        # Ustawienie pierwszego przycisku jako domyślnie zaznaczonego
+        if buttons:
+            buttons[0].setChecked(True)
+
+
 
     def set_capital(self):
         self.set_icon_type("capital")
-        #self.state_controller.set_capital(event.x, event.y)
+        print("TODO")
 
     def get_icon_from_image(self, image):
         pixmap = QPixmap.fromImage(image)
@@ -78,7 +87,6 @@ class BuildingsMode(Mode):
         if icon_type in self.building_icons:
             self.building_icon = self.building_icons[icon_type]  # Ustaw ikonę z mapy
             self.active_icon = icon_type
-            print(f"Ustawiono ikonę: {icon_type}")
         else:
             raise ValueError(f"Nieznany typ ikony: {icon_type}")
 

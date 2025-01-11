@@ -1,5 +1,5 @@
 import os
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QPushButton, QFileDialog, QShortcut, QCheckBox, QHBoxLayout # type: ignore
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QPushButton, QButtonGroup, QFileDialog, QShortcut, QCheckBox, QHBoxLayout, QGroupBox # type: ignore
 from PyQt5.QtCore import QTimer, pyqtSignal # type: ignore
 from PyQt5.QtGui import QKeySequence # type: ignore
 import zipfile
@@ -20,51 +20,45 @@ class ButtonPanel(QWidget):
         self.setLayout(layout)
         self.setMaximumWidth(150)  # Ustawienie maksymalnej szerokości
 
+        # Tworzenie grupy przycisków
+        group_box = QGroupBox("Opcje")
+        group_layout = QVBoxLayout()
 
+        # Tworzenie QButtonGroup
+        button_group = QButtonGroup(self)
+        button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
 
-        # Przycisk Wojsko z checkboxem widoczności
-        wojsko_row = QHBoxLayout()
-        self.wojsko_visibility = QCheckBox()
-        self.wojsko_visibility.setChecked(True)
-        self.wojsko_visibility.stateChanged.connect(lambda state: self.toggle_visibility(state, "army"))
-        wojsko_row.addWidget(self.wojsko_visibility)
+        # Definicja przycisków i checkboxów
+        buttons_info = [
+            ("Wojsko", "army"),
+            ("Budynki", "buildings"),
+            ("Drogi", "roads"),
+            ("Prowincje", "province")
+        ]
 
-        self.wojsko_button = QPushButton("Wojsko")
-        self.wojsko_button.clicked.connect(lambda: self.set_active_mode("army"))
-        wojsko_row.addWidget(self.wojsko_button)
+        self.buttons = {}
+        for label, mode in buttons_info:
+            row_layout = QHBoxLayout()
+            if mode != "province":
+                visibility_checkbox = QCheckBox()
+                visibility_checkbox.setChecked(True)
+                visibility_checkbox.stateChanged.connect(lambda state, m=mode: self.toggle_visibility(state, m))
+                row_layout.addWidget(visibility_checkbox)
 
-        layout.addLayout(wojsko_row)
+            button = QPushButton(label)
+            button.setCheckable(True)
+            button.clicked.connect(lambda _, m=mode, b=button: self.set_active_mode(m, b))
+            row_layout.addWidget(button)
 
-        # Przycisk Budynki z checkboxem widoczności
-        budynki_row = QHBoxLayout()
-        self.budynki_visibility = QCheckBox()
-        self.budynki_visibility.setChecked(True)
-        self.budynki_visibility.stateChanged.connect(lambda state: self.toggle_visibility(state, "buildings"))
-        budynki_row.addWidget(self.budynki_visibility)
+            group_layout.addLayout(row_layout)
+            button_group.addButton(button)
+            self.buttons[mode] = button
 
-        self.budynki_button = QPushButton("Budynki")
-        self.budynki_button.clicked.connect(lambda: self.set_active_mode("buildings"))
-        budynki_row.addWidget(self.budynki_button)
+        # Ustawienie layoutu grupy
+        group_box.setLayout(group_layout)
 
-        layout.addLayout(budynki_row)
-
-        # Przycisk Drogi z checkboxem widoczności
-        drogi_row = QHBoxLayout()
-        self.drogi_visibility = QCheckBox()
-        self.drogi_visibility.setChecked(True)
-        self.drogi_visibility.stateChanged.connect(lambda state: self.toggle_visibility(state, "roads"))
-        drogi_row.addWidget(self.drogi_visibility)
-
-        self.drogi_button = QPushButton("Drogi")
-        self.drogi_button.clicked.connect(lambda: self.set_active_mode("roads"))
-        drogi_row.addWidget(self.drogi_button)
-
-        layout.addLayout(drogi_row)
-
-        # Przycisk Prowincje
-        self.prowincje_button = QPushButton("Prowincje")
-        layout.addWidget(self.prowincje_button)
-        self.prowincje_button.clicked.connect(lambda: self.set_active_mode("province"))
+        # Dodanie grupy do głównego layoutu
+        layout.addWidget(group_box)
 
         # Zmienna do przechowywania aktywnego trybu
         self.current_mode = None
@@ -103,7 +97,7 @@ class ButtonPanel(QWidget):
         # Timer do odświeżania przycisku eksportu
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_export_button)
-        self.timer.start(1000)
+        self.timer.start(5000)
 
         # Pierwsze ustawienie tekstu przycisku
         self.update_export_button()
@@ -140,37 +134,19 @@ class ButtonPanel(QWidget):
             self.map_controller.layer_manager.set_visibility(layer_name, state)
             print(f"Warstwa '{layer_name}' widoczność ustawiona na: {state}.")
         except ValueError as e:
-            print(f"Błąd: {e}")
-
-    def set_active_mode(self, mode):
+             print(f"Błąd: {e}")
+ 
+    def set_active_mode(self, mode, button):
         """Ustawia aktywny tryb i wyróżnia odpowiedni przycisk."""
         self.current_mode = mode
-        self.highlight_active_button()  # Aktualizuje wygląd przycisków
         self.active_mode.emit(mode)  # Emituje sygnał, aby zmienić tryb
+        button.setChecked(True)
 
     def initialize_shortcuts(self):
         """Inicjalizuje skróty klawiszowe na podstawie `self.shortcuts`."""
         for key, mode in self.shortcuts.items():
             shortcut = QShortcut(QKeySequence(key), self)  # Przypisanie skrótu do widżetu
-            shortcut.activated.connect(lambda m=mode: self.set_active_mode(m))
-
-    def highlight_active_button(self):
-        """Wyróżnia przycisk aktywnego trybu."""
-        # Słownik przycisków
-        buttons = {
-            "army": self.wojsko_button,
-            "province": self.prowincje_button,
-            "buildings": self.budynki_button,
-            "roads": self.drogi_button,
-        }
-
-        # Reset stylów dla wszystkich przycisków
-        for button in buttons.values():
-            button.setStyleSheet("")  # Przywrócenie domyślnego stylu
-
-        # Ustaw styl aktywnego przycisku
-        if self.current_mode in buttons:
-            buttons[self.current_mode].setStyleSheet("font-weight: 800;")
+            shortcut.activated.connect(lambda m=mode: self.set_active_mode(m, self.buttons[m]))
 
     def get_last_turn(self):
         """Zwraca numer ostatniej zapisanej tury."""

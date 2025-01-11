@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QPainter, QColor, QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsPathItem
 from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
