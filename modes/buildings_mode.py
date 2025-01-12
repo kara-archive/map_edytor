@@ -15,16 +15,18 @@ class BuildingsMode(Mode):
         self.snap = False
         self.cities = []
         self.farms = []
+        self.factories = []  # Added factories
         self.building_icons = {
             "city": QImage("icons/city.png"),
             "farm": QImage("icons/farm.png"),
-            'capital': QImage("icons/capital.png"),
+            "capital": QImage("icons/capital.png"),
+            "factory": QImage("icons/factory.png"),  # Added factory icon
         }
 
-        self.building_icon = self.building_icons["city"]
-        self.active_icon = "city"
+        self.active_icon = self.building_icons["city"]
+        self.active_icon_name = "city"
 
-        if self.building_icon.isNull():
+        if self.active_icon.isNull():
             raise ValueError("Nie udało się załadować ikony budynku: icons/city.png")
 
     def handle_event(self, event):
@@ -51,7 +53,8 @@ class BuildingsMode(Mode):
         buttons_info = [
             ("city", self.building_icons["city"], lambda: self.set_icon_type("city")),
             ("farm", self.building_icons["farm"], lambda: self.set_icon_type("farm")),
-            ("capital", self.building_icons["capital"], lambda: self.set_icon_type("capital"))
+            ("capital", self.building_icons["capital"], lambda: self.set_icon_type("capital")),
+            ("factory", self.building_icons["factory"], lambda: self.set_icon_type("factory")),  # Added factory button
         ]
 
         buttons = []
@@ -73,17 +76,13 @@ class BuildingsMode(Mode):
         if buttons:
             buttons[0].setChecked(True)
 
-
-
-    def set_capital(self):
-        self.set_icon_type("capital")
-        print("TODO")
-
+    def set_capital(self, x, y):
+        print(f"Tutaj ma być więcej kodu ({x},{y}) #TODO")
 
     def set_icon_type(self, icon_type):
         if icon_type in self.building_icons:
-            self.building_icon = self.building_icons[icon_type]  # Ustaw ikonę z mapy
-            self.active_icon = icon_type
+            self.active_icon = self.building_icons[icon_type]  # Ustaw ikonę z mapy
+            self.active_icon_name = icon_type
         else:
             raise ValueError(f"Nieznany typ ikony: {icon_type}")
 
@@ -93,7 +92,9 @@ class BuildingsMode(Mode):
         elif building_type == "farm":
             self.farms.append((x, y))
         elif building_type == "capital":
-            print(f"Dodano stolicę ({x}, {y}) #TODO")
+            self.set_capital(x, y)
+        elif building_type == "factory":
+            self.factories.append((x, y))  # Added factories
         else:
             raise ValueError(f"Nieznany typ budynku: {building_type}")
 
@@ -107,7 +108,6 @@ class BuildingsMode(Mode):
             (bx, by) for bx, by in self.farms
             if not (x - size <= bx <= x + size and y - size <= by <= y + size)
         ]
-
 
     def start_buildings_timer(self):
         if not hasattr(self, '_buildings_timer'):
@@ -130,9 +130,9 @@ class BuildingsMode(Mode):
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
-        building_layer = draw_icon(building_layer, self.building_icon, x, y)
+        building_layer = draw_icon(building_layer, self.active_icon, x, y)
         self.map_controller.layer_manager.refresh_layer("buildings")
-        self.add_building_position(x, y, self.active_icon)
+        self.add_building_position(x, y, self.active_icon_name)
 
     def erase_building(self, event):
         """Usuwa budynki w promieniu i zapisuje operację."""
@@ -142,7 +142,6 @@ class BuildingsMode(Mode):
         self.map_controller.layer_manager.refresh_layer("buildings")
         self.remove_building_positions(event.x, event.y)
 
-
     def count_cities_by_state(self):
         """
         Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
@@ -150,9 +149,11 @@ class BuildingsMode(Mode):
         if self.map_controller.cv_image is None:
             print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
             return
+        
         building_types = {
             "cities": self.cities,
             "farms": self.farms,
+            "factories": self.factories,
         }
 
         for building_type, positions in building_types.items():
@@ -168,7 +169,6 @@ class BuildingsMode(Mode):
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, building_type, pixel_sampler.get(state.name, 0))
 
-
     def find_cities(self):
         """
         Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
@@ -180,7 +180,7 @@ class BuildingsMode(Mode):
             return []
         start_time = time.time()
         self.cities = find_icons(self.building_icons["city"], layer)
-        mid_time = time.time()
         self.farms = find_icons(self.building_icons["farm"], layer)
+        self.factories = find_icons(self.building_icons["factory"], layer)
         end_time = time.time()
-        print(f"Czas środkowy {mid_time - start_time}, Czas końcowy {end_time - start_time}")
+        print(f"Sukanie budynków w czasie {end_time - start_time} self.cities: {len(self.cities)} self.farms: {len(self.farms)} self.factories: {len(self.factories)}")

@@ -45,9 +45,9 @@ class StatePanel(QWidget):
         self.setMaximumWidth(400)
 
         # Timer do odświeżania widoku co sekundę
-        #self.timer = QTimer(self)
-        #self.timer.timeout.connect(self.update_states)
-        #self.timer.start(5000)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_states)
+        self.timer.start(2000)
 
         # Pierwsze wywołanie aktualizacji
         self.update_states()
@@ -91,8 +91,8 @@ class StatePanel(QWidget):
         self.button_group.addButton(button)
 
         # Dolna linijka: Opis
-        bottom_label = QLabel(f"P: {state.provinces} M: {state.cities}  F: {state.farms}")
-        bottom_label.setStyleSheet("font-size: 14px; color: grey;")
+        bottom_label = QLabel(f"P: {state.provinces} M: {state.cities}  F: {state.farms} G: {state.factories}")
+        bottom_label.setStyleSheet("font-size: 16px;")
         bottom_label.setAlignment(Qt.AlignLeft)
         container_layout.addLayout(top_layout)
         container_layout.addWidget(bottom_label)

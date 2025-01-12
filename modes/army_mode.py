@@ -9,8 +9,15 @@ class ArmyMode(Mode):
     def __init__(self, mode_manager, map_controller):
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.army_icon = QImage("icons/army.png")
-        if self.army_icon.isNull():
+        self.army_icons = {
+            "army": QImage("icons/army.png"),
+            "fort": QImage("icons/fort.png"),
+            "ship": QImage("icons/ship.png")  # Dodano ikonę statku
+        }
+        self.active_icon = self.army_icons["army"]
+        self.active_icon_name = "army"
+
+        if self.active_icon.isNull():
             raise ValueError("Nie udało się załadować ikony: icons/army.png")
         self.active_state = None
 
@@ -36,7 +43,7 @@ class ArmyMode(Mode):
         state_color = active_state.color.getRgb()[:3]  # Pobierz RGB
 
         # Przekształć ikonę armii
-        recolored_icon = self.recolor_icon(self.army_icon.copy(), state_color)
+        recolored_icon = self.recolor_icon(self.active_icon.copy(), state_color)
 
         army_layer = draw_icon(army_layer, recolored_icon, x, y)
         self.map_controller.layer_manager.refresh_layer("army")
@@ -65,7 +72,6 @@ class ArmyMode(Mode):
                     image.setPixel(x, y, lighter_color.rgb())  # Ustaw jaśniejszy kolor docelowy
         return image
 
-
     def setup_menu(self):
 
         # Tworzenie QButtonGroup
@@ -74,7 +80,9 @@ class ArmyMode(Mode):
 
         # Definicja przycisków i ich właściwości
         buttons_info = [
-            ("army", self.army_icon, lambda: self.set_icon_type("army"))
+            ("army", self.army_icons["army"], lambda: self.set_icon_type("army")),
+            ("fort", self.army_icons["fort"], lambda: self.set_icon_type("fort")),
+            ("ship", self.army_icons["ship"], lambda: self.set_icon_type("ship"))  # Dodano przycisk dla statku
         ]
 
         buttons = []
@@ -96,3 +104,9 @@ class ArmyMode(Mode):
         if buttons:
             buttons[0].setChecked(True)
 
+    def set_icon_type(self, icon_type):
+        if icon_type in self.army_icons:
+            self.active_icon = self.army_icons[icon_type]  # Ustaw ikonę z mapy
+            self.active_icon_name = icon_type
+        else:
+            raise ValueError(f"Nieznany typ ikony: {icon_type}")

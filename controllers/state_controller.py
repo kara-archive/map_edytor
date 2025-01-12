@@ -96,3 +96,4 @@ class State:
         self.cities = 0  # Liczba miast
         self.farms = 0
         self.capital = ""  #Pozycja Stolicy Państwa (x, y)
+        self.factories = 0
