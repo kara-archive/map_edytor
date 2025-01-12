@@ -21,7 +21,7 @@ class ButtonPanel(QWidget):
         self.setMaximumWidth(150)  # Ustawienie maksymalnej szerokości
 
         # Tworzenie grupy przycisków
-        group_box = QGroupBox("Opcje")
+        group_box = QGroupBox("")
         group_layout = QVBoxLayout()
 
         # Tworzenie QButtonGroup
@@ -135,7 +135,7 @@ class ButtonPanel(QWidget):
             print(f"Warstwa '{layer_name}' widoczność ustawiona na: {state}.")
         except ValueError as e:
              print(f"Błąd: {e}")
- 
+
     def set_active_mode(self, mode, button):
         """Ustawia aktywny tryb i wyróżnia odpowiedni przycisk."""
         self.current_mode = mode
