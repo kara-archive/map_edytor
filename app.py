@@ -35,6 +35,8 @@ def main():
     parser = argparse.ArgumentParser(description="sram psa jak sra")
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--light", action="store_true", help="Włącza jasną paletę kolorów.")
+    parser.add_argument("--terka", action="store_true", help=" ")
+
     args = parser.parse_args()
 
     # Uruchomienie aplikacji
@@ -57,6 +59,9 @@ def main():
         dark_palette.setColor(QPalette.Highlight, QColor(130, 130, 130))
         dark_palette.setColor(QPalette.HighlightedText, QColor(0, 0, 0))
         app.setPalette(dark_palette)
+
+    if args.terka:
+        print("Pączuchy!")
 
     main_view = MainView()
 
