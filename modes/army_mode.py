@@ -1,4 +1,6 @@
 from PyQt5.QtGui import QImage, QColor # type: ignore
+from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
+from PyQt5.QtCore import QSize
 from controllers.tools import erase_area, draw_icon
 from modes.base_mode import Mode
 
@@ -51,11 +53,46 @@ class ArmyMode(Mode):
         if isinstance(target_color, tuple):
             target_color = QColor(*target_color)
 
+        # Rozjaśnij kolor docelowy
+        lighter_color = target_color.lighter(150)  # 120% jasności oryginalnego koloru
+
         # Konwersja do formatu ARGB32 dla manipulacji pikselami
         image = image.convertToFormat(QImage.Format_ARGB32)
         for y in range(image.height()):
             for x in range(image.width()):
                 pixel_color = QColor(image.pixel(x, y))  # Użycie poprawnego wywołania z x, y
                 if pixel_color == QColor(255, 255, 255):  # Jeśli piksel jest biały
-                    image.setPixel(x, y, target_color.rgb())  # Ustaw kolor docelowy
+                    image.setPixel(x, y, lighter_color.rgb())  # Ustaw jaśniejszy kolor docelowy
         return image
+
+
+    def setup_menu(self):
+
+        # Tworzenie QButtonGroup
+        self.button_group = QButtonGroup()
+        self.button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
+
+        # Definicja przycisków i ich właściwości
+        buttons_info = [
+            ("army", self.army_icon, lambda: self.set_icon_type("army"))
+        ]
+
+        buttons = []
+
+        for mode, icon, callback in buttons_info:
+            button = QPushButton()
+            button.setIcon(self.get_icon_from_image(icon))  # Konwertuj QImage na QIcon
+            button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
+            button.setFixedSize(50, 50)  # Przyciski są kwadratowe
+            button.setCheckable(True)
+            button.clicked.connect(callback)
+            self.button_group.addButton(button)
+            buttons.append(button)
+
+        # Aktualizacja dynamicznego menu
+        self.map_controller.button_panel.update_dynamic_menu(buttons)
+
+        # Ustawienie pierwszego przycisku jako domyślnie zaznaczonego
+        if buttons:
+            buttons[0].setChecked(True)
+

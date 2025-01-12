@@ -176,16 +176,14 @@ class AddStateDialog(QDialog):
         # Tworzenie instancji QColorDialog
         color_dialog = QColorDialog()
 
-        custom_colors = [
-            QColor(128, 0, 0),    # Dark Red
-            QColor(0, 128, 0),    # Dark Green
-            QColor(0, 0, 128),    # Dark Blue
-            QColor(128, 128, 0),  # Olive
-            QColor(128, 68, 0),  # Dark Orange
-            QColor(68, 0, 128),   # Indigo
-            QColor(0, 128, 128),  # Teal
-            QColor(128, 53, 90) # Hot Pink
-        ]
+        custom_colors = []
+        
+        for j in range(5):
+            for i in range(3):
+                hue = int(i * 120 + j * 24)  # 22.590 degrees apart
+                color = QColor()
+                color.setHsv(hue, 255, 128)  # Saturation 255, Value 128
+                custom_colors.append(color)
 
         for i, color in enumerate(custom_colors):
             color_dialog.setCustomColor(i, color)
@@ -202,3 +200,5 @@ class AddStateDialog(QDialog):
         if name:
             return name, self.selected_color
         return None, None
+
+

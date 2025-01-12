@@ -1,3 +1,5 @@
+from PyQt5.QtGui import QIcon, QPixmap # type: ignore
+
 class Mode:
     """
     Klasa bazowa dla trybów zarządzania mapą.
@@ -20,3 +22,7 @@ class Mode:
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])
+
+    def get_icon_from_image(self, image):
+        pixmap = QPixmap.fromImage(image)
+        return QIcon(pixmap)

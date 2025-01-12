@@ -1,5 +1,5 @@
 from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
-from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
+from PyQt5.QtGui import QImage # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from modes.base_mode import Mode
@@ -79,9 +79,6 @@ class BuildingsMode(Mode):
         self.set_icon_type("capital")
         print("TODO")
 
-    def get_icon_from_image(self, image):
-        pixmap = QPixmap.fromImage(image)
-        return QIcon(pixmap)
 
     def set_icon_type(self, icon_type):
         if icon_type in self.building_icons:
