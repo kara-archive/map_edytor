@@ -34,14 +34,14 @@ def main():
     # Parsowanie argumentów
     parser = argparse.ArgumentParser(description="sram psa jak sra")
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
-    parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
+    parser.add_argument("--light", action="store_true", help="Włącza jasną paletę kolorów.")
     args = parser.parse_args()
 
     # Uruchomienie aplikacji
     app = QApplication(sys.argv)
 
     # Ustawienie ciemnej palety kolorów, jeśli podano argument --dark
-    if args.dark:
+    if not args.light:
         dark_palette = QPalette()
         dark_palette.setColor(QPalette.Window, QColor(53, 53, 53))
         dark_palette.setColor(QPalette.WindowText, QColor(255, 255, 255))
