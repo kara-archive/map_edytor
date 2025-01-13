@@ -71,7 +71,7 @@ class StatePanel(QWidget):
         # Górna linijka: Kolor + przycisk
         top_layout = QHBoxLayout()
         color_label = QPushButton()
-        color_label.setFixedSize(QSize(20, 20))
+        color_label.setFixedSize(QSize(40, 40))
         color_label.setStyleSheet(f"background-color: {state.color.name()}; border: 1px solid black;")
         button = QPushButton(state.name)
         button.setCheckable(True)

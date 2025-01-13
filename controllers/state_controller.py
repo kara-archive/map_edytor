@@ -36,7 +36,7 @@ class StateController(QObject):
                 writer.writerow([state.name, state.color.name(), state.provinces])  # Zapis danych
         print(f"Stany zapisane do pliku: {file_path}")
 
-    def export_to_csv(self, obecna_tura, file_path="prowincje.csv"):
+    def export_to_csv(self, obecna_tura, file_path="dane.csv"):
         """
         Zapisuje dane do pliku CSV, nadpisując pierwszą linię nagłówkami.
         """
@@ -110,7 +110,7 @@ class State:
                 color = colors[color_index % len(colors)]
                 attr_initial = f'<span style="color:{color}">{attr[0].upper()}</span>'
                 value_str = ''.join(f'<span style="color:{color}">{char}</span>' for char in str(value))
-                attributes.append(f"{attr_initial}: {value_str}")
+                attributes.append(f"{attr_initial}:{value_str}")
                 color_index += 1
 
         return " ".join(attributes)

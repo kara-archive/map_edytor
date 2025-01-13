@@ -62,7 +62,7 @@ class ArmyMode(Mode):
     def erase_army(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         army_layer = self.map_controller.layer_manager.get_layer("army")
-        radius = 20  # Promień gumki
+        radius = 10  # Promień gumki
         army_layer = erase_area(army_layer, event.x, event.y, radius)
         self.map_controller.layer_manager.refresh_layer("army")
 
@@ -96,7 +96,7 @@ class ArmyMode(Mode):
             button = QPushButton()
             button.setIcon(self.get_icon_from_image(icon))  # Konwertuj QImage na QIcon
             button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
-            button.setFixedSize(50, 50)  # Przyciski są kwadratowe
+            button.setFixedSize(40, 40)  # Przyciski są kwadratowe
             button.setCheckable(True)
             button.clicked.connect(lambda _, name=icon_name: self.set_icon_type(name))
             self.button_group.addButton(button)

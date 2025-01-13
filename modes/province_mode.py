@@ -44,9 +44,9 @@ class ProvinceMode(Mode):
 
     def setup_menu(self):
         color_preview = QPushButton()
-        color_preview.setFixedSize(QSize(40, 40))
+        color_preview.setFixedSize(QSize(60, 60))
         lighter_color_preview = QPushButton()
-        lighter_color_preview.setFixedSize(QSize(30, 30))
+        lighter_color_preview.setFixedSize(QSize(40, 40))
 
 
         color = None

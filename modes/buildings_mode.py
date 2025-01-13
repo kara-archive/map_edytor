@@ -60,7 +60,7 @@ class BuildingsMode(Mode):
             button = QPushButton()
             button.setIcon(self.get_icon_from_image(icon))  # Konwertuj QImage na QIcon
             button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
-            button.setFixedSize(50, 50)  # Przyciski są kwadratowe
+            button.setFixedSize(40, 40)  # Przyciski są kwadratowe
             button.setCheckable(True)
             button.clicked.connect(lambda _, name=icon_name: self.set_icon_type(name))
             self.button_group.addButton(button)
@@ -94,7 +94,7 @@ class BuildingsMode(Mode):
             self.building_positions[building_type] = []
         self.building_positions[building_type].append((x, y))
 
-    def remove_building_positions(self, x, y, size=20):
+    def remove_building_positions(self, x, y, size=10):
         for positions in self.building_positions.values():
             positions[:] = [
                 (bx, by) for bx, by in positions
@@ -128,7 +128,7 @@ class BuildingsMode(Mode):
     def erase_building(self, event):
         """Usuwa budynki w promieniu i zapisuje operację."""
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
-        radius = 15
+        radius = 10
         building_layer = erase_area(building_layer, event.x, event.y, radius)
         self.map_controller.layer_manager.refresh_layer("buildings")
         self.remove_building_positions(event.x, event.y)
@@ -150,7 +150,6 @@ class BuildingsMode(Mode):
 
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, building_type, pixel_sampler.get(state.name, 0))
-                print(f"{state.name}: {building_type} = {getattr(state, building_type)}")
 
     def find_cities(self):
         """
