@@ -89,11 +89,23 @@ class StateController(QObject):
 
 class State:
     """Reprezentuje jedno państwo w grze."""
-    def __init__(self, name, color, provinces=None):
+    def __init__(self, name, color):
         self.name = name
         self.color = QColor(color)
         self.provinces = 0
-        self.cities = 0  # Liczba miast
-        self.farms = 0
-        self.capital = ""  #Pozycja Stolicy Państwa (x, y)
-        self.factories = 0
+
+    def get_dynamic_attributes(self):
+        """Zwraca sformatowany string z nazwami atrybutów, z wyłączeniem name, color i provinces."""
+        attributes = []
+        colors = ["green", "purple", "blue", "lime", "red", "brown", "pink", "cyan"]
+        color_index = 0
+
+        for attr, value in self.__dict__.items():
+            if attr not in {"name", "color", "capital"}:
+                color = colors[color_index % len(colors)]
+                attr_initial = f'<span style="color:{color}">{attr[0].upper()}</span>'
+                value_str = ''.join(f'<span style="color:{color}">{char}</span>' for char in str(value))
+                attributes.append(f"{attr_initial}: {value_str}")
+                color_index += 1
+
+        return " ".join(attributes)

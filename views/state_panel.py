@@ -91,7 +91,7 @@ class StatePanel(QWidget):
         self.button_group.addButton(button)
 
         # Dolna linijka: Opis
-        bottom_label = QLabel(f"P: {state.provinces} M: {state.cities}  F: {state.farms} G: {state.factories}")
+        bottom_label = QLabel(f"{state.get_dynamic_attributes()}")
         bottom_label.setStyleSheet("font-size: 16px;")
         bottom_label.setAlignment(Qt.AlignLeft)
         container_layout.addLayout(top_layout)
