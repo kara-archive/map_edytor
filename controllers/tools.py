@@ -86,7 +86,7 @@ def find_icons(sample_icon, image):
     result = matchTemplate(image_gray, icon_gray, TM_CCOEFF_NORMED)
 
     # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
-    threshold = 0.7
+    threshold = 0.9
     locations = np.where(result >= threshold)
 
     # Wymiary ikony

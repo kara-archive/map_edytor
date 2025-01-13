@@ -1,9 +1,10 @@
 from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
-from PyQt5.QtGui import QImage # type: ignore
+from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
-from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
+from PyQt5.QtWidgets import QPushButton, QButtonGroup, QVBoxLayout, QWidget # type: ignore
 from modes.base_mode import Mode
 from threading import Thread
+import os
 import time
 
 class BuildingsMode(Mode):
@@ -13,21 +14,24 @@ class BuildingsMode(Mode):
         super().__init__(map_controller)
         self.mode_manager = mode_manager
         self.snap = False
-        self.cities = []
-        self.farms = []
-        self.factories = []  # Added factories
-        self.building_icons = {
-            "city": QImage("icons/city.png"),
-            "farm": QImage("icons/farm.png"),
-            "capital": QImage("icons/capital.png"),
-            "factory": QImage("icons/factory.png"),  # Added factory icon
-        }
+        self.building_positions = {}  # Słownik przechowujący pozycje budynków
+        self.building_icons = self.load_building_icons("icons")
 
-        self.active_icon = self.building_icons["city"]
-        self.active_icon_name = "city"
+        self.active_icon = next(iter(self.building_icons.values()))
+        self.active_icon_name = next(iter(self.building_icons.keys()))
 
         if self.active_icon.isNull():
-            raise ValueError("Nie udało się załadować ikony budynku: icons/city.png")
+            raise ValueError("Nie udało się załadować ikony budynku.")
+
+    def load_building_icons(self, folder):
+        """Ładuje ikony budynków z folderu."""
+        building_icons = {}
+        for filename in os.listdir(folder):
+            if filename.startswith("b_") and filename.endswith(".png"):
+                icon_name = filename[2:-4]  # Usuwa "b_" z początku i ".png" z końca
+                icon_path = os.path.join(folder, filename)
+                building_icons[icon_name] = QImage(icon_path)
+        return building_icons
 
     def handle_event(self, event):
         if event.event_type == "click":
@@ -44,28 +48,21 @@ class BuildingsMode(Mode):
             self.end_snap("buildings")
 
     def setup_menu(self):
+        print("Setup menu dla BuildingsMode")
 
         # Tworzenie QButtonGroup
         self.button_group = QButtonGroup()
         self.button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
 
-        # Definicja przycisków i ich właściwości
-        buttons_info = [
-            ("city", self.building_icons["city"], lambda: self.set_icon_type("city")),
-            ("farm", self.building_icons["farm"], lambda: self.set_icon_type("farm")),
-            ("capital", self.building_icons["capital"], lambda: self.set_icon_type("capital")),
-            ("factory", self.building_icons["factory"], lambda: self.set_icon_type("factory")),  # Added factory button
-        ]
-
         buttons = []
 
-        for mode, icon, callback in buttons_info:
+        for icon_name, icon in self.building_icons.items():
             button = QPushButton()
             button.setIcon(self.get_icon_from_image(icon))  # Konwertuj QImage na QIcon
             button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
             button.setFixedSize(50, 50)  # Przyciski są kwadratowe
             button.setCheckable(True)
-            button.clicked.connect(callback)
+            button.clicked.connect(lambda _, name=icon_name: self.set_icon_type(name))
             self.button_group.addButton(button)
             buttons.append(button)
 
@@ -79,35 +76,29 @@ class BuildingsMode(Mode):
     def set_capital(self, x, y):
         print(f"Tutaj ma być więcej kodu ({x},{y}) #TODO")
 
+    def get_icon_from_image(self, image):
+        pixmap = QPixmap.fromImage(image)
+        return QIcon(pixmap)
+
     def set_icon_type(self, icon_type):
         if icon_type in self.building_icons:
             self.active_icon = self.building_icons[icon_type]  # Ustaw ikonę z mapy
             self.active_icon_name = icon_type
+            print(f"Ustawiono ikonę: {icon_type}")
         else:
             raise ValueError(f"Nieznany typ ikony: {icon_type}")
 
     def add_building_position(self, x, y, building_type):
-        if building_type == "city":
-            self.cities.append((x, y))
-        elif building_type == "farm":
-            self.farms.append((x, y))
-        elif building_type == "capital":
-            self.set_capital(x, y)
-        elif building_type == "factory":
-            self.factories.append((x, y))  # Added factories
-        else:
-            raise ValueError(f"Nieznany typ budynku: {building_type}")
+        if building_type not in self.building_positions:
+            self.building_positions[building_type] = []
+        self.building_positions[building_type].append((x, y))
 
     def remove_building_positions(self, x, y, size=20):
-        # Filtruj pozycje, które mają zostać zachowane (poza kwadratem)
-        self.cities = [
-            (bx, by) for bx, by in self.cities
-            if not (x - size <= bx <= x + size and y - size <= by <= y + size)
-        ]
-        self.farms = [
-            (bx, by) for bx, by in self.farms
-            if not (x - size <= bx <= x + size and y - size <= by <= y + size)
-        ]
+        for positions in self.building_positions.values():
+            positions[:] = [
+                (bx, by) for bx, by in positions
+                if not (x - size <= bx <= x + size and y - size <= by <= y + size)
+            ]
 
     def start_buildings_timer(self):
         if not hasattr(self, '_buildings_timer'):
@@ -118,7 +109,6 @@ class BuildingsMode(Mode):
         self._buildings_timer.start(1000)
 
     def _process_buildings(self):
-
         def process():
             self.find_cities()
             self.count_cities_by_state()
@@ -146,17 +136,7 @@ class BuildingsMode(Mode):
         """
         Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
         """
-        if self.map_controller.cv_image is None:
-            print("Brak obrazu bazowego (cv_image) do próbkowania budynków.")
-            return
-        
-        building_types = {
-            "cities": self.cities,
-            "farms": self.farms,
-            "factories": self.factories,
-        }
-
-        for building_type, positions in building_types.items():
+        for building_type, positions in self.building_positions.items():
             if not positions:
                 positions = [(0, 0)]  # bug, że gdy nie ma budynków to nie odświerza liczby
 
@@ -168,19 +148,19 @@ class BuildingsMode(Mode):
 
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, building_type, pixel_sampler.get(state.name, 0))
+                print(f"{state.name}: {building_type} = {getattr(state, building_type)}")
 
     def find_cities(self):
         """
         Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
         """
-
         layer = self.map_controller.layer_manager.get_layer("buildings")
 
         if layer is None:
             return []
+
         start_time = time.time()
-        self.cities = find_icons(self.building_icons["city"], layer)
-        self.farms = find_icons(self.building_icons["farm"], layer)
-        self.factories = find_icons(self.building_icons["factory"], layer)
+        for building_type, icon in self.building_icons.items():
+            self.building_positions[building_type] = find_icons(icon, layer)
         end_time = time.time()
-        print(f"Sukanie budynków w czasie {end_time - start_time} self.cities: {len(self.cities)} self.farms: {len(self.farms)} self.factories: {len(self.factories)}")
+        print(f"Znaleziono budynki w czasie: {end_time - start_time:.2f} s Miasta: {len(self.building_positions)}, Fabryki: {len(self.building_positions)}, Folwarki: {len(self.building_positions)}")
