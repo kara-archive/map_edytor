@@ -45,35 +45,35 @@ class StateController(QObject):
             return
 
         # Przygotowanie nagłówków i danych
-        headers = ["tura"] + [state.name for state in self.states]
-        row = [obecna_tura] + [state.provinces for state in self.states]
+        all_attributes = set()
+        for state in self.states:
+            all_attributes.update(attr for attr in state.__dict__.keys() if attr not in {"color", "state_controller", "name"})
+
+        #headers = ["Tura " + str(obecna_tura)] + list(all_attributes)
+        headers = ["Tura " + str(obecna_tura)] + [attr.capitalize() for attr in all_attributes]
+
+        rows = []
+
+        for state in self.states:
+            state_data = [getattr(state, attr, "") for attr in all_attributes]
+            rows.append([state.name] + state_data)
 
         try:
-        # Odczyt istniejącego pliku, jeśli istnieje
-            existing_rows = []
-            if os.path.isfile(file_path):
-                with open(file_path, mode='r', newline='', encoding='utf-8') as file:
-                    reader = csv.reader(file)
-                    existing_rows = list(reader)
-
-            # Nadpisanie pierwszej linii nagłówkami
             with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
 
                 # Zapisz nagłówki
                 writer.writerow(headers)
 
-                # Dopisz istniejące dane, pomijając starą linię nagłówków
-                for row_data in existing_rows[1:]:
-                    writer.writerow(row_data)
-
                 # Dopisz nowy wiersz dla obecnej tury
-                writer.writerow(row)
+                for row in rows:
+                    writer.writerow(row)
 
             print(f"Dane dla tury {obecna_tura} zapisane do pliku: {file_path}")
 
         except Exception as e:
             print(f"Błąd podczas zapisywania pliku CSV: {e}")
+
 
 
     def load_from_csv(self, file_path):

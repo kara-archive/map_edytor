@@ -1,26 +1,37 @@
-from PyQt5.QtGui import QImage, QColor # type: ignore
+from PyQt5.QtGui import QImage, QColor, QPixmap, QIcon # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from PyQt5.QtCore import QSize
 from controllers.tools import erase_area, draw_icon
 from modes.base_mode import Mode
+import os
 
 class ArmyMode(Mode):
     """Obsługuje tryb armii."""
     def __init__(self, mode_manager, map_controller):
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.army_icons = {
-            "army": QImage("icons/army.png"),
-            "fort": QImage("icons/fort.png"),
-            "ship": QImage("icons/ship.png")  # Dodano ikonę statku
-        }
+        self.army_icons = self.load_army_icons("icons")
         self.active_icon = self.army_icons["army"]
         self.active_icon_name = "army"
 
         if self.active_icon.isNull():
-            raise ValueError("Nie udało się załadować ikony: icons/army.png")
+            raise ValueError("Nie udało się załadować ikony: icons/a_army.png")
         self.active_state = None
-
+ 
+    def load_army_icons(self, folder):
+        """Ładuje ikony budynków z folderu."""
+        building_icons = {}
+        for filename in os.listdir(folder):
+            if "a_" in filename and filename.endswith(".png"):
+                icon_name = filename.split("a_")[1][:-4]  # Usuwa wszystko przed "a_" i ".png" z końca
+                icon_path = os.path.join(folder, filename)
+                building_icons[icon_name] = QImage(icon_path)
+        return building_icons
+    
+    def get_icon_from_image(self, image):
+        pixmap = QPixmap.fromImage(image)
+        return QIcon(pixmap)
+        
     def handle_event(self, event):
         if event.event_type == "click":
             self.start_snap("army")
@@ -73,36 +84,31 @@ class ArmyMode(Mode):
         return image
 
     def setup_menu(self):
+        print("Setup menu dla ArmyMode")
 
         # Tworzenie QButtonGroup
         self.button_group = QButtonGroup()
         self.button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
 
-        # Definicja przycisków i ich właściwości
-        buttons_info = [
-            ("army", self.army_icons["army"], lambda: self.set_icon_type("army")),
-            ("fort", self.army_icons["fort"], lambda: self.set_icon_type("fort")),
-            ("ship", self.army_icons["ship"], lambda: self.set_icon_type("ship"))  # Dodano przycisk dla statku
-        ]
-
         buttons = []
 
-        for mode, icon, callback in buttons_info:
+        for icon_name, icon in self.army_icons.items():
             button = QPushButton()
             button.setIcon(self.get_icon_from_image(icon))  # Konwertuj QImage na QIcon
             button.setIconSize(QSize(40, 40))  # Rozmiar ikony wewnątrz przycisku
             button.setFixedSize(50, 50)  # Przyciski są kwadratowe
             button.setCheckable(True)
-            button.clicked.connect(callback)
+            button.clicked.connect(lambda _, name=icon_name: self.set_icon_type(name))
             self.button_group.addButton(button)
             buttons.append(button)
-
+            if button.icon().name() == self.active_icon_name:
+                button.setChecked(True)
+                
         # Aktualizacja dynamicznego menu
         self.map_controller.button_panel.update_dynamic_menu(buttons)
 
         # Ustawienie pierwszego przycisku jako domyślnie zaznaczonego
-        if buttons:
-            buttons[0].setChecked(True)
+
 
     def set_icon_type(self, icon_type):
         if icon_type in self.army_icons:
