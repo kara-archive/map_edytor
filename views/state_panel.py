@@ -120,7 +120,7 @@ class StatePanel(QWidget):
         if dialog.exec_() == QDialog.Accepted:
             name, color = dialog.get_state()  # Pobranie nazwy i koloru z dialogu
             if name and color:
-                new_state = State(name, color.name())  # Tworzenie obiektu State
+                new_state = State(name, color.name(), self.controller)  # Tworzenie obiektu State
                 self.controller.add_state(new_state)
                 self.update_states()
 
@@ -182,7 +182,7 @@ class AddStateDialog(QDialog):
             for i in range(3):
                 hue = int(i * 120 + j * 24)  # 22.590 degrees apart
                 color = QColor()
-                color.setHsv(hue, 255, 128)  # Saturation 255, Value 128
+                color.setHsv(hue, 230, 128)  # Saturation 230, Value 128
                 custom_colors.append(color)
 
         for i, color in enumerate(custom_colors):

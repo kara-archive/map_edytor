@@ -11,6 +11,7 @@ class StateController(QObject):
         self.states = []
         self.last_state = None
         self.map_controller = map_controller
+        self.label_colors = ["burlywood",]
 
     def get_states(self):
         return self.states
@@ -83,25 +84,29 @@ class StateController(QObject):
             for row in reader:
                 name = row['name']
                 color = row['color']
-                self.states.append(State(name, color))
+                self.states.append(State(name, color, self))
 
 
 
 class State:
     """Reprezentuje jedno państwo w grze."""
-    def __init__(self, name, color):
+    def __init__(self, name, color, state_controller=None):
         self.name = name
         self.color = QColor(color)
         self.provinces = 0
+        self.state_controller = state_controller
 
     def get_dynamic_attributes(self):
-        """Zwraca sformatowany string z nazwami atrybutów, z wyłączeniem name, color i provinces."""
+        """Zwraca sformatowany string z nazwami atrybutów, z wyłączeniem name, color i atrybutów zawierających 'capital'."""
         attributes = []
-        colors = ["green", "purple", "blue", "lime", "red", "brown", "pink", "cyan"]
+        if self.state_controller:
+            colors = self.state_controller.label_colors
+        else:
+            colors = ["burlywood",]
         color_index = 0
 
         for attr, value in self.__dict__.items():
-            if attr not in {"name", "color", "capital"}:
+            if attr not in {"name", "color", "label_colors", "state_controller"} and "capital" not in attr:
                 color = colors[color_index % len(colors)]
                 attr_initial = f'<span style="color:{color}">{attr[0].upper()}</span>'
                 value_str = ''.join(f'<span style="color:{color}">{char}</span>' for char in str(value))

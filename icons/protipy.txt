@@ -1,0 +1,14 @@
+To jest katalog z ikonami.
+
+>jeśli usuniesz ten folder, to wygeneruje nowy z domyślnymi ikonami
+natomiast jak chcesz podmieniać ikony, to pamiętaj, żeby były różne od siebie, program nie widzi kolorów i będzie się mylił, jeśli rozpozna jakąś ikonę w innej.
+oslo nie zaimplementowałem przypisania ikon do mapki, więc jak zmienisz ikonę, to będziesz musiał pozmieniać je ręcznie też na mapce.
+
+>ikony o nazwie zaczynającej się na "b_" będą dodane do trybu budynków
+liczba budynków będzie wyświetlała się w tabeli po lewej z pierwszą literą nazwy np. "b_city.png" wyświetli się jako "C:0".
+jedyna nazwa, która jest ignorowana to "capital" (protip: zmień nazwę na Capital, dla pythona to już inny plik) (protip: nazwa b_capital_dupa.png też będzie ignorowana)
+protip jeśli chcesz grać w systemie wager to ponazywaj sobie ikony typu b_W.png b_A.png b_G.png b_E.png b_R.png
+
+>ikony o nazwie zaczynającej się na "a_" będą dodane do trybu armii
+ikony armii powinny mieć biały kolor, wtedy będzie on zmieniany na kolor państwa, każdy inny pozostanie bez zmian.
+

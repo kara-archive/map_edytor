@@ -1,7 +1,7 @@
 from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
 from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
-from PyQt5.QtWidgets import QPushButton, QButtonGroup, QVBoxLayout, QWidget # type: ignore
+from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from modes.base_mode import Mode
 from threading import Thread
 import os
@@ -27,8 +27,8 @@ class BuildingsMode(Mode):
         """Ładuje ikony budynków z folderu."""
         building_icons = {}
         for filename in os.listdir(folder):
-            if filename.startswith("b_") and filename.endswith(".png"):
-                icon_name = filename[2:-4]  # Usuwa "b_" z początku i ".png" z końca
+            if "b_" in filename and filename.endswith(".png"):
+                icon_name = filename.split("b_")[1][:-4]  # Usuwa wszystko przed "b_" i ".png" z końca
                 icon_path = os.path.join(folder, filename)
                 building_icons[icon_name] = QImage(icon_path)
         return building_icons
@@ -137,6 +137,7 @@ class BuildingsMode(Mode):
         """
         Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
         """
+        self.set_colors_in_color_label()
         for building_type, positions in self.building_positions.items():
             if not positions:
                 positions = [(0, 0)]  # bug, że gdy nie ma budynków to nie odświerza liczby
@@ -164,4 +165,11 @@ class BuildingsMode(Mode):
         for building_type, icon in self.building_icons.items():
             self.building_positions[building_type] = find_icons(icon, layer)
         end_time = time.time()
-        print(f"Znaleziono budynki w czasie: {end_time - start_time:.2f} s Miasta: {len(self.building_positions)}, Fabryki: {len(self.building_positions)}, Folwarki: {len(self.building_positions)}")
+        print(f"Znaleziono budynki w czasie: {end_time - start_time:.2f} s")
+
+    def set_colors_in_color_label(self):
+        """Ustawia kolory w label w state, które odpowiadają kolorowi ikony na jej środkowym pixelu"""
+        for icon in self.building_icons.values():
+            color = icon.pixelColor(icon.width() // 2, icon.height() // 2)
+            if icon != self.building_icons.get("capital"):
+                self.map_controller.state_controller.label_colors.append(color.name())
