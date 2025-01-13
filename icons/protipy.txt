@@ -7,8 +7,9 @@ oslo nie zaimplementowałem przypisania ikon do mapki, więc jak zmienisz ikonę
 >ikony o nazwie zaczynającej się na "b_" będą dodane do trybu budynków
 liczba budynków będzie wyświetlała się w tabeli po lewej z pierwszą literą nazwy np. "b_city.png" wyświetli się jako "C:0".
 jedyna nazwa, która jest ignorowana to "capital" (protip: zmień nazwę na Capital, dla pythona to już inny plik) (protip: nazwa b_capital_dupa.png też będzie ignorowana)
-protip jeśli chcesz grać w systemie wager to ponazywaj sobie ikony typu b_W.png b_A.png b_G.png b_E.png b_R.png
+wszystko w nazwie co znajduje się przed "b_" jest ignorowane, możesz więc manipulować kolejnością wyświetlania (alfabetycznie)
+protip jeśli chcesz grać w systemie a'la wager to ponazywaj sobie ikony typu 1.b_Wojsko.png 2.b_Administaracja.png 3.b_Gospodarka.png 4.b_Edukacja.png 5.b_Rolnictwo.png
+kolor w tabeli będzie pobierany ze środka ikony, więc jeśli chcesz mieć kolorową tabelę, to środkowy pixel powinien być w odpowiednim kolorze
 
 >ikony o nazwie zaczynającej się na "a_" będą dodane do trybu armii
-ikony armii powinny mieć biały kolor, wtedy będzie on zmieniany na kolor państwa, każdy inny pozostanie bez zmian.
-
+ikony armii powinny mieć biały kolor, wtedy będzie on zmieniany na kolor państwa, każdy inny kolor pozostanie bez zmian.
