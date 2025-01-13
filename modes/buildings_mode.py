@@ -65,13 +65,14 @@ class BuildingsMode(Mode):
             button.clicked.connect(lambda _, name=icon_name: self.set_icon_type(name))
             self.button_group.addButton(button)
             buttons.append(button)
-
+            if button.icon().name() == self.active_icon_name:
+                button.setChecked(True)
+                
         # Aktualizacja dynamicznego menu
         self.map_controller.button_panel.update_dynamic_menu(buttons)
 
         # Ustawienie pierwszego przycisku jako domyślnie zaznaczonego
-        if buttons:
-            buttons[0].setChecked(True)
+
 
     def set_capital(self, x, y):
         print(f"Tutaj ma być więcej kodu ({x},{y}) #TODO")
