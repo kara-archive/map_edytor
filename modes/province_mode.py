@@ -44,7 +44,7 @@ class ProvinceMode(Mode):
 
     def setup_menu(self):
         color_preview = QPushButton()
-        color_preview.setFixedSize(QSize(60, 60))
+        color_preview.setFixedSize(QSize(42, 42))
         lighter_color_preview = QPushButton()
         lighter_color_preview.setFixedSize(QSize(40, 40))
 
@@ -60,20 +60,17 @@ class ProvinceMode(Mode):
             color = self.sampled_color
 
         if color:
-            color_preview.setStyleSheet(f"background-color: {color.name()}; border: 1px solid black;")
-            lighter_color = color.lighter(200).toHsv()
+            color_preview.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black;")
+            lighter_color = color.lighter(150).toHsv()
             lighter_color.setHsv(lighter_color.hue(), int(lighter_color.saturation() * 0.5), lighter_color.value())
             lighter_color = lighter_color.toRgb()
             lighter_color_preview.setStyleSheet(f"background-color: {lighter_color.name()}; border: 1px solid black;")
-        else:
-            color_preview.setStyleSheet(f"border: 1px solid black;")
-            lighter_color_preview.setStyleSheet(f"border: 1px solid black;")
 
-        # Connect buttons to set sampled color
-        color_preview.clicked.connect(lambda: self.set_sampled_color(color))
-        lighter_color_preview.clicked.connect(lambda: self.set_sampled_color(lighter_color))
+            # Connect buttons to set sampled color
+            color_preview.clicked.connect(lambda: self.set_sampled_color(color))
+            lighter_color_preview.clicked.connect(lambda: self.set_sampled_color(lighter_color))
 
-        self.map_controller.button_panel.update_dynamic_menu([color_preview, lighter_color_preview])
+            self.map_controller.button_panel.update_dynamic_menu([color_preview, lighter_color_preview])
 
     def set_sampled_color(self, color):
         """Ustawia self.sampled_color na podany kolor."""

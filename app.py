@@ -77,7 +77,6 @@ def main():
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
     parser.add_argument("--terka", action="store_true", help=" ")
-    parser.add_argument("--mistrz", action="store_true", help=" ")
 
     args = parser.parse_args()
 
