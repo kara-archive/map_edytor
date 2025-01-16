@@ -8,9 +8,9 @@ def flood_fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
     height, width = layer.height(), layer.width()
 
-    fill_color = (color[0], color[1], color[2])  # RGB
+    fill_color = color.getRgb()[:3]
     start_color = QColor(layer.pixel(x, y)).getRgb()[:3]
-    if start_color in [(0, 0, 0), (47, 74, 113), fill_color]:
+    if start_color == fill_color:
         return
 
     # BFS z liniowym przetwarzaniem

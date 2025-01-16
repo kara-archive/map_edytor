@@ -48,7 +48,6 @@ class BuildingsMode(Mode):
             self.end_snap("buildings")
 
     def setup_menu(self):
-        print("Setup menu dla BuildingsMode")
 
         # Tworzenie QButtonGroup
         self.button_group = QButtonGroup()

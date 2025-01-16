@@ -47,7 +47,7 @@ class ArmyMode(Mode):
         army_layer = self.map_controller.layer_manager.get_layer("army")
 
         # Pobierz aktywny kolor państwa z ModeManager
-        active_state = self.mode_manager.get_active_state()
+        active_state = self.active_state
         if active_state is None or not hasattr(active_state, "color"):
             print("Brak aktywnego państwa lub koloru.")
             return
@@ -84,7 +84,6 @@ class ArmyMode(Mode):
         return image
 
     def setup_menu(self):
-        print("Setup menu dla ArmyMode")
 
         # Tworzenie QButtonGroup
         self.button_group = QButtonGroup()
