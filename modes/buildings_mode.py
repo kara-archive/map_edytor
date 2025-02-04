@@ -66,7 +66,7 @@ class BuildingsMode(Mode):
             buttons.append(button)
             if button.icon().name() == self.active_icon_name:
                 button.setChecked(True)
-                
+
         # Aktualizacja dynamicznego menu
         self.map_controller.button_panel.update_dynamic_menu(buttons)
 
@@ -127,8 +127,8 @@ class BuildingsMode(Mode):
     def erase_building(self, event):
         """Usuwa budynki w promieniu i zapisuje operację."""
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
-        radius = 10
-        building_layer = erase_area(building_layer, event.x, event.y, radius)
+        radius = 5
+        building_layer = erase_area(building_layer, event.x, event.y, radius, radius)
         self.map_controller.layer_manager.refresh_layer("buildings")
         self.remove_building_positions(event.x, event.y)
 

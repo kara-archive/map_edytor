@@ -21,6 +21,11 @@ def dialog():
     army_b = [create_unit('D',lvl=lvl_b,fort=fort_b) for _ in range(units_defence)]
     return army_a, army_b
 
+def rand():
+    a = [("A",'inf',1,False,False) for _ in range(random.randint(5,15))]
+    b = [("B",'inf',1,False,False) for _ in range(random.randint(5,15))]
+    return a, b
+
 def main(army_a, army_b):
     a, b = len(army_a), len(army_b)
     for i in reversed(range(len(army_a))):
@@ -81,8 +86,7 @@ try:
         if args.dialog:
             a,b = dialog()
         else:
-            a = [("A",'inf',10,False,False),("A",'inf',10,False,False),("A",'inf',10,False,False),]
-            b = [("B",'inf',10,False,False),("B",'inf',10,False,False),("B",'inf',10,False,False),("B",'inf',10,False,False),("B",'inf',10,False,False),]
+            a,b = rand()
         main(a,b)
 except KeyboardInterrupt:
     pass

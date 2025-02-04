@@ -17,7 +17,7 @@ class ArmyMode(Mode):
         if self.active_icon.isNull():
             raise ValueError("Nie udało się załadować ikony: icons/a_army.png")
         self.active_state = None
- 
+
     def load_army_icons(self, folder):
         """Ładuje ikony budynków z folderu."""
         building_icons = {}
@@ -27,11 +27,11 @@ class ArmyMode(Mode):
                 icon_path = os.path.join(folder, filename)
                 building_icons[icon_name] = QImage(icon_path)
         return building_icons
-    
+
     def get_icon_from_image(self, image):
         pixmap = QPixmap.fromImage(image)
         return QIcon(pixmap)
-        
+
     def handle_event(self, event):
         if event.event_type == "click":
             self.start_snap("army")
@@ -62,8 +62,7 @@ class ArmyMode(Mode):
     def erase_army(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         army_layer = self.map_controller.layer_manager.get_layer("army")
-        radius = 10  # Promień gumki
-        army_layer = erase_area(army_layer, event.x, event.y, radius)
+        army_layer = erase_area(army_layer, event.x, event.y, a=2, b=4)
         self.map_controller.layer_manager.refresh_layer("army")
 
 
@@ -102,7 +101,7 @@ class ArmyMode(Mode):
             buttons.append(button)
             if button.icon().name() == self.active_icon_name:
                 button.setChecked(True)
-                
+
         # Aktualizacja dynamicznego menu
         self.map_controller.button_panel.update_dynamic_menu(buttons)
 

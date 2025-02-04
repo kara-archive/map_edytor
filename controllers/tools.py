@@ -49,12 +49,12 @@ def flood_fill(layer, x, y, color):
 
     return layer
 
-def erase_area(layer, x, y, radius=5):
+def erase_area(layer, x, y, a=5,b=5):
     # Usuwanie (rysowanie przezroczystości)
     painter = QPainter(layer)
     painter.setCompositionMode(QPainter.CompositionMode_Clear)  # Ustaw tryb usuwania
     painter.setBrush(Qt.transparent)
-    painter.drawRect(x - radius, y - radius, radius * 2, radius * 2)
+    painter.drawRect(x - a, y - b, a * 2, b * 2)
     painter.end()
     return layer
 
