@@ -5,6 +5,7 @@ from PyQt5.QtGui import QPalette, QColor
 from views.main_view import MainView  # Zakładam, że to Twój główny widok
 import os
 import shutil
+import subprocess
 
 
 
@@ -76,43 +77,44 @@ def main():
     parser = argparse.ArgumentParser(description="sram psa jak sra")
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
-    parser.add_argument("--terka", action="store_true", help=" ")
-    parser.add_argument("--battle", action="store_true", help=" ")
+    parser.add_argument("--terka", action="store_true",)
+    parser.add_argument("--battle", type=str, help="dodaj +h po więcej pomocy")
     args = parser.parse_args()
 
-    # Uruchomienie aplikacji
-    app = QApplication(sys.argv)
 
-    # Ustawienie ciemnej palety kolorów, jeśli podano argument --dark
-    if args.dark:
-        apply_dark_theme(app)
-    else:
-        app.setStyleSheet("""
-        QPushButton {
-            min-width: 30px;
-            min-height: 30px;
-        }""" )
-
-
-    if args.terka:
-        app.setStyle("Windows")
-
-    main_view = MainView()
-
-    # Jeśli podano parametr --load
-    if args.load:
-        try:
-            main_view.button_panel.load(args.load)  # Wywołanie funkcji ładowania
-            print(f"Pomyślnie wczytano plik: {args.load}")
-        except Exception as e:
-            print(f"Błąd podczas wczytywania pliku: {e}")
     if args.battle:
-        os.system("gnome-terminal -- bash -c 'python ./controllers/battle_controller.py -d; exec bash'")
+        os.system(f'python ./controllers/battle_controller.py {args.battle}')
+    else:
+        app = QApplication(sys.argv)
 
-    # Pokaż główne okno
-    main_view.show()
+        # Ustawienie ciemnej palety kolorów, jeśli podano argument --dark
+        if args.dark:
+            apply_dark_theme(app)
+        else:
+            app.setStyleSheet("""
+            QPushButton {
+                min-width: 30px;
+                min-height: 30px;
+            }""" )
 
-    sys.exit(app.exec_())
+
+        if args.terka:
+            app.setStyle("Windows")
+
+
+        main_view = MainView()
+
+        if args.load:
+            try:
+                main_view.button_panel.load(args.load)  # Wywołanie funkcji ładowania
+                print(f"Pomyślnie wczytano plik: {args.load}")
+            except Exception as e:
+                print(f"Błąd podczas wczytywania pliku: {e}")
+
+        # Pokaż główne okno
+        main_view.setGeometry(10,10,1970,1600)
+        main_view.show()
+        sys.exit(app.exec_())
 
 if __name__ == "__main__":
     main()
