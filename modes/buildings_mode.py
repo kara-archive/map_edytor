@@ -1,5 +1,5 @@
 from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
-from PyQt5.QtGui import QImage, QIcon, QPixmap # type: ignore
+from PyQt5.QtGui import QImage, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from modes.base_mode import Mode
@@ -137,13 +137,23 @@ class BuildingsMode(Mode):
         Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
         """
         self.set_colors_in_color_label()
+        roads_layer = self.map_controller.layer_manager.get_layer("roads")
         for building_type, positions in self.building_positions.items():
             if not positions:
                 positions = [(0, 0)]  # bug, że gdy nie ma budynków to nie odświerza liczby
+            i = 0
+            positions_road = []
+            for position in positions:
+                print (position)
+                if QColor(roads_layer.pixel(position[0],position[1])) == QColor(128, 128, 128, 255):
+                    positions_road.append(position)
+                i +=1
+
+            print(positions_road)
 
             pixel_sampler = PixelSampler(
                 self.map_controller.layer_manager.layers.get("province"),
-                positions,
+                positions_road,
                 self.map_controller.state_controller.get_states()
             )
 
