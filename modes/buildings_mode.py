@@ -142,14 +142,12 @@ class BuildingsMode(Mode):
             if not positions:
                 positions = [(0, 0)]  # bug, że gdy nie ma budynków to nie odświerza liczby
             i = 0
+
             positions_road = []
             for position in positions:
-                print (position)
                 if QColor(roads_layer.pixel(position[0],position[1])) == QColor(128, 128, 128, 255):
                     positions_road.append(position)
                 i +=1
-
-            print(positions_road)
 
             pixel_sampler = PixelSampler(
                 self.map_controller.layer_manager.layers.get("province"),
