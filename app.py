@@ -78,12 +78,21 @@ def main():
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
     parser.add_argument("--terka", action="store_true",)
-    parser.add_argument("--battle", type=str, help="dodaj +h po więcej pomocy")
+    parser.add_argument("--battle", action="store_true", help="tryb bitwy, argumenty:")
+    parser.add_argument("-r", "--random", action="store_true", help="losowa armia")
+    parser.add_argument("-f", "--forts", action="store_true", help="dodaje do dialogu opcje fortów")
+    parser.add_argument("-lvl", "--levels", action="store_true", help="dodaje do dialogu opcje leveli")
+    parser.add_argument("-p", "--print", action="store_true", help="printuje przykładiową armię", )
+    parser.add_argument("-q", "--quiet", action="store_true", help="nie printuje detali", )
     args = parser.parse_args()
 
 
     if args.battle:
-        os.system(f'python ./controllers/battle_controller.py {args.battle}')
+        try:
+            import controllers.battle_controller
+        except KeyboardInterrupt:
+            sys.exit()
+
     else:
         app = QApplication(sys.argv)
 

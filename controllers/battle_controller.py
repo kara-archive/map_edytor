@@ -59,7 +59,7 @@ def rand():
     b = [("B",'inf',random.randint(0,9),False,False) for _ in range(random.randint(5,15))]
     return a, b
 
-def battle(army_a, army_b):
+def battle(army_a, army_b, p=False):
     a, b = len(army_a), len(army_b)
     for i in reversed(range(len(army_a))):
         # Check if both units exist before accessing them
@@ -84,28 +84,28 @@ def battle(army_a, army_b):
             del army_a[i]
         else:
             winner_icon = "="
-        if not args.quiet:
+        if not args.quiet and p:
             print(f"{unit_a[0]} {unit_a[1]}({tab_rev(f"{unit_a[2]})")}{tab(str(attack_result))}\033[1m{tab(winner_icon)}\033[0m{tab(str(defence_result))}{tab(str(unit_b[0]))} {unit_b[1]}({unit_b[2]}){'F' if unit_b[3] else ''}")
 
 
-
-    # Print the remaining units
-    print(f"\033[1mpostało\033[0m: \033[96mAtak: {len(army_a)}\033[93m Obrona: {len(army_b)} \033[0m")
-    if len(army_a) > len(army_b):
-        print(f"\033[96mAtakujący zajmuje: {len(army_a)} prow.\033[0m")
-    elif len(army_a) < len(army_b):
-        print(f"\033[93mBroniący odbija: {len(army_b)} prow.\033[0m")
-    else:
-        print("Remis")
-    print(f"\033[1mstraty\033[0m: \033[96mAtak: {a-len(army_a)}\033[93m Obrona: {b-len(army_b)} \033[0m")
+    if p:
+        # Print the remaining units
+        print(f"\033[1mpostało\033[0m: \033[96mAtak: {len(army_a)}\033[93m Obrona: {len(army_b)} \033[0m")
+        if len(army_a) > len(army_b):
+            print(f"\033[96mAtakujący zajmuje: {len(army_a)} prow.\033[0m")
+        elif len(army_a) < len(army_b):
+            print(f"\033[93mBroniący odbija: {len(army_b)} prow.\033[0m")
+        else:
+            print("Remis")
+        print(f"\033[1mstraty\033[0m: \033[96mAtak: {a-len(army_a)}\033[93m Obrona: {b-len(army_b)} \033[0m")
     return army_a, army_b
 
-parser = argparse.ArgumentParser(epilog="pojedyncza jednostka to tuple: ('Armia', 'Typ', LvL, Fort, Artyleria)",prefix_chars="+")
-parser.add_argument("+r", "++random", action="store_true", help="losowa armia")
-parser.add_argument("+f", "++forts", action="store_true", help="dodaje do dialogu opcje fortów")
-parser.add_argument("+lvl", "++levels", action="store_true", help="dodaje do dialogu opcje leveli")
-parser.add_argument("+p", "++print", action="store_true", help="printuje przykładiową armię", )
-parser.add_argument("+q", "++quiet", action="store_true", help="nie printuje detali", )
+parser = argparse.ArgumentParser()
+parser.add_argument("--battle", action="store_true", help="dodaj +h po więcej pomocy")
+parser.add_argument("-r", "--random", action="store_true", help="losowa armia")
+parser.add_argument("-f", "--forts", action="store_true", help="dodaje do dialogu opcje fortów")
+parser.add_argument("-lvl", "--levels", action="store_true", help="dodaje do dialogu opcje leveli")
+parser.add_argument("-q", "--quiet", action="store_true", help="nie printuje detali", )
 
 
 
@@ -116,12 +116,9 @@ try:
         title = input()
         if args.random:
             a,b = rand()
-            print(a,b)
         else:
             a,b = dialog(args.forts, args.levels)
-        a, b = battle(a,b)
-
-
+        a, b = battle(a,b, p=True)
 
 except KeyboardInterrupt:
-    pass
+    sys.exit()
