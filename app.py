@@ -44,7 +44,7 @@ def apply_dark_theme(app):
         QPushButton:checked {
             background-color: #707070;
         }
-                      
+
     """)
 
 def ensure_resources_exist():
@@ -77,7 +77,7 @@ def main():
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
     parser.add_argument("--terka", action="store_true", help=" ")
-
+    parser.add_argument("--battle", action="store_true", help=" ")
     args = parser.parse_args()
 
     # Uruchomienie aplikacji
@@ -106,11 +106,13 @@ def main():
             print(f"Pomyślnie wczytano plik: {args.load}")
         except Exception as e:
             print(f"Błąd podczas wczytywania pliku: {e}")
+    if args.battle:
+        os.system("gnome-terminal -- bash -c 'python ./controllers/battle_controller.py -d; exec bash'")
 
     # Pokaż główne okno
     main_view.show()
+
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
     main()
-

@@ -70,7 +70,7 @@ def main(army_a, army_b):
         else:
             winner_icon = "="
 
-        #print(f"{unit_a[0]} {unit_a[1]}({tab_rev(f"{unit_a[2]})")}{tab(str(attack_result))}{tab(winner_icon)}{tab(str(defence_result))}{tab(str(unit_b[0]))} {unit_b[1]}({unit_b[2]}){'F' if unit_b[3] else ''}")
+        print(f"{unit_a[0]} {unit_a[1]}({tab_rev(f"{unit_a[2]})")}{tab(str(attack_result))}{tab(winner_icon)}{tab(str(defence_result))}{tab(str(unit_b[0]))} {unit_b[1]}({unit_b[2]}){'F' if unit_b[3] else ''}")
 
 
 
