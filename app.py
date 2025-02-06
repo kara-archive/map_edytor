@@ -74,11 +74,11 @@ ensure_resources_exist()
 
 def main():
     # Parsowanie argumentów
-    parser = argparse.ArgumentParser(description="Ultymatywny program do prowadzenia mapkowych. Najlepiej się sprawdza do systemu typu z japońskiej, ale sprawdzi się też pod WAGER. kiedyś dodam config to sobie jeszcze dodacie więcej opcji.", epilog="sram psa jak sra")
+    parser = argparse.ArgumentParser(description="Ultymatywny program do prowadzenia mapkowych. Najlepiej się sprawdza do systemu typu z japońskiej, ale sprawdzi się też pod WAGER. kiedyś dodam config to sobie jeszcze dodacie więcej opcji.", epilog="poza tymi opcjami dostępne są w trybie bitwy następujące komenty: forts, levels, [Pańswo 1] vs [Państwo 2], con, exit")
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
     parser.add_argument("--terka", action="store_true", help="nie dostanie dziś cukierka")
-    parser.add_argument("--battle", action="store_true", help="tryb bitwy, argumenty:")
+    parser.add_argument("--battle", action="store_true", help="tryb bitwy, tylko w konsoli, bo jestem leniwy, argumenty:")
     parser.add_argument("-r", "--random", action="store_true", help="losowa armia")
     parser.add_argument("-f", "--forts", action="store_true", help="dodaje do dialogu opcje fortów")
     parser.add_argument("-lvl", "--levels", action="store_true", help="dodaje do dialogu opcje leveli")
@@ -89,41 +89,41 @@ def main():
 
     if args.battle:
         try:
-            import controllers.battle_controller
+            import controllers.battle_controller as battle
+            battle.main()
         except KeyboardInterrupt:
             sys.exit()
 
+    app = QApplication(sys.argv)
+
+    # Ustawienie ciemnej palety kolorów, jeśli podano argument --dark
+    if args.dark:
+        apply_dark_theme(app)
     else:
-        app = QApplication(sys.argv)
-
-        # Ustawienie ciemnej palety kolorów, jeśli podano argument --dark
-        if args.dark:
-            apply_dark_theme(app)
-        else:
-            app.setStyleSheet("""
-            QPushButton {
-                min-width: 30px;
-                min-height: 30px;
-            }""" )
+        app.setStyleSheet("""
+        QPushButton {
+            min-width: 30px;
+            min-height: 30px;
+        }""" )
 
 
-        if args.terka:
-            app.setStyle("Windows")
+    if args.terka:
+        app.setStyle("Windows")
 
 
-        main_view = MainView()
+    main_view = MainView()
 
-        if args.load:
-            try:
-                main_view.button_panel.load(args.load)  # Wywołanie funkcji ładowania
-                print(f"Pomyślnie wczytano plik: {args.load}")
-            except Exception as e:
-                print(f"Błąd podczas wczytywania pliku: {e}")
+    if args.load:
+        try:
+            main_view.button_panel.load(args.load)  # Wywołanie funkcji ładowania
+            print(f"Pomyślnie wczytano plik: {args.load}")
+        except Exception as e:
+            print(f"Błąd podczas wczytywania pliku: {e}")
 
-        # Pokaż główne okno
-        main_view.setGeometry(10,10,1970,1600)
-        main_view.show()
-        sys.exit(app.exec_())
+    # Pokaż główne okno
+    main_view.setGeometry(10,10,1970,1600)
+    main_view.show()
+    sys.exit(app.exec_())
 
 if __name__ == "__main__":
     main()
