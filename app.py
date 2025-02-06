@@ -74,10 +74,10 @@ ensure_resources_exist()
 
 def main():
     # Parsowanie argumentów
-    parser = argparse.ArgumentParser(description="sram psa jak sra")
+    parser = argparse.ArgumentParser(description="Ultymatywny program do prowadzenia mapkowych. Najlepiej się sprawdza do systemu typu z japońskiej, ale sprawdzi się też pod WAGER. kiedyś dodam config to sobie jeszcze dodacie więcej opcji.", epilog="sram psa jak sra")
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
-    parser.add_argument("--terka", action="store_true",)
+    parser.add_argument("--terka", action="store_true", help="nie dostanie dziś cukierka")
     parser.add_argument("--battle", action="store_true", help="tryb bitwy, argumenty:")
     parser.add_argument("-r", "--random", action="store_true", help="losowa armia")
     parser.add_argument("-f", "--forts", action="store_true", help="dodaje do dialogu opcje fortów")
