@@ -243,7 +243,6 @@ class MyWindow(QMainWindow):
         print(f"\033[1mstraty\033[0m: \033[96mAtakujący:: {len(army_a)-len(final_a)}\033[93m Broniący: {len(army_b)-len(final_b)} \033[0m")
 
         self.update_tables(final_a, final_b)
-        return army_a, army_b
 
     def add_unit(self, table, army='A', unit='inf', lvl='1', fort=False, art=False):
         row = table.rowCount()
