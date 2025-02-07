@@ -16,7 +16,7 @@ class BuildingsMode(Mode):
         self.snap = False
         self.building_positions = {}  # Słownik przechowujący pozycje budynków
         self.building_icons = self.load_building_icons("icons")
-
+        self.roads = True
         self.active_icon = next(iter(self.building_icons.values()))
         self.active_icon_name = next(iter(self.building_icons.keys()))
 
@@ -141,13 +141,16 @@ class BuildingsMode(Mode):
         for building_type, positions in self.building_positions.items():
             if not positions:
                 positions = [(0, 0)]  # bug, że gdy nie ma budynków to nie odświerza liczby
-            i = 0
 
-            positions_road = []
-            for position in positions:
-                if QColor(roads_layer.pixel(position[0],position[1])) == QColor(128, 128, 128, 255):
+            if self.roads:
+                positions_road = []
+                for position in positions:
+                    if QColor(roads_layer.pixel(position[0],position[1])) == QColor(128, 128, 128, 255):
+                        positions_road.append(position)
+            else:
+                positions_road = []
+                for position in positions:
                     positions_road.append(position)
-                i +=1
 
             pixel_sampler = PixelSampler(
                 self.map_controller.layer_manager.layers.get("province"),

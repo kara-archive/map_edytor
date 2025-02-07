@@ -43,6 +43,8 @@ class MapController:
             self.mode_manager.province_mode.sample_provinces()
             self.mode_manager.buildings_mode.find_cities()
             self.mode_manager.buildings_mode.count_cities_by_state()
+            self.mode_manager.army_mode.find_army()
+            self.mode_manager.army_mode.count_armies_by_state()
         thread = Thread(target=process)
         thread.start()
         thread.join()

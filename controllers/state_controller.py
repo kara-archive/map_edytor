@@ -24,6 +24,7 @@ class StateController(QObject):
     def add_state(self, state):
         if state not in self.states:
             self.states.append(state)
+            self.map_controller.init_modes()
         else:
             print(f"State {state.name} already exists.")
 

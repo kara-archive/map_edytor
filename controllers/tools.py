@@ -154,12 +154,26 @@ class PixelSampler(dict):
 
 
 class DrawPath:
-    def __init__(self, layer, color=QColor(128, 128, 128, 255), width=2):
+    def __init__(self, layer, scene, color=QColor(128, 128, 128, 255), width=2):
         self.layer = layer
         self.color = color
         self.width = width
+        self.scene = scene
         self.path = QPainterPath()
         self.preview_item = None
+        self.last_position = None
+
+    def draw_path(self, event):
+        if event.event_type == "click":
+            self.start_path(event.x, event.y, self.scene)
+            self.last_position = (event.x, event.y)
+
+        elif event.event_type == "move" and self.last_position is not None:
+            self.update_path(event.x, event.y)
+
+        elif event.event_type == "release":
+            self.end_path(self.scene)
+            self.last_position = None
 
     def start_path(self, x, y, scene):
         self.path.moveTo(x, y)

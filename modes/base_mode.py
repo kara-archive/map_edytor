@@ -9,7 +9,7 @@ class Mode:
         self.layer_manager = map_controller.layer_manager
         self.snapshot_manager = map_controller.snapshot_manager
         self.active_state = None
-        
+
     def handle_event(self, event):
 
         raise NotImplementedError

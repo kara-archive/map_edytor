@@ -7,8 +7,6 @@ import os
 import shutil
 import subprocess
 
-
-
 def apply_dark_theme(app):
     dark_palette = QPalette()
     dark_palette.setColor(QPalette.Window, QColor(53, 53, 53))
@@ -84,7 +82,8 @@ def main():
     parser.add_argument("-lvl", "--levels", action="store_true", help="dodaje do dialogu opcje leveli")
     parser.add_argument("-p", "--print", action="store_true", help="printuje przykładiową armię", )
     parser.add_argument("-e", "--echo", action="store_true", help="nie printuje detali", )
-    parser.add_argument("--gui", action="store_true", help="gui")
+    parser.add_argument("--gui", action="store_true", help="gui do battle")
+    parser.add_argument("--no_roads", action="store_true", help="wyłącza konieczność połączenia budyków drogą")
     args = parser.parse_args()
 
 
@@ -112,6 +111,8 @@ def main():
         app.setStyle("Windows")
 
 
+
+
     main_view = MainView()
 
     if args.load:
@@ -120,6 +121,9 @@ def main():
             print(f"Pomyślnie wczytano plik: {args.load}")
         except Exception as e:
             print(f"Błąd podczas wczytywania pliku: {e}")
+
+    if args.no_roads:
+        main_view.map_controller.mode_manager.buildings_mode.roads = False
 
     # Pokaż główne okno
     main_view.setGeometry(10,10,1970,1600)

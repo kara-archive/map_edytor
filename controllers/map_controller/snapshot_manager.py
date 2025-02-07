@@ -45,6 +45,8 @@ class SnapshotManager:
             self.map_controller.layer_manager.refresh_layer(layer_name)
             if layer_name == "buildings":
                 self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
+            if layer_name == "army":
+                self.map_controller.mode_manager.army_mode.start_army_timer()
 
 
 
