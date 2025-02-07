@@ -4,23 +4,6 @@ from PyQt5.QtWidgets import QGraphicsPathItem
 from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
 import numpy as np
 
-def tab(input_str: str, max_length: int = 4) -> str:
-    letters = input_str
-    #print(letters, len(letters))
-    result = []
-    for _ in range(max_length-len(letters)):
-        result.append(" ")
-    result.append(input_str)
-    return ''.join(result)
-
-def tab_rev(input_str: str, max_length: int = 3) -> str:
-    letters = input_str
-    #print(letters, len(letters))
-    result = []
-    result.append(input_str)
-    for _ in range(max_length-len(letters)):
-        result.append(" ")
-    return ''.join(result)
 
 def flood_fill(layer, x, y, color):
     # Pobranie wymiarów obrazu
