@@ -49,8 +49,6 @@ class StateController(QObject):
         all_attributes = set()
         for state in self.states:
             all_attributes.update(attr for attr in state.__dict__.keys() if attr not in {"color", "state_controller", "name"})
-
-        #headers = ["Tura " + str(obecna_tura)] + list(all_attributes)
         headers = ["Tura " + str(obecna_tura)] + [attr.capitalize() for attr in all_attributes]
 
         rows = []
