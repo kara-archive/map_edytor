@@ -1,8 +1,10 @@
 import random
 import sys
 import argparse
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QLineEdit, QCheckBox, QLabel
-
+try:
+    from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QLineEdit, QCheckBox, QLabel
+except ModuleNotFoundError:
+    pass
 parser = argparse.ArgumentParser()
 parser.add_argument("--battle", action="store_true", help="dodaj -h po więcej pomocy")
 parser.add_argument("--gui", action="store_true", help="gui")
@@ -166,126 +168,129 @@ def main():
     except KeyboardInterrupt:
         sys.exit()
 
+try:
+
+    class MyWindow(QMainWindow):
+        def __init__(self):
+            super().__init__()
+            self.setGeometry(100, 100, 1080, 720)
+            self.setWindowTitle("Army Battle Simulator")
+            self.central_widget = QWidget()
+            self.setCentralWidget(self.central_widget)
+            self.layout = QHBoxLayout()
+            self.central_widget.setLayout(self.layout)
+
+            # Left
+            self.left_widget = QWidget()
+            self.left_layout = QVBoxLayout()
+            self.left_widget.setLayout(self.left_layout)
+            self.layout.addWidget(self.left_widget)
+            if True:
+                #ad unit butto
+                self.add_unit_a_button = QPushButton('Dodaj')
+                self.add_unit_a_button.clicked.connect(lambda: self.add_unit(self.table_a))
+                self.left_layout.addWidget(self.add_unit_a_button)
+
+                self.add_unit_a_button = QPushButton('Dodaj 5')
+                self.add_unit_a_button.clicked.connect(lambda: self.add_5_unit(self.table_a))
+                self.left_layout.addWidget(self.add_unit_a_button)
+
+                self.add_table("A")
 
 
-class MyWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setGeometry(100, 100, 1080, 720)
-        self.setWindowTitle("Army Battle Simulator")
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.layout = QHBoxLayout()
-        self.central_widget.setLayout(self.layout)
+            #MIDDLE START bATTLE
+            self.start_button = QPushButton('Start Battle')
+            self.start_button.clicked.connect(self.simulate_battle)
+            self.layout.addWidget(self.start_button)
 
-        # Left
-        self.left_widget = QWidget()
-        self.left_layout = QVBoxLayout()
-        self.left_widget.setLayout(self.left_layout)
-        self.layout.addWidget(self.left_widget)
-        if True:
-            #ad unit butto
-            self.add_unit_a_button = QPushButton('Dodaj')
-            self.add_unit_a_button.clicked.connect(lambda: self.add_unit(self.table_a))
-            self.left_layout.addWidget(self.add_unit_a_button)
+            #right
+            self.right_widget = QWidget()
+            self.right_layout = QVBoxLayout()
+            self.right_widget.setLayout(self.right_layout)
+            self.layout.addWidget(self.right_widget)
+            if True:
+                #add unit
+                self.add_unit_b_button = QPushButton('Dodaj')
+                self.add_unit_b_button.clicked.connect(lambda: self.add_unit(self.table_b, army='B'))
+                self.right_layout.addWidget(self.add_unit_b_button)
 
-            self.add_unit_a_button = QPushButton('Dodaj 5')
-            self.add_unit_a_button.clicked.connect(lambda: self.add_5_unit(self.table_a))
-            self.left_layout.addWidget(self.add_unit_a_button)
+                self.add_unit_b_button = QPushButton('Dodaj 5')
+                self.add_unit_b_button.clicked.connect(lambda: self.add_5_unit(self.table_b, army='B',))
+                self.right_layout.addWidget(self.add_unit_b_button)
+                #table
+                self.add_table("B")
 
-            self.add_table("A")
+        def simulate_battle(self):
+            army_a = []
+            for row in range(self.table_a.rowCount()):
+                army, unit_type, level, fort, art = (self.table_a.item(row, col).text() if self.table_a.item(row, col) else ''
+                                               for col in range(5))
+                army_a.append((army, unit_type, int(level), fort in ['True', "1"], art in ['True', "1"]))
 
+            army_b = []
+            for row in range(self.table_b.rowCount()):
+                army, unit_type, level, fort, art = (self.table_b.item(row, col).text() if self.table_b.item(row, col) else ''
+                                               for col in range(5))
+                army_b.append((army, unit_type, int(level), fort in ['True', "1"], art in ['True', "1"]))
 
-        #MIDDLE START bATTLE
-        self.start_button = QPushButton('Start Battle')
-        self.start_button.clicked.connect(self.simulate_battle)
-        self.layout.addWidget(self.start_button)
+            final_a, final_b = BattleController.battle(army_a.copy(), army_b.copy(), echo=args.echo)
 
-        #right
-        self.right_widget = QWidget()
-        self.right_layout = QVBoxLayout()
-        self.right_widget.setLayout(self.right_layout)
-        self.layout.addWidget(self.right_widget)
-        if True:
-            #add unit
-            self.add_unit_b_button = QPushButton('Dodaj')
-            self.add_unit_b_button.clicked.connect(lambda: self.add_unit(self.table_b, army='B'))
-            self.right_layout.addWidget(self.add_unit_b_button)
+            print(f"\033[1mpostało\033[0m: \033[96mAtakujący: {len(final_a)}\033[93m Broniący: {len(final_b)} \033[0m")
+            if len(final_a) > len(final_b):
+                print(f"[b]\033[96mAtakujący: zajmuje: {len(final_a)} prow.\033[0m[/b]")
+            elif len(final_a) < len(final_b):
+                print(f"[b]\033[93mBroniący odbija: {len(final_b)} prow.\033[0m[/b]")
+            else:
+                print("Remis")
+            print(f"\033[1mstraty\033[0m: \033[96mAtakujący:: {len(army_a)-len(final_a)}\033[93m Broniący: {len(army_b)-len(final_b)} \033[0m")
 
-            self.add_unit_b_button = QPushButton('Dodaj 5')
-            self.add_unit_b_button.clicked.connect(lambda: self.add_5_unit(self.table_b, army='B',))
-            self.right_layout.addWidget(self.add_unit_b_button)
-            #table
-            self.add_table("B")
+            self.update_tables(final_a, final_b)
 
-    def simulate_battle(self):
-        army_a = []
-        for row in range(self.table_a.rowCount()):
-            army, unit_type, level, fort, art = (self.table_a.item(row, col).text() if self.table_a.item(row, col) else ''
-                                           for col in range(5))
-            army_a.append((army, unit_type, int(level), fort in ['True', "1"], art in ['True', "1"]))
+        def add_unit(self, table, army='A', unit='inf', lvl='1', fort=False, art=False):
+            row = table.rowCount()
+            table.setRowCount(row + 1)
+            table.setItem(row, 0, QTableWidgetItem(army))
+            table.setItem(row, 1, QTableWidgetItem(unit))
+            table.setItem(row, 2, QTableWidgetItem(lvl))
+            table.setItem(row, 3, QTableWidgetItem(fort))
+            table.setItem(row, 4, QTableWidgetItem(art))
 
-        army_b = []
-        for row in range(self.table_b.rowCount()):
-            army, unit_type, level, fort, art = (self.table_b.item(row, col).text() if self.table_b.item(row, col) else ''
-                                           for col in range(5))
-            army_b.append((army, unit_type, int(level), fort in ['True', "1"], art in ['True', "1"]))
+        def add_5_unit(self, table, army='A',):
+            for _ in range(5):
+                self.add_unit(table, army,)
 
-        final_a, final_b = BattleController.battle(army_a.copy(), army_b.copy(), echo=args.echo)
+        def add_table(self, table):
+            if table=='B':
+                self.table_b = QTableWidget(0, 5)
+                self.table_b.setHorizontalHeaderLabels(['Army', 'Type', 'Level', 'Fort', "Art"])
+                self.right_layout.addWidget(self.table_b)
+            elif table == 'A':
+                self.table_a = QTableWidget(0, 5)
+                self.table_a.setHorizontalHeaderLabels(['Army', 'Type', 'Level', 'Fort', 'Art'])
+                self.left_layout.addWidget(self.table_a)
 
-        print(f"\033[1mpostało\033[0m: \033[96mAtakujący: {len(final_a)}\033[93m Broniący: {len(final_b)} \033[0m")
-        if len(final_a) > len(final_b):
-            print(f"[b]\033[96mAtakujący: zajmuje: {len(final_a)} prow.\033[0m[/b]")
-        elif len(final_a) < len(final_b):
-            print(f"[b]\033[93mBroniący odbija: {len(final_b)} prow.\033[0m[/b]")
-        else:
-            print("Remis")
-        print(f"\033[1mstraty\033[0m: \033[96mAtakujący:: {len(army_a)-len(final_a)}\033[93m Broniący: {len(army_b)-len(final_b)} \033[0m")
-
-        self.update_tables(final_a, final_b)
-
-    def add_unit(self, table, army='A', unit='inf', lvl='1', fort=False, art=False):
-        row = table.rowCount()
-        table.setRowCount(row + 1)
-        table.setItem(row, 0, QTableWidgetItem(army))
-        table.setItem(row, 1, QTableWidgetItem(unit))
-        table.setItem(row, 2, QTableWidgetItem(lvl))
-        table.setItem(row, 3, QTableWidgetItem(fort))
-        table.setItem(row, 4, QTableWidgetItem(art))
-
-    def add_5_unit(self, table, army='A',):
-        for _ in range(5):
-            self.add_unit(table, army,)
-
-    def add_table(self, table):
-        if table=='B':
-            self.table_b = QTableWidget(0, 5)
-            self.table_b.setHorizontalHeaderLabels(['Army', 'Type', 'Level', 'Fort', "Art"])
-            self.right_layout.addWidget(self.table_b)
-        elif table == 'A':
-            self.table_a = QTableWidget(0, 5)
-            self.table_a.setHorizontalHeaderLabels(['Army', 'Type', 'Level', 'Fort', 'Art'])
-            self.left_layout.addWidget(self.table_a)
-
-    def update_tables(self, army_a, army_b):
-        # Clear table_a
-        self.left_layout.removeWidget(self.table_a)
-        self.add_table('A')
-        for unit in army_a:
-            self.add_unit(self.table_a, unit[0], unit[1], str(unit[2]), str(unit[3]), str(unit[4]))
-        # Clear table_b
-        self.left_layout.removeWidget(self.table_b)
-        self.add_table('B')
-        for unit in army_b:
-            self.add_unit(self.table_b, unit[0], unit[1], str(unit[2]), str(unit[3]), str(unit[4]))
-
+        def update_tables(self, army_a, army_b):
+            # Clear table_a
+            self.left_layout.removeWidget(self.table_a)
+            self.add_table('A')
+            for unit in army_a:
+                self.add_unit(self.table_a, unit[0], unit[1], str(unit[2]), str(unit[3]), str(unit[4]))
+            # Clear table_b
+            self.left_layout.removeWidget(self.table_b)
+            self.add_table('B')
+            for unit in army_b:
+                self.add_unit(self.table_b, unit[0], unit[1], str(unit[2]), str(unit[3]), str(unit[4]))
+except NameError:
+        pass
 
 def start():
+    try:
         app = QApplication(sys.argv)
         window = MyWindow()
         window.show()
         app.exec_()
-
+    except NameError:
+        print("brak gui")
 if args.gui:
     sys.exit(start())
 elif __name__ == "__main__":
