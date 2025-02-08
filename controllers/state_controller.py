@@ -54,8 +54,9 @@ class StateController(QObject):
         rows = []
 
         for state in self.states:
-            state_data = [getattr(state, attr, "") for attr in all_attributes]
-            rows.append([state.name] + state_data)
+            if "NPC" not in state.name:
+                state_data = [getattr(state, attr, "") for attr in all_attributes]
+                rows.append([state.name] + state_data)
 
         try:
             with open(file_path, mode='w', newline='', encoding='utf-8') as file:

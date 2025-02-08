@@ -26,7 +26,7 @@ class BuildingsMode(Mode):
     def load_building_icons(self, folder):
         """Ładuje ikony budynków z folderu."""
         building_icons = {}
-        for filename in os.listdir(folder):
+        for filename in sorted(os.listdir(folder)):
             if "b_" in filename and filename.endswith(".png"):
                 icon_name = filename.split("b_")[1][:-4]  # Usuwa wszystko przed "b_" i ".png" z końca
                 icon_path = os.path.join(folder, filename)

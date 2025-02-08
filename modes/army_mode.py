@@ -24,7 +24,7 @@ class ArmyMode(Mode):
     def load_army_icons(self, folder):
         """Ładuje ikony budynków z folderu."""
         building_icons = {}
-        for filename in os.listdir(folder):
+        for filename in sorted(os.listdir(folder)):
             if "a_" in filename and filename.endswith(".png"):
                 icon_name = filename.split("a_")[1][:-4]  # Usuwa wszystko przed "a_" i ".png" z końca
                 icon_path = os.path.join(folder, filename)

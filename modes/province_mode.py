@@ -58,7 +58,7 @@ class ProvinceMode(Mode):
     def color_fill(self, x, y, color):
         layer = self.map_controller.layer_manager.get_layer("province")
         color = QColor(color)
-        if color.getRgb() != (0, 0, 0, 255) and QColor(layer.pixel(x, y)) not in [QColor(0, 0, 0, 255), QColor(68, 107, 163, 255), QColor(52, 52, 52, 255)]:
+        if color.getRgb() not in [(0, 0, 0, 255), (68, 107, 163, 255), (52, 52, 52, 255)] and QColor(layer.pixel(x, y)) not in [QColor(0, 0, 0, 255), QColor(68, 107, 163, 255), QColor(52, 52, 52, 255)]:
             layer = flood_fill(layer, x, y, color)
             self.map_controller.layer_manager.refresh_layer("province")
 
