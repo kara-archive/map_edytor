@@ -156,14 +156,18 @@ def main():
                 a2, b2 = a.copy(), b.copy()
                 BattleController.battle(a,b, echo=args.echo)
 
-            print(f"\033[1mpostało\033[0m: \033[96m{agressor}: {len(a)}\033[93m {defender}: {len(b)} \033[0m")
+            if title:
+                print(f'\n[b]\033[1m{title}\033[0m[/b]')
+            print(f"\033[37mwalczyło\033[0m: \033[96m{agressor}: \033[1m{len(a2)}\033[0;93m {defender}: \033[1m{len(b2)} \033[0m")
+            print(f"\033[37mstraty\033[0m: \033[96m{agressor}: \033[1m{len(a2)-len(a)}\033[0;93m {defender}: \033[1m{len(b2)-len(b)} \033[0m")            
+            print(f"\033[37mpozostało\033[0m: \033[96m{agressor}: \033[1m{len(a)}\033[0;93m {defender}: \033[1m{len(b)} \033[0m")
             if len(a) > len(b):
-                print(f"[b]\033[96m{agressor} zajmuje: {len(a)} prow.\033[0m[/b]")
+                print(f"\033[96m{agressor} zajmuje: \033[1m{len(a)} \033[0;96mprow.\033[0m")
             elif len(a) < len(b):
-                print(f"[b]\033[93m{defender} odbija: {len(b)} prow.\033[0m[/b]")
+                print(f"\033[93m{defender} odbija: \033[1m{len(b)} \033[0;93mprow.\033[0m")
             else:
                 print("Remis")
-            print(f"\033[1mstraty\033[0m: \033[96m{agressor}: {len(a2)-len(a)}\033[93m {defender}: {len(b2)-len(b)} \033[0m")
+
 
     except KeyboardInterrupt:
         sys.exit()
@@ -234,15 +238,16 @@ try:
                 army_b.append((army, unit_type, int(level), fort in ['True', "1"], art in ['True', "1"]))
 
             final_a, final_b = BattleController.battle(army_a.copy(), army_b.copy(), echo=args.echo)
-
-            print(f"\033[1mpostało\033[0m: \033[96mAtakujący: {len(final_a)}\033[93m Broniący: {len(final_b)} \033[0m")
+            print("")
+            print(f"\033[1mwalczyło\033[0m: \033[96mAtakujący: {len(army_a)}\033[93m Broniący: {len(army_b)} \033[0m")
+            print(f"\033[1mstraty\033[0m: \033[96mAtakujący:: {len(army_a)-len(final_a)}\033[93m Broniący: {len(army_b)-len(final_b)} \033[0m")
+            print(f"\033[1mpozostało\033[0m: \033[96mAtakujący: {len(final_a)}\033[93m Broniący: {len(final_b)} \033[0m")
             if len(final_a) > len(final_b):
                 print(f"[b]\033[96mAtakujący: zajmuje: {len(final_a)} prow.\033[0m[/b]")
             elif len(final_a) < len(final_b):
                 print(f"[b]\033[93mBroniący odbija: {len(final_b)} prow.\033[0m[/b]")
             else:
                 print("Remis")
-            print(f"\033[1mstraty\033[0m: \033[96mAtakujący:: {len(army_a)-len(final_a)}\033[93m Broniący: {len(army_b)-len(final_b)} \033[0m")
 
             self.update_tables(final_a, final_b)
 
