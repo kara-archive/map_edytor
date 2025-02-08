@@ -2,6 +2,7 @@ from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen, 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsPathItem
 from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
+import cv2
 import numpy as np
 
 
@@ -67,7 +68,7 @@ def draw_icon(layer, icon, x, y):
     painter.end()
     return layer
 
-def find_icons(sample_icon, image):
+def find_icons(sample_icon, image, thresh = -1, exact = 0.9):
     """
     Wyszukuje współrzędne ikon w obrazie za pomocą dopasowywania szablonu.
 
@@ -79,16 +80,21 @@ def find_icons(sample_icon, image):
     icon = _convert_qimage_to_numpy(sample_icon)
     image = _convert_qimage_to_numpy(image)
 
+
+
     # Przekształcenie obrazu do skali szarości
     icon_gray = cvtColor(icon, COLOR_BGRA2GRAY)
     image_gray = cvtColor(image, COLOR_BGRA2GRAY)
 
+    if thresh != -1:
+        image_gray = cv2.threshold(image_gray, thresh, 255, cv2.THRESH_BINARY)[1]
+
     # Wykonanie dopasowania szablonu
-    result = matchTemplate(image_gray, icon_gray, TM_CCOEFF_NORMED)
+    result = matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
 
     # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
-    threshold = 0.9
-    locations = np.where(result >= threshold)
+
+    locations = np.where(result >= exact)
 
     # Wymiary ikony
     icon_height, icon_width = icon_gray.shape
@@ -99,6 +105,7 @@ def find_icons(sample_icon, image):
         for pt in zip(*locations[::-1])
     ]
     return coordinates
+
 
 
 
@@ -116,17 +123,12 @@ def _convert_qimage_to_numpy(qimage):
 def recolor_icon(image, target_color):
     if isinstance(target_color, tuple):
         target_color = QColor(*target_color)
-
-    # Rozjaśnij kolor docelowy
-    #target_color = target_color.lighter(150)  # 120% jasności oryginalnego koloru
-    lighter_color = target_color.lighter(50)
-    # Konwersja do formatu ARGB32 dla manipulacji pikselami
     image = image.convertToFormat(QImage.Format_ARGB32)
     for y in range(image.height()):
         for x in range(image.width()):
-            pixel_color = QColor(image.pixel(x, y))  # Użycie poprawnego wywołania z x, y
-            if pixel_color == QColor(255, 255, 255):  # Jeśli piksel jest biały
-                image.setPixel(x, y, target_color.rgb())  # Ustaw jaśniejszy kolor docelowy
+            pixel_color = QColor(image.pixel(x, y))
+            if pixel_color == QColor(255, 255, 255):
+                image.setPixel(x, y, target_color.rgb())
     return image
 
 class PixelSampler(dict):

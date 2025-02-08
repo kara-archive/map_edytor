@@ -5,7 +5,7 @@ from PyQt5.QtCore import QTimer
 class SnapshotManager:
     """Zarządza snapshotami delta stanu aplikacji."""
 
-    def __init__(self, map_controller, max_snapshots=10):
+    def __init__(self, map_controller, max_snapshots=20):
         self.map_controller = map_controller
         self.history = []  # Lista delta snapshotów
         self.future = []  # Lista przyszłych snapshotów dla redo

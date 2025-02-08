@@ -69,7 +69,7 @@ class ArmyMode(Mode):
         army_layer = self.map_controller.layer_manager.get_layer("army")
         a, b = 2, 4
         if event.event_type == 'move':
-            if self.i >= 4:
+            if self.i >= 10:
                 a=8
                 b=8
             else:
@@ -77,7 +77,7 @@ class ArmyMode(Mode):
         else:
             a=2
             b=4
-            i=0
+            self.i=0
         army_layer = erase_area(army_layer, event.x, event.y, a, b)
         self.map_controller.layer_manager.refresh_layer("army")
         self.remove_army_positions(event.x, event.y, size=b)
@@ -129,7 +129,6 @@ class ArmyMode(Mode):
         if army_type not in self.army_positions:
             self.army_positions[army_type] = []
         self.army_positions[army_type].append((x, y))
-
     def remove_army_positions(self, x, y, size=10):
         for positions in self.army_positions.values():
             positions[:] = [
@@ -147,8 +146,7 @@ class ArmyMode(Mode):
             return []
 
         for army_type, icon in self.army_icons.items():
-            self.army_positions[army_type] = find_icons(icon, layer)
-
+            self.army_positions[army_type] = find_icons(icon, layer, thresh=10)
     def start_army_timer(self):
         if not hasattr(self, '_army_timer'):
             self._army_timer = QTimer()
@@ -168,9 +166,13 @@ class ArmyMode(Mode):
 
     def set_colors_in_color_label(self):
         """Ustawia kolory w label w state, które odpowiadają kolorowi ikony na jej środkowym pixelu"""
+        colors = ["crimson", "mediumvioletred", "orangered"]
+        i = 0
         for icon in self.army_icons.values():
-            color = "pink"
-            self.map_controller.state_controller.label_colors.append(color)
+            if i == len(colors):
+                i = 0
+            self.map_controller.state_controller.label_colors.append(colors[i])
+            i += 1
 
     def set_icon_type(self, icon_type):
         if icon_type in self.army_icons:

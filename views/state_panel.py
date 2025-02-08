@@ -82,7 +82,7 @@ class StatePanel(QWidget):
             button.setChecked(True)
             button.setStyleSheet("font-weight: bold;")  # Ustaw pogrubioną czcionkę
 
-        button.clicked.connect(lambda _, s=state: self.set_active_state(s))
+        button.clicked.connect(lambda _, s=state: self.set_active_state(state))
         color_label.clicked.connect(lambda _, s=state: self.edit_state(state))
         top_layout.addWidget(color_label)
         top_layout.addWidget(button)

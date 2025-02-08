@@ -75,7 +75,13 @@ class MainView(QMainWindow):
         """Rejestruje skróty klawiszowe."""
         undo_shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
         undo_shortcut.activated.connect(self._undo_action)
+        redo_shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
+        redo_shortcut.activated.connect(self._redo_action)
 
     def _undo_action(self):
         """Obsługuje cofanie zmian."""
         self.map_controller.snapshot_manager.undo()
+
+    def _redo_action(self):
+        """Obsługuje cofanie zmian."""
+        self.map_controller.snapshot_manager.redo()

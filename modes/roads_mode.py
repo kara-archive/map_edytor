@@ -32,16 +32,16 @@ class RoadsMode(Mode):
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         roads_layer = self.layer_manager.get_layer("roads")
-        a, b = 2, 4
+        a, b = 4, 4
         if event.event_type == 'move':
-            if 100 > self.i >= 4:
+            if self.i >= 10:
                 a=8
                 b=8
                 self.i += 1
             else:
                 self.i += 1
         else:
-            a=2
+            a=4
             b=4
             self.i=0
 
