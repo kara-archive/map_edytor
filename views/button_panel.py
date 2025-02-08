@@ -151,12 +151,11 @@ class ButtonPanel(QWidget):
     def get_last_turn(self):
         """Zwraca numer ostatniej zapisanej tury."""
         try:
-            tury = [f for f in os.listdir("Tury") if f.endswith(".png")]
+            tury = [int(f.split(".")[0]) for f in os.listdir("Tury") if f.endswith(".png")]
             tury.sort()
             if not tury:
                 return -1
-            ostatnia_tura = tury[-1]
-            return int(ostatnia_tura.split(".")[0])
+            return tury[-1]
         except Exception as e:
             return -1
 
@@ -183,6 +182,7 @@ class ButtonPanel(QWidget):
         export_path = f"Tury/{obecna_tura}.Tura"
         self.map_controller.export_image(f"Tury/{obecna_tura}.Tura"+".png")
         self.state_controller.export_to_csv(obecna_tura,"Tury/prowincje"+".csv")
+        self.update_export_button()
 
     def save_data(self):
         """
