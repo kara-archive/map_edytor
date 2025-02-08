@@ -9,8 +9,10 @@ from threading import Thread
 class ArmyMode(Mode):
     """Obsługuje tryb armii."""
     def __init__(self, mode_manager, map_controller):
+        self.name = "army"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
+        self.register_mode(3)
         self.army_icons = self.load_army_icons("icons")
         self.active_icon = next(iter(self.army_icons.values()))
         self.active_icon_name = next(iter(self.army_icons.keys()))

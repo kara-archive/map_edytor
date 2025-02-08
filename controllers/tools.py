@@ -4,10 +4,9 @@ from PyQt5.QtWidgets import QGraphicsPathItem
 from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
 import cv2
 import numpy as np
-
+import copy
 
 def flood_fill(layer, x, y, color):
-    # Pobranie wymiarów obrazu
     height, width = layer.height(), layer.width()
 
     fill_color = color.getRgb()[:3]

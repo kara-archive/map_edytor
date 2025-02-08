@@ -7,16 +7,17 @@ import copy
 import numpy as np
 from modes.base_mode import Mode
 import math
-class DevelopMode:
+class DevelopMode(Mode):
     """Obsługuje tryb prowincji."""
     def __init__(self, mode_manager, map_controller):
-        Mode.__init__(self, map_controller)
+        self.name = "province"
+        super().__init__(map_controller)
         self.map_controller = map_controller
         self.sampled_color = (np.uint8(68), np.uint8(107), np.uint8(163))
         self.active_state = None
         self.mode_manager = mode_manager
+        self.register_mode(0)
         self.layer = self.map_controller.layer_manager.layers.get("province")
-#        self.copy_image(self.map_controller.cv_image)
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""
@@ -65,8 +66,8 @@ class DevelopMode:
         :param dot_size: int, średnica kropek w pikselach.
         :return: None
         """
-        self.map_controller.layer_manager.add_layer("develop")
-        roads_layer = self.map_controller.layer_manager.get_layer("develop")
+        self.map_controller.layer_manager.add_layer("province")
+        roads_layer = self.map_controller.layer_manager.get_layer("province")
         if roads_layer is None:
             print("Brak warstwy 'roads' do rysowania.")
             return

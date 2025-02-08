@@ -43,10 +43,7 @@ class SnapshotManager:
         for layer_name, layer_data in layers_delta.items():
             self.map_controller.layer_manager.layers[layer_name] = layer_data["before"] if undo else layer_data["after"]
             self.map_controller.layer_manager.refresh_layer(layer_name)
-            if layer_name == "buildings":
-                self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
-            if layer_name == "army":
-                self.map_controller.mode_manager.army_mode.start_army_timer()
+            self.map_controller.mode_manager.update_snap(layer_name)
 
 
 

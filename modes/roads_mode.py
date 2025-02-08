@@ -7,31 +7,32 @@ class RoadsMode(Mode):
     """Obsługuje tryb rysowania dróg z podglądem na żywo."""
 
     def __init__(self, mode_manager, map_controller):
+        self.name = "roads"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.path = None
-        self.preview_item = None
-        self.size = 2
-        self.color = QColor(128, 128, 128, 255)
+        self.register_mode(1)
+        self.size = 2 #domyślna grubość
+        self.colors = ["gray","dimgray", "lightgrey", "saddlebrown"] #kolory
+        self.color = QColor(self.colors[0]) #domyślny kolor
         self.i=0
 
     def handle_event(self, event):
         """Obsługuje zdarzenia myszy."""
         if event.event_type == "click":
-            self.start_snap("roads")
+            self.start_snap(self.name)
         if event.button == "right" and event.event_type in {"click", "move"}:
             self._zmazuj(event)
         elif event.button == "left":
             self._rysuj(event)
         if event.event_type == "release":
-            self.layer_manager.refresh_layer("roads")
+            self.layer_manager.refresh_layer(self.name)
             self.mode_manager.buildings_mode.count_cities_by_state()
-            self.end_snap("roads")
+            self.end_snap(self.name)
 
 
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
-        roads_layer = self.layer_manager.get_layer("roads")
+        roads_layer = self.layer_manager.get_layer(self.name)
         a, b = 4, 4
         if event.event_type == 'move':
             if self.i >= 10:
@@ -46,7 +47,7 @@ class RoadsMode(Mode):
             self.i=0
 
         erase_area(roads_layer, event.x, event.y, a, b)
-        self.layer_manager.refresh_layer("roads")
+        self.layer_manager.refresh_layer(self.name)
 
     def setup_menu(self):
 
@@ -66,7 +67,7 @@ class RoadsMode(Mode):
             if button.text() == '2':
                 button.setChecked(True)
 
-        colors = ["gray","dimgray", "lightgrey", "saddlebrown"]
+        colors = self.colors
         # Tworzenie QButtonGroup
         self.button_group2 = QButtonGroup()
         self.button_group2.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
@@ -80,7 +81,7 @@ class RoadsMode(Mode):
             button.clicked.connect(lambda _, color=i: self.set_color(color))
             self.button_group2.addButton(button)
             buttons.append(button)
-            if i == "gray":
+            if i == self.colors[0]:
                 button.setChecked(True)
 
         self.map_controller.button_panel.update_dynamic_menu(buttons)
@@ -90,11 +91,11 @@ class RoadsMode(Mode):
 
     def set_color(self, color):
         self.color = QColor(color)
-    # Usage in RoadsMode
+
     def _rysuj(self, event):
         """Obsługuje zdarzenia związane z rysowaniem (lewy przycisk myszy)."""
         if not hasattr(self, 'draw_path'):
-            self.draw_path = DrawPath(self.layer_manager.get_layer("roads"), color=self.color, width=self.size, scene=self.map_controller.scene)
+            self.draw_path = DrawPath(self.layer_manager.get_layer(self.name), color=self.color, width=self.size, scene=self.map_controller.scene)
 
         self.draw_path.draw_path(event)
 

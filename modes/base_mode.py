@@ -10,16 +10,19 @@ class Mode:
         self.snapshot_manager = map_controller.snapshot_manager
         self.active_state = None
 
-    def handle_event(self, event):
+    def register_mode(self, z_value):
+        self.mode_manager.modes.update({self.name: self})
+        self.map_controller.layer_manager.Z_VALUES.update({self.name: z_value})
 
+    def handle_event(self, event):
         raise NotImplementedError
 
     def start_snap(self, name):
-            self.snapshot_manager.start_snap(name)
+        self.snapshot_manager.start_snap(name)
 
 
     def end_snap(self, name):
-            self.snapshot_manager.end_snap(name)
+        self.snapshot_manager.end_snap(name)
 
     def setup_menu(self):
         self.map_controller.button_panel.update_dynamic_menu([])

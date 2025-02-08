@@ -4,7 +4,6 @@ import os
 from .layer_manager import LayerManager
 from .snapshot_manager import SnapshotManager
 from .mode_manager import ModeManager
-from threading import Thread
 
 
 class MapController:
@@ -39,16 +38,7 @@ class MapController:
             self.layer_manager.initialize_layer_items(self.scene, self.cv_image)
 
     def init_modes(self):
-        def process():
-            self.mode_manager.province_mode.sample_provinces()
-            self.mode_manager.buildings_mode.find_cities()
-            self.mode_manager.buildings_mode.count_cities_by_state()
-            self.mode_manager.army_mode.find_army()
-            self.mode_manager.army_mode.count_armies_by_state()
-        thread = Thread(target=process)
-        thread.start()
-        thread.join()
-
+        self.mode_manager.init_modes()
 
     def update_scene(self):
         """Odświeża obraz na scenie."""

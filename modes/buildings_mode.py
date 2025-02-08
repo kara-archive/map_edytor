@@ -11,9 +11,10 @@ class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
 
     def __init__(self, mode_manager, map_controller):
+        self.name = "buildings"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.snap = False
+        self.register_mode(2)
         self.building_positions = {}  # Słownik przechowujący pozycje budynków
         self.building_icons = self.load_building_icons("icons")
         self.roads = True
