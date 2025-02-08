@@ -1,7 +1,7 @@
 from PyQt5.QtGui import QImage, QColor, QPixmap, QIcon # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from PyQt5.QtCore import QSize, QTimer
-from controllers.tools import erase_area, draw_icon, find_icons, PixelSampler
+from controllers.tools import erase_area, draw_icon, find_icons, PixelSampler, recolor_icon
 from modes.base_mode import Mode
 import os
 from threading import Thread
@@ -12,9 +12,10 @@ class ArmyMode(Mode):
         super().__init__(map_controller)
         self.mode_manager = mode_manager
         self.army_icons = self.load_army_icons("icons")
-        self.active_icon = self.army_icons["army"]
-        self.active_icon_name = "army"
+        self.active_icon = next(iter(self.army_icons.values()))
+        self.active_icon_name = next(iter(self.army_icons.keys()))
         self.army_positions = {}
+        self.i = 0
 
         if self.active_icon.isNull():
             raise ValueError("Nie udało się załadować ikony: icons/a_army.png")
@@ -57,7 +58,7 @@ class ArmyMode(Mode):
         state_color = active_state.color.getRgb()[:3]  # Pobierz RGB
 
         # Przekształć ikonę armii
-        recolored_icon = self.recolor_icon(self.active_icon.copy(), state_color)
+        recolored_icon = recolor_icon(self.active_icon.copy(), state_color)
 
         army_layer = draw_icon(army_layer, recolored_icon, x, y)
         self.map_controller.layer_manager.refresh_layer("army")
@@ -66,26 +67,20 @@ class ArmyMode(Mode):
     def erase_army(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         army_layer = self.map_controller.layer_manager.get_layer("army")
-        army_layer = erase_area(army_layer, event.x, event.y, a=2, b=4)
+        a, b = 2, 4
+        if event.event_type == 'move':
+            if self.i >= 4:
+                a=8
+                b=8
+            else:
+                self.i += 1
+        else:
+            a=2
+            b=4
+            i=0
+        army_layer = erase_area(army_layer, event.x, event.y, a, b)
         self.map_controller.layer_manager.refresh_layer("army")
-        self.remove_army_positions(event.x, event.y)
-
-
-    def recolor_icon(self, image, target_color):
-        if isinstance(target_color, tuple):
-            target_color = QColor(*target_color)
-
-        # Rozjaśnij kolor docelowy
-        #target_color = target_color.lighter(150)  # 120% jasności oryginalnego koloru
-        lighter_color = target_color.lighter(50)
-        # Konwersja do formatu ARGB32 dla manipulacji pikselami
-        image = image.convertToFormat(QImage.Format_ARGB32)
-        for y in range(image.height()):
-            for x in range(image.width()):
-                pixel_color = QColor(image.pixel(x, y))  # Użycie poprawnego wywołania z x, y
-                if pixel_color == QColor(255, 255, 255):  # Jeśli piksel jest biały
-                    image.setPixel(x, y, target_color.rgb())  # Ustaw jaśniejszy kolor docelowy
-        return image
+        self.remove_army_positions(event.x, event.y, size=b)
 
 
     def setup_menu(self):
@@ -105,7 +100,7 @@ class ArmyMode(Mode):
             button.clicked.connect(lambda _, name=icon_name: self.set_icon_type(name))
             self.button_group.addButton(button)
             buttons.append(button)
-            if button.icon().name() == self.active_icon_name:
+            if icon_name == self.active_icon_name:
                 button.setChecked(True)
 
         self.map_controller.button_panel.update_dynamic_menu(buttons)

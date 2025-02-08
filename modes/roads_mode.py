@@ -13,6 +13,7 @@ class RoadsMode(Mode):
         self.preview_item = None
         self.size = 2
         self.color = QColor(128, 128, 128, 255)
+        self.i=0
 
     def handle_event(self, event):
         """Obsługuje zdarzenia myszy."""
@@ -31,8 +32,20 @@ class RoadsMode(Mode):
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         roads_layer = self.layer_manager.get_layer("roads")
-        radius = 15  # Promień gumki
-        erase_area(roads_layer, event.x, event.y, radius, radius)
+        a, b = 2, 4
+        if event.event_type == 'move':
+            if 100 > self.i >= 4:
+                a=8
+                b=8
+                self.i += 1
+            else:
+                self.i += 1
+        else:
+            a=2
+            b=4
+            self.i=0
+
+        erase_area(roads_layer, event.x, event.y, a, b)
         self.layer_manager.refresh_layer("roads")
 
     def setup_menu(self):
@@ -50,10 +63,14 @@ class RoadsMode(Mode):
             button.clicked.connect(lambda _, size=i: self.set_size(size))
             self.button_group.addButton(button)
             buttons.append(button)
-            if button.text() == self.size:
+            if button.text() == '2':
                 button.setChecked(True)
 
         colors = ["gray","dimgray", "lightgrey", "saddlebrown"]
+        # Tworzenie QButtonGroup
+        self.button_group2 = QButtonGroup()
+        self.button_group2.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
+        buttons2 = []
 
         for i in colors:
             button = QPushButton()
@@ -61,9 +78,9 @@ class RoadsMode(Mode):
             button.setFixedSize(40, 40)  # Przyciski są kwadratowe
             button.setCheckable(True)
             button.clicked.connect(lambda _, color=i: self.set_color(color))
-            self.button_group.addButton(button)
+            self.button_group2.addButton(button)
             buttons.append(button)
-            if button.text() == self.size:
+            if i == "gray":
                 button.setChecked(True)
 
         self.map_controller.button_panel.update_dynamic_menu(buttons)

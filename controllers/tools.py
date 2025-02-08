@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen
+from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen, QImage
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsPathItem
 from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
@@ -113,6 +113,21 @@ def _convert_qimage_to_numpy(qimage):
     ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
     return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
 
+def recolor_icon(image, target_color):
+    if isinstance(target_color, tuple):
+        target_color = QColor(*target_color)
+
+    # Rozjaśnij kolor docelowy
+    #target_color = target_color.lighter(150)  # 120% jasności oryginalnego koloru
+    lighter_color = target_color.lighter(50)
+    # Konwersja do formatu ARGB32 dla manipulacji pikselami
+    image = image.convertToFormat(QImage.Format_ARGB32)
+    for y in range(image.height()):
+        for x in range(image.width()):
+            pixel_color = QColor(image.pixel(x, y))  # Użycie poprawnego wywołania z x, y
+            if pixel_color == QColor(255, 255, 255):  # Jeśli piksel jest biały
+                image.setPixel(x, y, target_color.rgb())  # Ustaw jaśniejszy kolor docelowy
+    return image
 
 class PixelSampler(dict):
     """Klasa odpowiedzialna za próbkowanie pikseli na mapie."""
@@ -151,6 +166,7 @@ class PixelSampler(dict):
     def _is_similar_color(color1, color2, tolerance):
         """Porównuje dwa kolory z uwzględnieniem tolerancji."""
         return all(abs(int(c1) - int(c2)) <= tolerance for c1, c2 in zip(color1, color2))
+
 
 
 class DrawPath:

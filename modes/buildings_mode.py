@@ -54,7 +54,6 @@ class BuildingsMode(Mode):
         self.button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
 
         buttons = []
-
         for icon_name, icon in self.building_icons.items():
             button = QPushButton()
             button.setIcon(self.get_icon_from_image(icon))  # Konwertuj QImage na QIcon
@@ -64,7 +63,7 @@ class BuildingsMode(Mode):
             button.clicked.connect(lambda _, name=icon_name: self.set_icon_type(name))
             self.button_group.addButton(button)
             buttons.append(button)
-            if button.icon().name() == self.active_icon_name:
+            if icon_name == self.active_icon_name:
                 button.setChecked(True)
 
         # Aktualizacja dynamicznego menu
