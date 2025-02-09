@@ -1,9 +1,8 @@
-from PyQt5.QtCore import QObject # type: ignore
+from PyQt5.QtCore import QObject, QThread # type: ignore
 from modes.buildings_mode import BuildingsMode
 from modes.province_mode import ProvinceMode
 from modes.army_mode import ArmyMode
 from modes.roads_mode import RoadsMode
-from threading import Thread
 
 
 class ModeManager(QObject):
@@ -32,10 +31,12 @@ class ModeManager(QObject):
         self.active_mode.setup_menu()
 
     def update_snap(self, layer_name):
-        if layer_name == "buildings":
-            self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
-        if layer_name == "army":
-            self.map_controller.mode_manager.army_mode.start_army_timer()
+        def run():
+            if layer_name == "buildings":
+                self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
+            if layer_name == "army":
+                self.map_controller.mode_manager.army_mode.start_army_timer()
+        QThread(run())
 
 
     def init_modes(self):
@@ -45,9 +46,7 @@ class ModeManager(QObject):
             self.buildings_mode.count_cities_by_state()
             self.army_mode.find_army()
             self.army_mode.count_armies_by_state()
-        thread = Thread(target=process)
-        thread.start()
-        thread.join()
+        thread = QThread(process())
 
     def get_mode(self):
         return self.active_mode_name
