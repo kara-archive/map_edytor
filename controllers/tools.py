@@ -1,7 +1,6 @@
 from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen, QImage
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsPathItem
-import numpy as np
 
 def flood_fill(layer, x, y, color):
     height, width = layer.height(), layer.width()
@@ -72,16 +71,6 @@ def find_icons(sample_icon, image, thresh = -1, exact = 0.9):
 
 
 
-def _convert_qimage_to_numpy(qimage):
-    """
-    Konwertuje QImage na macierz NumPy bez wymuszania formatu.
-    Zakłada, że obraz jest w formacie RGBA8888.
-    """
-    width = qimage.width()
-    height = qimage.height()
-    ptr = qimage.bits()
-    ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
-    return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
 
 def recolor_icon(image, target_color):
     if isinstance(target_color, tuple):
