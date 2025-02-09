@@ -10,9 +10,12 @@ class Mode:
         self.snapshot_manager = map_controller.snapshot_manager
         self.active_state = None
 
-    def register_mode(self, z_value):
+    def register_mode(self, z, label=None):
         self.mode_manager.modes.update({self.name: self})
-        self.map_controller.layer_manager.Z_VALUES.update({self.name: z_value})
+        self.map_controller.layer_manager.Z_VALUES.update({self.name: z})
+        if label:
+            self.map_controller.buttons_info.append((label, self.name))
+
 
     def handle_event(self, event):
         raise NotImplementedError

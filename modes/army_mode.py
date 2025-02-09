@@ -12,7 +12,7 @@ class ArmyMode(Mode):
         self.name = "army"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(3)
+        self.register_mode(z=3, label="Wojsko")
         self.army_icons = self.load_army_icons("icons")
         self.active_icon = next(iter(self.army_icons.values()))
         self.active_icon_name = next(iter(self.army_icons.keys()))

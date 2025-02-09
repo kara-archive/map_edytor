@@ -16,6 +16,15 @@ class ButtonPanel(QWidget):
         self.state_controller = state_controller
         self.state_panel = state_panel
         self.obecna_tura = None
+        self.buttons_info = self.map_controller.buttons_info
+        self.shortcuts = {}
+        chuj = 0
+        dupa = ['q','a','z','w','s','x', 'e', 'd', 'c', 'r', 'f', 'v']
+        for _, value in self.buttons_info:
+            self.shortcuts.update({str(dupa[chuj]): str(value)})
+            chuj += 1
+
+
         layout = QVBoxLayout()
         self.setLayout(layout)
         self.setMaximumWidth(150)  # Ustawienie maksymalnej szerokości
@@ -29,17 +38,12 @@ class ButtonPanel(QWidget):
         button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
 
         # Definicja przycisków i checkboxów
-        buttons_info = [
-            ("Wojsko", "army"),
-            ("Budynki", "buildings"),
-            ("Drogi", "roads"),
-            ("Prowincje", "province")
-        ]
+        buttons_info = self.buttons_info
 
         self.buttons = {}
         for label, mode in buttons_info:
             row_layout = QHBoxLayout()
-            if mode != "province":
+            if mode:
                 visibility_checkbox = QCheckBox()
                 visibility_checkbox.setChecked(True)
                 visibility_checkbox.stateChanged.connect(lambda state, m=mode: self.toggle_visibility(state, m))
@@ -63,7 +67,6 @@ class ButtonPanel(QWidget):
         # Zmienna do przechowywania aktywnego trybu
         self.current_mode = None
 
-        self.shortcuts = {"q": "army", "w": "buildings", "r": "province", "e": "roads"}
         self.initialize_shortcuts()
 
         # Odstęp

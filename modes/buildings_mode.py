@@ -14,7 +14,7 @@ class BuildingsMode(Mode):
         self.name = "buildings"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(2)
+        self.register_mode(z=2, label="Budynki")
         self.building_positions = {}  # Słownik przechowujący pozycje budynków
         self.building_icons = self.load_building_icons("icons")
         self.roads = True

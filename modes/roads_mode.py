@@ -10,7 +10,7 @@ class RoadsMode(Mode):
         self.name = "roads"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(1)
+        self.register_mode(z=1,label="Drogi")
         self.size = 2 #domyślna grubość
         self.colors = ["gray","dimgray", "lightgrey", "saddlebrown"] #kolory
         self.color = QColor(self.colors[0]) #domyślny kolor
@@ -95,7 +95,7 @@ class RoadsMode(Mode):
     def _rysuj(self, event):
         """Obsługuje zdarzenia związane z rysowaniem (lewy przycisk myszy)."""
         if not hasattr(self, 'draw_path'):
-            self.draw_path = DrawPath(self.layer_manager.get_layer(self.name), color=self.color, width=self.size, scene=self.map_controller.scene)
+            self.draw_path = DrawPath(self.layer_manager.get_layer(self.name), color=self.color, width=self.size, scene=self.map_controller.scene, z_value=1)
 
         self.draw_path.draw_path(event)
 

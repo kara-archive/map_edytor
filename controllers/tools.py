@@ -171,7 +171,8 @@ class PixelSampler(dict):
 
 
 class DrawPath:
-    def __init__(self, layer, scene, color=QColor(128, 128, 128, 255), width=2):
+    def __init__(self, layer, scene, color=QColor(128, 128, 128, 255), width=2, z_value=10):
+        self.z_value = z_value
         self.layer = layer
         self.color = color
         self.width = width
@@ -197,6 +198,7 @@ class DrawPath:
         if self.preview_item is None:
             self.preview_item = QGraphicsPathItem()
             self.preview_item.setPen(QPen(self.color, self.width))
+            self.preview_item.setZValue(self.z_value)
             scene.addItem(self.preview_item)
         self.preview_item.setPath(self.path)
 
