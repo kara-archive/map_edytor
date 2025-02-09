@@ -3,7 +3,6 @@ from PyQt5.QtGui import QImage, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from modes.base_mode import Mode
-from threading import Thread
 import os
 import time
 

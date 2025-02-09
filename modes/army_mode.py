@@ -4,7 +4,6 @@ from PyQt5.QtCore import QSize, QTimer
 from controllers.tools import erase_area, draw_icon, find_icons, PixelSampler, recolor_icon
 from modes.base_mode import Mode
 import os
-from threading import Thread
 
 class ArmyMode(Mode):
     """Obsługuje tryb armii."""
