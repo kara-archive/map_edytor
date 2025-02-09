@@ -35,10 +35,9 @@ class RoadsMode(Mode):
         roads_layer = self.layer_manager.get_layer(self.name)
         a, b = 4, 4
         if event.event_type == 'move':
-            if self.i >= 10:
+            if self.i >= 5:
                 a=8
                 b=8
-                self.i += 1
             else:
                 self.i += 1
         else:
@@ -58,7 +57,7 @@ class RoadsMode(Mode):
 
         buttons = []
 
-        for i in range(1, 5):
+        for i in [1, 2, 4, 8,]:
             button = QPushButton(str(i))
             button.setFixedSize(40, 40)  # Przyciski są kwadratowe
             button.setCheckable(True)
