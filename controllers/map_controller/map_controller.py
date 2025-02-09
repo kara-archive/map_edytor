@@ -61,6 +61,7 @@ class MapController:
         Spłaszcza obraz, łącząc bazowy obraz mapy i wszystkie widoczne warstwy.
         :return: Spłaszczony obraz jako QImage.
         """
+
         base_layer_name = next((name for name, z in self.layer_manager.Z_VALUES.items() if z == 0), None)
         if base_layer_name is None:
             raise ValueError("Nie znaleziono warstwy bazowej z z_value równym 0.")
@@ -72,8 +73,9 @@ class MapController:
         # Konwertuj QImage na QImage.Format_RGBA8888
         flattened_image = flattened_image.convertToFormat(QImage.Format_RGBA8888)
 
-        # Nakładanie widocznych warstw
-        for layer_name in self.layer_manager.layers:
+        for value in sorted(self.layer_manager.Z_VALUES.values()):
+            layer_name = [key for key, val in self.layer_manager.Z_VALUES.items() if val == value][0]
+            print(layer_name)
             if layer_name in self.layer_manager.visible_layers:
                 layer_data = self.layer_manager.get_layer(layer_name)
                 if layer_data is not None:
