@@ -40,7 +40,7 @@ class ProvinceMode(Mode):
         buttons = []
 
         color_preview = QPushButton()
-        color_preview.setFixedSize(QSize(40, 40))
+        color_preview.setFixedSize(QSize(60, 60))
         color_preview.setCheckable(True)
         lighter_color_preview = QPushButton()
         lighter_color_preview.setFixedSize(QSize(40, 40))
@@ -66,7 +66,7 @@ class ProvinceMode(Mode):
             buttons.append(lighter_color_preview)
             lighter_color_preview.clicked.connect(lambda: self.set_color(lighter_color))
 
-        self.map_controller.button_panel.update_dynamic_menu(buttons)
+        self.map_controller.button_panel.update_dynamic_menu(buttons, rows=1)
 
     def set_color(self, color):
         """Ustawia self.sampled_color na podany kolor."""

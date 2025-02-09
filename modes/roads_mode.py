@@ -50,7 +50,8 @@ class RoadsMode(Mode):
         self.layer_manager.refresh_layer(self.name)
 
     def setup_menu(self):
-
+        state_colors = self.map_controller.state_controller.get_states_colors()
+        state_names = self.map_controller.state_controller.get_states_names()
         # Tworzenie QButtonGroup
         self.button_group = QButtonGroup()
         self.button_group.setExclusive(True)  # Tylko jeden przycisk może być zaznaczony w danym momencie
@@ -83,6 +84,19 @@ class RoadsMode(Mode):
             buttons.append(button)
             if i == self.colors[0]:
                 button.setChecked(True)
+
+        for i in range(len(state_names)):
+            name = state_names[i]
+            button = QPushButton(name[0])
+            button.setStyleSheet(f"background-color: {state_colors[i]}")
+            button.setFixedSize(40, 40)  # Przyciski są kwadratowe
+            button.setCheckable(True)
+            button.clicked.connect(lambda _, color=state_colors[i]: self.set_color(color))
+            self.button_group2.addButton(button)
+            buttons.append(button)
+            if i == self.colors[0]:
+                button.setChecked(True)
+
 
         self.map_controller.button_panel.update_dynamic_menu(buttons)
 

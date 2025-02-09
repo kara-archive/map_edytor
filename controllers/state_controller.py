@@ -16,6 +16,18 @@ class StateController(QObject):
     def get_states(self):
         return self.states
 
+    def get_states_colors(self):
+        colors = []
+        for state in self.states:
+            colors.append(state.color.name())
+        return colors
+
+    def get_states_names(self):
+        names = []
+        for state in self.states:
+            names.append(state.name)
+        return names
+
     def emit_state_change_signal(self):
         """Emit a signal to notify that states have changed (for UI updates)."""
         self.state_changed.emit()

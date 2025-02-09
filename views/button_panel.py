@@ -113,7 +113,7 @@ class ButtonPanel(QWidget):
             if widget:
                 widget.deleteLater()
 
-    def update_dynamic_menu(self, widgets):
+    def update_dynamic_menu(self, widgets, rows=2):
         """
         Aktualizuje dynamiczne menu w układzie siatki (QGridLayout).
 
@@ -123,7 +123,7 @@ class ButtonPanel(QWidget):
 
         # Dodanie widżetów do siatki
         for i, widget in enumerate(widgets):
-            row, col = divmod(i, 2)  # Rozmieszczenie w siatce: 3 kolumny
+            row, col = divmod(i, rows)  # Rozmieszczenie w siatce: 2 kolumny
             self.dynamic_menu_layout.addWidget(widget, row, col)
 
     def toggle_visibility(self, state, layer_name):
