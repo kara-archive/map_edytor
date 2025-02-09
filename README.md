@@ -59,3 +59,8 @@ Flagi i komendy dla trybu battle:
 >
 
 > 
+
+###Modyfigacje Kodu
+Masz dostępny szablon dla trybu. 
+tryby inicjujemy w controllers/map_controller/mode_manager.py. 
+zmienianie już istniejących trybów powinno być w miarę bezbolesne.
