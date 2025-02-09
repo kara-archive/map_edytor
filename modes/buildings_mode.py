@@ -1,4 +1,4 @@
-from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
+from controllers.tools import erase_area, draw_icon, PixelSampler, IconFinder
 from PyQt5.QtGui import QImage, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
@@ -165,9 +165,9 @@ class BuildingsMode(Mode):
             return []
 
         start_time = time.time()
-        self.cities = IconFinder(self.building_icons["city"], layer)
+        self.cities = IconFinder(self.building_icons["town"], layer)
         mid_time = time.time()
-        self.farms = IconFinder(self.building_icons["farm"], layer)
+        self.farms = IconFinder(self.building_icons["rancho"], layer)
         end_time = time.time()
         print(f"Znaleziono budynki w czasie: {end_time - start_time:.2f} s")
 
