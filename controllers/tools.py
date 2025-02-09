@@ -1,10 +1,6 @@
 from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen, QImage
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsPathItem
-from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
-import cv2
-import numpy as np
-import copy
 
 def flood_fill(layer, x, y, color):
     height, width = layer.height(), layer.width()
@@ -66,44 +62,6 @@ def draw_icon(layer, icon, x, y):
     painter.drawImage(x - icon.width() // 2, y - icon.height() // 2, icon)
     painter.end()
     return layer
-
-def find_icons(sample_icon, image, thresh = -1, exact = 0.9):
-    """
-    Wyszukuje współrzędne ikon w obrazie za pomocą dopasowywania szablonu.
-
-    :param sample_icon: QImage ikony do wyszukiwania (np. "city" lub "farm").
-    :param image: Obraz warstwy "buildings" jako macierz NumPy.
-    :return: Lista współrzędnych (x, y) dopasowanych ikon (środek).
-    """
-    # Konwersja QImage na macierz NumPy
-    icon = _convert_qimage_to_numpy(sample_icon)
-    image = _convert_qimage_to_numpy(image)
-
-
-
-    # Przekształcenie obrazu do skali szarości
-    icon_gray = cvtColor(icon, COLOR_BGRA2GRAY)
-    image_gray = cvtColor(image, COLOR_BGRA2GRAY)
-
-    if thresh != -1:
-        image_gray = cv2.threshold(image_gray, thresh, 255, cv2.THRESH_BINARY)[1]
-
-    # Wykonanie dopasowania szablonu
-    result = matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
-
-    # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
-
-    locations = np.where(result >= exact)
-
-    # Wymiary ikony
-    icon_height, icon_width = icon_gray.shape
-
-    # Konwersja współrzędnych do listy punktów (x, y)
-    coordinates = [
-        (int(pt[0] + icon_width / 2), int(pt[1] + icon_height / 2))  # Środek ikony
-        for pt in zip(*locations[::-1])
-    ]
-    return coordinates
 
 
 

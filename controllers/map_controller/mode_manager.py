@@ -13,7 +13,6 @@ class ModeManager(QObject):
         super().__init__()
         self.map_controller = map_controller
         self.layer_manager = self.map_controller.layer_manager
-        self.snapshot_manager = self.map_controller.snapshot_manager
         self.roads = True
         # Inicjalizacja trybów
         self.active_state = None
@@ -33,26 +32,7 @@ class ModeManager(QObject):
         self.active_mode.active_state = self.active_state
         self.active_mode.setup_menu()
 
-    def update_snap(self, layer_name):
-        def run():
-            if layer_name == "buildings":
-                self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
-            if layer_name == "army":
-                self.map_controller.mode_manager.army_mode.start_army_timer()
-        QThread(run())
 
-    def count_cities_by_state(self):
-        if hasattr(self, 'buildings_mode'):
-            self.buildings_mode.count_cities_by_state()
-
-    def init_modes(self):
-        def process():
-            self.province_mode.sample_provinces()
-            self.buildings_mode.find_cities()
-            self.buildings_mode.count_cities_by_state()
-            self.army_mode.find_army()
-            self.army_mode.count_armies_by_state()
-        thread = QThread(process())
 
     def get_mode(self):
         return self.active_mode_name

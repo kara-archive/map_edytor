@@ -20,7 +20,6 @@ class MainView(QMainWindow):
         # Connect the state changed signal
         self.state_controller.state_changed.connect(self.update_state_view)
 
-        self._setup_shortcuts()
         self.init_ui()
         self.setup_signals()
 
@@ -39,7 +38,7 @@ class MainView(QMainWindow):
         # Inicjalizacja UI
         self.state_panel = StatePanel(self.state_controller)
         self.button_panel = ButtonPanel(self.map_controller, self.map_view, self.state_controller, self.state_panel)
-        
+
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.state_panel)
         main_layout.addWidget(self.map_view)
@@ -70,18 +69,3 @@ class MainView(QMainWindow):
     def handle_active_state(self, state):
         """Obsługuje zmianę aktywnego stanu."""
         self.map_controller.mode_manager.update_active_state(state)
-
-    def _setup_shortcuts(self):
-        """Rejestruje skróty klawiszowe."""
-        undo_shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
-        undo_shortcut.activated.connect(self._undo_action)
-        redo_shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
-        redo_shortcut.activated.connect(self._redo_action)
-
-    def _undo_action(self):
-        """Obsługuje cofanie zmian."""
-        self.map_controller.snapshot_manager.undo()
-
-    def _redo_action(self):
-        """Obsługuje cofanie zmian."""
-        self.map_controller.snapshot_manager.redo()

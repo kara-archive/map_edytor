@@ -2,7 +2,6 @@ from PyQt5.QtGui import QImage, QPixmap, QColor, QPainter # type: ignore
 from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
 import os
 from .layer_manager import LayerManager
-from .snapshot_manager import SnapshotManager
 from .mode_manager import ModeManager
 
 
@@ -15,7 +14,6 @@ class MapController:
         self.buttons_info = []
         self.shortcuts = {}
         self.layer_manager = LayerManager(map_controller=self)
-        self.snapshot_manager = SnapshotManager(map_controller=self)
         self.mode_manager = ModeManager(map_controller=self)
 
     def set_scene(self, scene):
@@ -40,7 +38,7 @@ class MapController:
             self.layer_manager.initialize_layer_items(self.scene, self.cv_image)
 
     def init_modes(self):
-        self.mode_manager.init_modes()
+        pass
 
     def update_scene(self):
         """Odświeża obraz na scenie."""

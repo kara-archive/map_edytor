@@ -1,4 +1,4 @@
-from controllers.tools import erase_area, draw_icon, PixelSampler, find_icons
+from controllers.tools import erase_area, draw_icon, PixelSampler
 from PyQt5.QtGui import QImage, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
@@ -99,18 +99,6 @@ class BuildingsMode(Mode):
                 if not (x - size <= bx <= x + size and y - size <= by <= y + size)
             ]
 
-    def start_buildings_timer(self):
-        if not hasattr(self, '_buildings_timer'):
-            self._buildings_timer = QTimer()
-            self._buildings_timer.setSingleShot(True)
-            self._buildings_timer.timeout.connect(self._process_buildings)
-
-        self._buildings_timer.start(1000)
-
-    def _process_buildings(self):
-        self.find_cities()
-        self.count_cities_by_state()
-
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
@@ -155,20 +143,6 @@ class BuildingsMode(Mode):
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, building_type, pixel_sampler.get(state.name, 0))
 
-    def find_cities(self):
-        """
-        Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
-        """
-        layer = self.map_controller.layer_manager.get_layer("buildings")
-
-        if layer is None:
-            return []
-
-        start_time = time.time()
-        for building_type, icon in self.building_icons.items():
-            self.building_positions[building_type] = find_icons(icon, layer)
-        end_time = time.time()
-        print(f"Znaleziono budynki w czasie: {end_time - start_time:.2f} s")
 
     def set_colors_in_color_label(self):
         """Ustawia kolory w label w state, które odpowiadają kolorowi ikony na jej środkowym pixelu"""

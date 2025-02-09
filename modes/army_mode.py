@@ -1,7 +1,7 @@
 from PyQt5.QtGui import QImage, QColor, QPixmap, QIcon # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from PyQt5.QtCore import QSize, QTimer
-from controllers.tools import erase_area, draw_icon, find_icons, PixelSampler, recolor_icon
+from controllers.tools import erase_area, draw_icon, PixelSampler, recolor_icon
 from modes.base_mode import Mode
 import os
 
@@ -137,28 +137,6 @@ class ArmyMode(Mode):
                 if not (x - size <= bx <= x + size and y - size <= by <= y + size)
             ]
 
-    def find_army(self):
-        """
-        Znajduje współrzędne ikon odpowiadających próbce na warstwie z optymalizacją.
-        """
-        layer = self.map_controller.layer_manager.get_layer("army")
-
-        if layer is None:
-            return []
-
-        for army_type, icon in self.army_icons.items():
-            self.army_positions[army_type] = find_icons(icon, layer, thresh=10)
-    def start_army_timer(self):
-        if not hasattr(self, '_army_timer'):
-            self._army_timer = QTimer()
-            self._army_timer.setSingleShot(True)
-            self._army_timer.timeout.connect(self._process_army)
-
-        self._army_timer.start(1000)
-
-    def _process_army(self):
-        self.find_army()
-        self.count_armies_by_state()
 
     def set_colors_in_color_label(self):
         """Ustawia kolory w label w state, które odpowiadają kolorowi ikony na jej środkowym pixelu"""
