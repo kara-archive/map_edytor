@@ -123,7 +123,7 @@ def main():
             print(f"Błąd podczas wczytywania pliku: {e}")
 
     if args.no_roads:
-        main_view.map_controller.mode_manager.buildings_mode.roads = False
+        main_view.map_controller.mode_manager.roads = False
 
     # Pokaż główne okno
     main_view.setGeometry(10,10,1970,1600)

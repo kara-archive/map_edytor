@@ -143,8 +143,8 @@ class MapController:
             self.layer_manager.layers[layer_name] = image
         else:
             print(f"Tworzenie nowej warstwy '{layer_name}'")
-            z_value = self.Z_VALUES.get(layer_name, 0)
-            self.layer_manager.add_layer(layer_name, image.width(), image.height(), z_value, self.scene)
+            z_value = self.layer_manager.Z_VALUES.get(layer_name, 0)
+            self.layer_manager.add_layer(layer_name, image.width(), image.height(), z_value, self.scene, self.cv_image)
             self.layer_manager.layers[layer_name] = image
 
         # Odśwież QGraphicsPixmapItem dla tej warstwy

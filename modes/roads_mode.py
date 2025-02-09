@@ -26,7 +26,7 @@ class RoadsMode(Mode):
             self._rysuj(event)
         if event.event_type == "release":
             self.layer_manager.refresh_layer(self.name)
-            self.mode_manager.buildings_mode.count_cities_by_state()
+            self.mode_manager.count_cities_by_state()
             self.end_snap(self.name)
 
 

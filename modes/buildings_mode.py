@@ -16,7 +16,7 @@ class BuildingsMode(Mode):
         self.register_mode(z=2, label="Budynki", short="e")
         self.building_positions = {}  # Słownik przechowujący pozycje budynków
         self.building_icons = self.load_building_icons("icons")
-        self.roads = True
+        self.roads = self.mode_manager.roads
         self.active_icon = next(iter(self.building_icons.values()))
         self.active_icon_name = next(iter(self.building_icons.keys()))
 

@@ -3,6 +3,7 @@ from modes.buildings_mode import BuildingsMode
 from modes.province_mode import ProvinceMode
 from modes.army_mode import ArmyMode
 from modes.roads_mode import RoadsMode
+from modes.new_mode  import NewMode
 
 
 class ModeManager(QObject):
@@ -13,6 +14,7 @@ class ModeManager(QObject):
         self.map_controller = map_controller
         self.layer_manager = self.map_controller.layer_manager
         self.snapshot_manager = self.map_controller.snapshot_manager
+        self.roads = True
         # Inicjalizacja trybów
         self.active_state = None
         self.active_mode = None
@@ -22,6 +24,7 @@ class ModeManager(QObject):
         self.army_mode = ArmyMode(self, map_controller)
         self.province_mode = ProvinceMode(self, map_controller)
         self.buildings_mode = BuildingsMode(self, map_controller)
+        #self.new_mode = NewMode(self, map_controller)
 
     def set_mode(self, mode_name=None):
         """Ustawia aktywny tryb."""
@@ -38,6 +41,9 @@ class ModeManager(QObject):
                 self.map_controller.mode_manager.army_mode.start_army_timer()
         QThread(run())
 
+    def count_cities_by_state(self):
+        if hasattr(self, 'buildings_mode'):
+            self.buildings_mode.count_cities_by_state()
 
     def init_modes(self):
         def process():
