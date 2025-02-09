@@ -23,8 +23,9 @@ class MapView(QGraphicsView):
         self.setDragMode(QGraphicsView.NoDrag)
         self.last_mouse_pos = None
         self.ctrl_pressed = False  # To track Ctrl key state
-        self.min_zoom = 0.5  # Minimum zoom level
-        self.max_zoom = 6.0  # Maximum zoom level
+        self.min_zoom = 0.25  # Minimum zoom level
+        self.max_zoom = 10.0  # Maximum zoom level
+        self.zoom_factor = 1.10
         self.setCacheMode(QGraphicsView.CacheBackground)
         self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
         self.setOptimizationFlag(QGraphicsView.DontAdjustForAntialiasing)
@@ -80,18 +81,16 @@ class MapView(QGraphicsView):
         super().mouseReleaseEvent(event)
 
     def wheelEvent(self, event: QWheelEvent):
-        zoom_factor = 1.15
         zoom_in = event.angleDelta().y() > 0
         current_scale = self.transform().m11()
 
         if zoom_in and current_scale < self.max_zoom:
-            scale_factor = zoom_factor
+            scale_factor = self.zoom_factor
         elif not zoom_in and current_scale > self.min_zoom:
-            scale_factor = 1 / zoom_factor
+            scale_factor = 1 / self.zoom_factor
         else:
             return
 
-        mouse_scene_pos = self.mapToScene(event.pos())
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.scale(scale_factor, scale_factor)
         self.setTransformationAnchor(QGraphicsView.NoAnchor)
@@ -99,12 +98,6 @@ class MapView(QGraphicsView):
         # Aktualizuj granice sceny, aby pasowały do widoku
         self.updateSceneRect()
 
-
-        # Center zoom on mouse position
-        mouse_scene_pos = self.mapToScene(event.pos())
-        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-        self.scale(scale_factor, scale_factor)
-        self.setTransformationAnchor(QGraphicsView.NoAnchor)
 
     def keyPressEvent(self, event):
         """Enable drag mode on Ctrl press."""

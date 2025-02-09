@@ -4,7 +4,6 @@ import os
 from .layer_manager import LayerManager
 from .snapshot_manager import SnapshotManager
 from .mode_manager import ModeManager
-from threading import Thread
 
 
 class MapController:
@@ -13,6 +12,8 @@ class MapController:
         self.scene = None
         self.state_controller = None
         self.button_panel = None
+        self.buttons_info = []
+        self.shortcuts = {}
         self.layer_manager = LayerManager(map_controller=self)
         self.snapshot_manager = SnapshotManager(map_controller=self)
         self.mode_manager = ModeManager(map_controller=self)
@@ -39,14 +40,7 @@ class MapController:
             self.layer_manager.initialize_layer_items(self.scene, self.cv_image)
 
     def init_modes(self):
-        def process():
-            self.mode_manager.province_mode.sample_provinces()
-            self.mode_manager.buildings_mode.find_cities()
-            self.mode_manager.buildings_mode.count_cities_by_state()
-        thread = Thread(target=process)
-        thread.start()
-        thread.join()
-
+        self.mode_manager.init_modes()
 
     def update_scene(self):
         """Odświeża obraz na scenie."""
@@ -67,6 +61,7 @@ class MapController:
         Spłaszcza obraz, łącząc bazowy obraz mapy i wszystkie widoczne warstwy.
         :return: Spłaszczony obraz jako QImage.
         """
+
         base_layer_name = next((name for name, z in self.layer_manager.Z_VALUES.items() if z == 0), None)
         if base_layer_name is None:
             raise ValueError("Nie znaleziono warstwy bazowej z z_value równym 0.")
@@ -78,8 +73,8 @@ class MapController:
         # Konwertuj QImage na QImage.Format_RGBA8888
         flattened_image = flattened_image.convertToFormat(QImage.Format_RGBA8888)
 
-        # Nakładanie widocznych warstw
-        for layer_name in self.layer_manager.layers:
+        for value in sorted(self.layer_manager.Z_VALUES.values()):
+            layer_name = [key for key, val in self.layer_manager.Z_VALUES.items() if val == value][0]
             if layer_name in self.layer_manager.visible_layers:
                 layer_data = self.layer_manager.get_layer(layer_name)
                 if layer_data is not None:
@@ -148,8 +143,8 @@ class MapController:
             self.layer_manager.layers[layer_name] = image
         else:
             print(f"Tworzenie nowej warstwy '{layer_name}'")
-            z_value = self.Z_VALUES.get(layer_name, 0)
-            self.layer_manager.add_layer(layer_name, image.width(), image.height(), z_value, self.scene)
+            z_value = self.layer_manager.Z_VALUES.get(layer_name, 0)
+            self.layer_manager.add_layer(layer_name, image.width(), image.height(), z_value, self.scene, self.cv_image)
             self.layer_manager.layers[layer_name] = image
 
         # Odśwież QGraphicsPixmapItem dla tej warstwy

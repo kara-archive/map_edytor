@@ -1,15 +1,13 @@
-from PyQt5.QtGui import QPainter, QColor, QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen, QImage
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor
 from PyQt5.QtWidgets import QGraphicsPathItem
 
 def flood_fill(layer, x, y, color):
-    # Pobranie wymiarów obrazu
     height, width = layer.height(), layer.width()
 
-    fill_color = (color[0], color[1], color[2])  # RGB
+    fill_color = color.getRgb()[:3]
     start_color = QColor(layer.pixel(x, y)).getRgb()[:3]
-    if start_color in [(0, 0, 0), (47, 74, 113), fill_color]:
+    if start_color == fill_color:
         return
 
     # BFS z liniowym przetwarzaniem
@@ -48,12 +46,12 @@ def flood_fill(layer, x, y, color):
 
     return layer
 
-def erase_area(layer, x, y, radius=5):
+def erase_area(layer, x, y, a=5,b=5):
     # Usuwanie (rysowanie przezroczystości)
     painter = QPainter(layer)
     painter.setCompositionMode(QPainter.CompositionMode_Clear)  # Ustaw tryb usuwania
     painter.setBrush(Qt.transparent)
-    painter.drawRect(x - radius, y - radius, radius * 2, radius * 2)
+    painter.drawRect(x - a, y - b, a * 2, b * 2)
     painter.end()
     return layer
 
@@ -65,7 +63,7 @@ def draw_icon(layer, icon, x, y):
     painter.end()
     return layer
 
-def find_icons(sample_icon, image):
+def find_icons(sample_icon, image, thresh = -1, exact = 0.9):
     """
     Wyszukuje współrzędne ikon w obrazie za pomocą dopasowywania szablonu.
 
@@ -77,16 +75,21 @@ def find_icons(sample_icon, image):
     icon = _convert_qimage_to_numpy(sample_icon)
     image = _convert_qimage_to_numpy(image)
 
+
+
     # Przekształcenie obrazu do skali szarości
     icon_gray = cvtColor(icon, COLOR_BGRA2GRAY)
     image_gray = cvtColor(image, COLOR_BGRA2GRAY)
 
+    if thresh != -1:
+        image_gray = cv2.threshold(image_gray, thresh, 255, cv2.THRESH_BINARY)[1]
+
     # Wykonanie dopasowania szablonu
-    result = matchTemplate(image_gray, icon_gray, TM_CCOEFF_NORMED)
+    result = matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
 
     # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
-    threshold = 0.7
-    locations = np.where(result >= threshold)
+
+    locations = np.where(result >= exact)
 
     # Wymiary ikony
     icon_height, icon_width = icon_gray.shape
@@ -97,6 +100,7 @@ def find_icons(sample_icon, image):
         for pt in zip(*locations[::-1])
     ]
     return coordinates
+
 
 
 
@@ -111,6 +115,16 @@ def _convert_qimage_to_numpy(qimage):
     ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
     return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
 
+def recolor_icon(image, target_color):
+    if isinstance(target_color, tuple):
+        target_color = QColor(*target_color)
+    image = image.convertToFormat(QImage.Format_ARGB32)
+    for y in range(image.height()):
+        for x in range(image.width()):
+            pixel_color = QColor(image.pixel(x, y))
+            if pixel_color == QColor(255, 255, 255):
+                image.setPixel(x, y, target_color.rgb())
+    return image
 
 class PixelSampler(dict):
     """Klasa odpowiedzialna za próbkowanie pikseli na mapie."""
@@ -202,18 +216,34 @@ class IconFinder(list):
 
 
 class DrawPath:
-    def __init__(self, layer, color=QColor(128, 128, 128, 255), width=2):
+    def __init__(self, layer, scene, color=QColor(128, 128, 128, 255), width=2, z_value=10):
+        self.z_value = z_value
         self.layer = layer
         self.color = color
         self.width = width
+        self.scene = scene
         self.path = QPainterPath()
         self.preview_item = None
+        self.last_position = None
+
+    def draw_path(self, event):
+        if event.event_type == "click":
+            self.start_path(event.x, event.y, self.scene)
+            self.last_position = (event.x, event.y)
+
+        elif event.event_type == "move" and self.last_position is not None:
+            self.update_path(event.x, event.y)
+
+        elif event.event_type == "release":
+            self.end_path(self.scene)
+            self.last_position = None
 
     def start_path(self, x, y, scene):
         self.path.moveTo(x, y)
         if self.preview_item is None:
             self.preview_item = QGraphicsPathItem()
             self.preview_item.setPen(QPen(self.color, self.width))
+            self.preview_item.setZValue(self.z_value)
             scene.addItem(self.preview_item)
         self.preview_item.setPath(self.path)
 
