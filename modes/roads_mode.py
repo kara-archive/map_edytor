@@ -10,7 +10,7 @@ class RoadsMode(Mode):
         self.name = "roads"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=1,label="Drogi")
+        self.register_mode(z=1,label="Drogi", short="r")
         self.size = 2 #domyślna grubość
         self.colors = ["gray","dimgray", "lightgrey", "saddlebrown"] #kolory
         self.color = QColor(self.colors[0]) #domyślny kolor

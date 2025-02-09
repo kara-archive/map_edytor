@@ -13,6 +13,7 @@ class MapController:
         self.state_controller = None
         self.button_panel = None
         self.buttons_info = []
+        self.shortcuts = {}
         self.layer_manager = LayerManager(map_controller=self)
         self.snapshot_manager = SnapshotManager(map_controller=self)
         self.mode_manager = ModeManager(map_controller=self)

@@ -1,6 +1,5 @@
 import copy
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QTimer
 
 class SnapshotManager:
     """Zarządza snapshotami delta stanu aplikacji."""

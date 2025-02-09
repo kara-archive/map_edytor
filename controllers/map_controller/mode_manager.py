@@ -32,14 +32,11 @@ class ModeManager(QObject):
         self.active_mode.setup_menu()
 
     def update_snap(self, layer_name):
-        def process():
-            if layer_name == "buildings":
-                self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
-            if layer_name == "army":
-                self.map_controller.mode_manager.army_mode.start_army_timer()
-        thread = Thread(target=process)
-        thread.start()
-        thread.join()
+        if layer_name == "buildings":
+            self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
+        if layer_name == "army":
+            self.map_controller.mode_manager.army_mode.start_army_timer()
+
 
     def init_modes(self):
         def process():

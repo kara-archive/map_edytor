@@ -11,7 +11,7 @@ class ProvinceMode(Mode):
         self.name = "province"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=0,label="Prowincje")
+        self.register_mode(z=0,label="Prowincje", short="q")
         self.layer = self.layer_manager.get_layer(self.name)
         self.fill_color = None
         self.map_colors = ['#000000','#446ba3','#343434']

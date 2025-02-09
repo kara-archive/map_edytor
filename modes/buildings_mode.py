@@ -14,7 +14,7 @@ class BuildingsMode(Mode):
         self.name = "buildings"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=2, label="Budynki")
+        self.register_mode(z=2, label="Budynki", short="e")
         self.building_positions = {}  # Słownik przechowujący pozycje budynków
         self.building_icons = self.load_building_icons("icons")
         self.roads = True
@@ -109,13 +109,8 @@ class BuildingsMode(Mode):
         self._buildings_timer.start(1000)
 
     def _process_buildings(self):
-        def process():
-            self.find_cities()
-            self.count_cities_by_state()
-
-        thread = Thread(target=process)
-        thread.start()
-        thread.join()
+        self.find_cities()
+        self.count_cities_by_state()
 
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""

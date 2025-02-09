@@ -17,12 +17,7 @@ class ButtonPanel(QWidget):
         self.state_panel = state_panel
         self.obecna_tura = None
         self.buttons_info = self.map_controller.buttons_info
-        self.shortcuts = {}
-        chuj = 0
-        dupa = ['q','a','z','w','s','x', 'e', 'd', 'c', 'r', 'f', 'v']
-        for _, value in self.buttons_info:
-            self.shortcuts.update({str(dupa[chuj]): str(value)})
-            chuj += 1
+        self.shortcuts = self.map_controller.shortcuts
 
 
         layout = QVBoxLayout()

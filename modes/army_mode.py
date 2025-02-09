@@ -12,7 +12,7 @@ class ArmyMode(Mode):
         self.name = "army"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=3, label="Wojsko")
+        self.register_mode(z=3, label="Wojsko", short="w")
         self.army_icons = self.load_army_icons("icons")
         self.active_icon = next(iter(self.army_icons.values()))
         self.active_icon_name = next(iter(self.army_icons.keys()))
@@ -158,13 +158,8 @@ class ArmyMode(Mode):
         self._army_timer.start(1000)
 
     def _process_army(self):
-        def process():
-            self.find_army()
-            self.count_armies_by_state()
-
-        thread = Thread(target=process)
-        thread.start()
-        thread.join()
+        self.find_army()
+        self.count_armies_by_state()
 
     def set_colors_in_color_label(self):
         """Ustawia kolory w label w state, które odpowiadają kolorowi ikony na jej środkowym pixelu"""
