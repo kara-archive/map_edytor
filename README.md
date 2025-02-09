@@ -60,6 +60,9 @@ Flagi i komendy dla trybu battle:
 
 > 
 
+### Dodawanie nowych map:
+uruchom aplikację z gałęzi dupa i stwórz plik zip z obrazem o nazwie base_image.png
+
 ### Modyfigacje Kodu
 Masz dostępny szablon dla trybu. 
 tryby inicjujemy w controllers/map_controller/mode_manager.py. 
