@@ -50,8 +50,8 @@ class ModeManager(QObject):
             self.province_mode.sample_provinces()
             self.buildings_mode.find_cities()
             self.buildings_mode.count_cities_by_state()
-            self.army_mode.find_army()
-            self.army_mode.count_armies_by_state()
+            #self.army_mode.find_army()
+            #self.army_mode.count_armies_by_state()
         thread = QThread(process())
 
     def get_mode(self):
