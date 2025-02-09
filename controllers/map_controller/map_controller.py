@@ -75,7 +75,6 @@ class MapController:
 
         for value in sorted(self.layer_manager.Z_VALUES.values()):
             layer_name = [key for key, val in self.layer_manager.Z_VALUES.items() if val == value][0]
-            print(layer_name)
             if layer_name in self.layer_manager.visible_layers:
                 layer_data = self.layer_manager.get_layer(layer_name)
                 if layer_data is not None:
