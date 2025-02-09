@@ -126,28 +126,27 @@ class PixelSampler(dict):
 class IconFinder(list):
     def __init__(self, sample_icon, layer):
         super().__init__()
-        self.sample_icon = sample_icon
-        self.layer = layer
-        self.layer_width, self.layer_height = layer.width(), layer.height()
-        self.icon_width, self.icon_height = sample_icon.width(), sample_icon.height()
 
-        # Buforowanie danych pikseli warstwy
+        # Convert images to grayscale
+        self.sample_icon = sample_icon #.convertToFormat(QImage.Format_Grayscale8)
+        self.layer = layer #.convertToFormat(QImage.Format_Grayscale8)
+
+        self.layer_width, self.layer_height = self.layer.width(), self.layer.height()
+        self.icon_width, self.icon_height = self.sample_icon.width(), self.sample_icon.height()
+
+        # Buffer pixel data of the layer
         self.layer_pixels = [
-            [layer.pixel(x, y) for y in range(self.layer_height)]
+            [self.layer.pixel(x, y) for y in range(self.layer_height)]
             for x in range(self.layer_width)
         ]
 
-        # Buforowanie danych pikseli ikony
+        # Buffer pixel data of the icon
         self.sample_pixels = [
-            [sample_icon.pixel(ix, iy) for iy in range(self.icon_height)]
+            [self.sample_icon.pixel(ix, iy) for iy in range(self.icon_height)]
             for ix in range(self.icon_width)
         ]
 
-        # Maskowanie przezroczystości
-        self.transparency_mask = [
-            [QColor(self.sample_pixels[ix][iy]).alpha() > 0 for iy in range(self.icon_height)]
-            for ix in range(self.icon_width)
-        ]
+        # Find icon positions
         self.extend(self.find_icon_positions())
 
     def find_icon_positions(self):
@@ -162,15 +161,14 @@ class IconFinder(list):
 
         return positions
 
+
     def _is_icon_at_position(self, x, y):
         for ix in range(self.icon_width):
             for iy in range(self.icon_height):
-                if not self.transparency_mask[ix][iy]:
-                    continue  # Ignoruj przezroczyste piksele
-                if self.sample_pixels[ix][iy] != self.layer_pixels[x + ix][y + iy]:
-                    return False  # Rozbieżność w pikselach
-        return True
 
+                if self.sample_pixels[ix][iy] != self.layer_pixels[x + ix][y + iy]:
+                    return False  # Mismatch in pixels
+        return True
 
 class DrawPath:
     def __init__(self, layer, scene, color=QColor(128, 128, 128, 255), width=2, z_value=10):
