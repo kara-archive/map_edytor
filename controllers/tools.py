@@ -60,8 +60,7 @@ def erase_area(layer, x, y, a=5,b=5):
     return layer
 
 def draw_icon(layer, icon, x, y):
-    """Rysuje ikonę budynku na warstwie."""
-
+    """Rysuje ikonę na warstwie."""
     painter = QPainter(layer)
     painter.drawImage(x - icon.width() // 2, y - icon.height() // 2, icon)
     painter.end()
@@ -73,6 +72,9 @@ def find_icons(sample_icon, image, thresh = -1, exact = 0.9):
 
     :param sample_icon: QImage ikony do wyszukiwania (np. "city" lub "farm").
     :param image: Obraz warstwy "buildings" jako macierz NumPy.
+    :param thresh: Zamienia obraz na czarno biały o ustalonym progu 0-255, jeśli -1 wyłączone.
+                   Przydaje się gdy ikony mają różne kolory np w army_mode.
+    :param exact: Wymagany poziom dopasowania.
     :return: Lista współrzędnych (x, y) dopasowanych ikon (środek).
     """
     # Konwersja QImage na macierz NumPy
@@ -131,7 +133,9 @@ def recolor_icon(image, target_color):
     return image
 
 class PixelSampler(dict):
-    """Klasa odpowiedzialna za próbkowanie pikseli na mapie."""
+    """Klasa odpowiedzialna za próbkowanie pikseli na mapie.
+        Zwraca słownik państw i liczby współrzędnych, króre są na pikselu o kolorze państwa.
+    """
 
     def __init__(self, image, sample_positions, states, tolerance=5):
         self.image = image
