@@ -1,15 +1,33 @@
 To jest katalog z ikonami.
 
+>Możesz zastąpić domyślne ikony swoimi. wystarczy dodać/zastąpić do tego folderu
+jak zmienisz ikonę, to będziesz musiał pozmieniać je ręcznie też na mapce.
+
 >jeśli usuniesz ten folder, to wygeneruje nowy z domyślnymi ikonami
-natomiast jak chcesz podmieniać ikony, to pamiętaj, żeby były różne od siebie, program nie widzi kolorów i będzie się mylił, jeśli rozpozna jakąś ikonę w innej.
-oslo nie zaimplementowałem przypisania ikon do mapki, więc jak zmienisz ikonę, to będziesz musiał pozmieniać je ręcznie też na mapce.
+>natomiast jak chcesz podmieniać ikony, to pamiętaj, żeby były różne od siebie, program nie widzi kolorów i będzie się mylił, jeśli rozpozna jakąś ikonę w innej.
 
 >ikony o nazwie zaczynającej się na "b_" będą dodane do trybu budynków
-liczba budynków będzie wyświetlała się w tabeli po lewej z pierwszą literą nazwy np. "b_city.png" wyświetli się jako "C:0".
-jedyna nazwa, która jest ignorowana to "capital" (protip: zmień nazwę na Capital, dla pythona to już inny plik) (protip: nazwa b_capital_dupa.png też będzie ignorowana)
-wszystko w nazwie co znajduje się przed "b_" jest ignorowane, możesz więc manipulować kolejnością wyświetlania (alfabetycznie)
-protip jeśli chcesz grać w systemie a'la wager to ponazywaj sobie ikony typu 1.b_Wojsko.png 2.b_Administaracja.png 3.b_Gospodarka.png 4.b_Edukacja.png 5.b_Rolnictwo.png
-kolor w tabeli będzie pobierany ze środka ikony, więc jeśli chcesz mieć kolorową tabelę, to środkowy pixel powinien być w odpowiednim kolorze
+>będą one dodane do tabeli, pod warunkiem że pod ikoną budynku jest kolor szary (droga), możesz wyłączyć tę opcję flagą --no_roads.
+>przypisanie do państwa zależy od koloru na warstwie province.
 
 >ikony o nazwie zaczynającej się na "a_" będą dodane do trybu armii
-ikony armii powinny mieć biały kolor, wtedy będzie on zmieniany na kolor państwa, każdy inny kolor pozostanie bez zmian.
+>ikony armii powinny mieć biały kolor, wtedy będzie on zmieniany na kolor państwa, każdy inny kolor pozostanie bez zmian. i na podstawie koloru środkowego piksela zostanie przypisana dana ikona do państwa, jest to więc niezależne od warstwy dróg i provincji, ale wykrywanie działa trochę gorzej. 
+
+>wszystko co przed b_ i a_ jest ignorowane, ale sortowanie jest alfabetyczne
+>jeżeli w nazwie jest "capital" to nie będzie dana ikona liczona do tabeli.
+
+inne systemy:
+WAGER:
+możesz stworzyć ikony o nazwach 1.b_Wojsko.png 2.b_Administracja.png i td. w kolorach odpowiadającym tabelce i odpalać aplikację z flagą --no_roads. 
+albo możesz zignorować większość funkcjonalności aplikacji i korzystać tylko z trybu prowincji, a tabelkę robić tradycyjnie w excelu
+
+SYSTEM A'LA ten z tej dziwnej rysowanej fantasy:
+w tym systemie nie było kolorowanych prowincji, więc nie będzie ci działał tryb budynków. ale możesz przenieść budynki do trybu wojska zmieniając w ich nazwie "b_" na "a_", pamiętaj tylko, że środkowy piksel inony musi być biały, żeby program zmieniał ten kolor na kolor państwa i wiedział do kogo należy dany budynek.
+granice państw w tamtym systemie były narysowane w kolorze państwa, możesz więc korzystać z trybu roads, który umożliwia rysowanie linii w kolorach państw.
+
+SYSTEM RYSOWANY Z EDYCJI hearts of kurahen
+no niestety nie da się tego odtworzych, ale będzie się dało
+
+
+
+po dodatkowe protipy wpisz w konsoli app.exe --help

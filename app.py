@@ -72,7 +72,7 @@ ensure_resources_exist()
 
 def main():
     # Parsowanie argumentów
-    parser = argparse.ArgumentParser(description="Ultymatywny program do prowadzenia mapkowych. Najlepiej się sprawdza do systemu typu z japońskiej, ale sprawdzi się też pod WAGER. kiedyś dodam config to sobie jeszcze dodacie więcej opcji.", epilog="poza tymi opcjami dostępne są w trybie bitwy następujące komenty: echo, forts, levels, [Pańswo 1] vs [Państwo 2], con, exit")
+    parser = argparse.ArgumentParser(description="Ultymatywny program do prowadzenia mapkowych. Najlepiej się sprawdza do systemu typu z japońskiej, ale sprawdzi się też pod WAGER. kiedyś dodam config to sobie jeszcze dodacie więcej opcji.", epilog="poza tymi opcjami dostępne są w trybie bitwy następujące komendy: echo, forts, levels, [Pańswo 1] vs [Państwo 2], con (kontynuuj), exit")
     parser.add_argument("--load", type=str, help="Ścieżka do pliku ZIP do wczytania przy uruchomieniu.")
     parser.add_argument("--dark", action="store_true", help="Włącza ciemną paletę kolorów.")
     parser.add_argument("--terka", action="store_true", help="nie dostanie dziś cukierka")
