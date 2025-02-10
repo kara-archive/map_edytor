@@ -103,8 +103,8 @@ def _convert_qimage_to_numpy(qimage):
     width = qimage.width()
     height = qimage.height()
     ptr = qimage.bits()
-    bytes_per_line = layer.bytesPerLine()
-    ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
+    bytes_per_line = qimage.bytesPerLine()
+    ptr.setsize(height * bytes_per_line)  # 4 kanały (R, G, B, A)
     return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
 
 def recolor_icon(image, target_color):
