@@ -73,10 +73,9 @@ class ProvinceMode(Mode):
         self.fill_color = color
 
     def color_fill(self, x, y, color):
-        layer = self.map_controller.layer_manager.get_layer(self.name)
-        #color = QColor(color)
+        layer = self.map_controller.layer_manager.layers.get(self.name)
         if color.name() not in self.map_colors and QColor(layer.pixel(x, y)).name() not in self.map_colors:
-            layer = flood_fill(layer, x, y, color)
+            self.map_controller.layer_manager.layers[self.name] = flood_fill(layer, x, y, color)
             self.map_controller.layer_manager.refresh_layer(self.name)
 
 

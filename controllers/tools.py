@@ -1,54 +1,39 @@
 from PyQt5.QtGui import QPainter, QColor, QPainter, QColor, QPainterPath, QPen, QImage
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsPathItem
-from cv2 import cvtColor, matchTemplate, TM_CCOEFF_NORMED, COLOR_BGRA2GRAY
-import cv2
+import cv2 as cv
 import numpy as np
 import copy
 
 def flood_fill(layer, x, y, color):
-    height, width = layer.height(), layer.width()
 
-    fill_color = color.getRgb()[:3]
-    start_color = QColor(layer.pixel(x, y)).getRgb()[:3]
+    img_array = _convert_qimage_to_numpy(layer)
+    width, height = layer.width(), layer.height()
+    bytes_per_line = layer.bytesPerLine()
+    image_format = layer.format()
+    # OpenCV wymaga BGR, QImage jest w RGBA, więc konwersja
+    img_bgr = cv.cvtColor(img_array, cv.COLOR_RGBA2BGR)
+
+    # Pobranie koloru startowego
+    start_color = img_bgr[y, x].tolist()
+    fill_color = [color.blue(), color.green(), color.red()]
+    # Jeśli kolor docelowy jest taki sam, nie rób nic
     if start_color == fill_color:
-        return
+        return layer
 
-    # BFS z liniowym przetwarzaniem
-    queue = [(x, y)]
-    visited = set()
+    # Tworzenie maski dla floodFill (musi być większa o 2 px w każdą stronę)
+    mask = np.zeros((height + 2, width + 2), np.uint8)
 
-    while queue:
-        current_x, current_y = queue.pop(0)
-        if (current_x, current_y) in visited:
-            continue
-        visited.add((current_x, current_y))
+    # Flood fill w OpenCV
+    cv.floodFill(img_bgr, mask, (x, y), fill_color, loDiff=(10, 10, 10), upDiff=(10, 10, 10), flags=cv.FLOODFILL_FIXED_RANGE)
 
-        # Zabezpieczenie przed przekroczeniem granic
-        if current_x < 0 or current_y < 0 or current_x >= width or current_y >= height:
-            continue
+    # Konwersja z powrotem do RGBA
+    img_rgba = cv.cvtColor(img_bgr, cv.COLOR_BGR2RGBA)
 
-        # Sprawdź kolor bieżącego piksela
-        current_pixel = QColor(layer.pixel(current_x, current_y)).getRgb()[:3]
-        if current_pixel != start_color:
-            continue
+    # Tworzenie nowego QImage z przetworzonej tablicy
+    result_image = QImage(img_rgba.data, width, height, bytes_per_line, image_format)
 
-        # Wypełnij linię w prawo
-        left_x, right_x = current_x, current_x
-        while left_x > 0 and QColor(layer.pixel(left_x - 1, current_y)).getRgb()[:3] == start_color:
-            left_x -= 1
-        while right_x < width - 1 and QColor(layer.pixel(right_x + 1, current_y)).getRgb()[:3] == start_color:
-            right_x += 1
-
-        # Wypełnij linię i dodaj sąsiadów do kolejki
-        for fill_x in range(left_x, right_x + 1):
-            layer.setPixel(fill_x, current_y, QColor(*fill_color).rgba())
-            if current_y > 0:  # Dodaj linię powyżej
-                queue.append((fill_x, current_y - 1))
-            if current_y < height - 1:  # Dodaj linię poniżej
-                queue.append((fill_x, current_y + 1))
-
-    return layer
+    return result_image
 
 def erase_area(layer, x, y, a=5,b=5):
     # Usuwanie (rysowanie przezroczystości)
@@ -84,14 +69,14 @@ def find_icons(sample_icon, image, thresh = -1, exact = 0.9):
 
 
     # Przekształcenie obrazu do skali szarości
-    icon_gray = cvtColor(icon, COLOR_BGRA2GRAY)
-    image_gray = cvtColor(image, COLOR_BGRA2GRAY)
+    icon_gray = cv.cvtColor(icon, cv.COLOR_BGRA2GRAY)
+    image_gray = cv.cvtColor(image, cv.COLOR_BGRA2GRAY)
 
     if thresh != -1:
-        image_gray = cv2.threshold(image_gray, thresh, 255, cv2.THRESH_BINARY)[1]
+        image_gray = cv.threshold(image_gray, thresh, 255, cv.THRESH_BINARY)[1]
 
     # Wykonanie dopasowania szablonu
-    result = matchTemplate(image_gray, icon_gray, cv2.TM_CCOEFF_NORMED)
+    result = cv.matchTemplate(image_gray, icon_gray, cv.TM_CCOEFF_NORMED)
 
     # Ustal próg wykrywania (np. 0.8 dla wysokiego dopasowania)
 
@@ -118,6 +103,7 @@ def _convert_qimage_to_numpy(qimage):
     width = qimage.width()
     height = qimage.height()
     ptr = qimage.bits()
+    bytes_per_line = layer.bytesPerLine()
     ptr.setsize(height * width * 4)  # 4 kanały (R, G, B, A)
     return np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 4))
 
