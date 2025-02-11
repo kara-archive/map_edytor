@@ -35,7 +35,7 @@ class ModeManager(QObject):
 
     def update_snap(self, layer_name):
         def run():
-            if layer_name == "buildings":
+            if layer_name in ["buildings", "roads"]:
                 self.map_controller.mode_manager.buildings_mode.start_buildings_timer()
             if layer_name == "army":
                 self.map_controller.mode_manager.army_mode.start_army_timer()
