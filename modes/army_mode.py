@@ -63,7 +63,7 @@ class ArmyMode(Mode):
 
         army_layer = draw_icon(army_layer, recolored_icon, x, y)
         self.map_controller.layer_manager.refresh_layer("army")
-        #self.add_army_position(x, y, self.active_icon_name)
+        self.add_army_position(x, y, self.active_icon_name)
 
     def erase_army(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
@@ -81,7 +81,7 @@ class ArmyMode(Mode):
             self.i=0
         army_layer = erase_area(army_layer, event.x, event.y, a, b)
         self.map_controller.layer_manager.refresh_layer("army")
-        #self.remove_army_positions(event.x, event.y, size=b)
+        self.remove_army_positions(event.x, event.y, size=b)
 
 
     def setup_menu(self):
@@ -157,8 +157,8 @@ class ArmyMode(Mode):
         self._army_timer.start(1000)
 
     def _process_army(self):
-        #self.find_army()
-        #self.count_armies_by_state()
+        self.find_army()
+        self.count_armies_by_state()
         pass
 
     def set_colors_in_color_label(self):

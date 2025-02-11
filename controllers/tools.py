@@ -128,8 +128,8 @@ class IconFinder(list):
         super().__init__()
 
         # Convert images to grayscale
-        self.sample_icon = sample_icon #.convertToFormat(QImage.Format_Grayscale8)
-        self.layer = layer #.convertToFormat(QImage.Format_Grayscale8)
+        self.sample_icon = sample_icon #.convertToFormat(QImage.Format_Mono)
+        self.layer = layer #.convertToFormat(QImage.Format_Mono)
 
         self.layer_width, self.layer_height = self.layer.width(), self.layer.height()
         self.icon_width, self.icon_height = self.sample_icon.width(), self.sample_icon.height()
@@ -164,7 +164,7 @@ class IconFinder(list):
 
     def _is_icon_at_position(self, x, y):
         for ix in range(self.icon_width):
-            for iy in range(self.icon_height):
+            for iy in range(2):
 
                 if self.sample_pixels[ix][iy] != self.layer_pixels[x + ix][y + iy]:
                     return False  # Mismatch in pixels
