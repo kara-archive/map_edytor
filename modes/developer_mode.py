@@ -16,8 +16,8 @@ class DevelopMode(Mode):
         self.sampled_color = (np.uint8(68), np.uint8(107), np.uint8(163))
         self.active_state = None
         self.mode_manager = mode_manager
-        self.register_mode(0)
-        self.layer = self.map_controller.layer_manager.layers.get("province")
+        self.register_mode(5, label="Develop")
+        self.layer = self.map_controller.layer_manager.layers.get("develop")
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""
@@ -28,7 +28,7 @@ class DevelopMode(Mode):
                 self.draw_province_dots((np.uint8(0), np.uint8(255), np.uint8(0)))
         if event.button == "right" and event.event_type == "click":
                 fill_color = (np.uint8(255), np.uint8(255), np.uint8(255))
-                self.flood_fill(event.x, event.y, fill_color)
+                #self.color_fill(event.x, event.y, fill_color)
                 self.remove_building_positions(event, 10)
                 self._zmazuj(event)
 
@@ -49,15 +49,10 @@ class DevelopMode(Mode):
         else:
             print("provincemode: cv_image jest None")
 
-    def flood_fill(self, x, y, color):
-        layer = self.mode_manager.layer_manager.get_layer("province")
-        if layer is None:
-            print("Warstwa 'province' nie istnieje.")
-            return
-        updated_layer = Tools.fill(layer, x, y, color)
-        if updated_layer is not None:
-            self.mode_manager.layer_manager.layers["province"] = updated_layer
-            self.mode_manager.layer_manager.refresh_layer("province")
+    def color_fill(self, x, y, color):
+        layer = self.map_controller.layer_manager.layers.get(self.name)
+        self.map_controller.layer_manager.layers[self.name] = flood_fill(layer, x, y, color)
+        self.map_controller.layer_manager.refresh_layer(self.name)
 
     def draw_province_dots(self, color, dot_size=1):
         """
@@ -66,17 +61,14 @@ class DevelopMode(Mode):
         :param dot_size: int, średnica kropek w pikselach.
         :return: None
         """
-        self.map_controller.layer_manager.add_layer("province")
-        roads_layer = self.map_controller.layer_manager.get_layer("province")
+        #self.map_controller.layer_manager.add_layer("province")
+        roads_layer = self.map_controller.layer_manager.get_layer("develop")
         if roads_layer is None:
             print("Brak warstwy 'roads' do rysowania.")
             return
 
-        height, width, _ = roads_layer.shape
-        bytes_per_line = 4 * width
-        layer_image = QImage(roads_layer.data, width, height, bytes_per_line, QImage.Format_RGBA8888)
 
-        painter = QPainter(layer_image)
+        painter = QPainter(roads_layer)
         pen = QPen(QColor(255, 0, 0, 255))  # Czerwony kolor
         pen.setWidth(dot_size)
         painter.setPen(pen)
@@ -91,13 +83,13 @@ class DevelopMode(Mode):
 
         painter.end()
 
-        # Aktualizacja danych w warstwie
-        layer_data = layer_image.bits().asstring(bytes_per_line * height)
-        self.map_controller.layer_manager.layers["roads"] = np.frombuffer(layer_data, dtype=np.uint8).reshape(height, width, 4)
 
         # Odświeżenie warstwy
-        self.map_controller.layer_manager.refresh_layer("roads")
-
+        self.map_controller.layer_manager.refresh_layer("develop")
+    def find_cities(self):
+        pass
+    def count_cities_by_state(self):
+        pass
     def _zmazuj(self, event):
         """Obsługuje zdarzenia związane z usuwaniem (prawy przycisk myszy)."""
         if event.event_type in {"click", "move"}:

@@ -6,27 +6,33 @@ import numpy as np
 import copy
 
 def flood_fill(layer, x, y, color):
+    try:
+        img_array = _convert_qimage_to_numpy(layer)
+        width, height = layer.width(), layer.height()
+        if width <= x <= 0 or height <= y <= 0:
+            return layer
+        bytes_per_line = layer.bytesPerLine()
+        image_format = layer.format()
+        # OpenCV wymaga BGR, QImage jest w RGBA, więc konwersja
+        img_bgr = cv.cvtColor(img_array, cv.COLOR_RGBA2BGR)
 
-    img_array = _convert_qimage_to_numpy(layer)
-    width, height = layer.width(), layer.height()
-    bytes_per_line = layer.bytesPerLine()
-    image_format = layer.format()
-    # OpenCV wymaga BGR, QImage jest w RGBA, więc konwersja
-    img_bgr = cv.cvtColor(img_array, cv.COLOR_RGBA2BGR)
+        # Pobranie koloru startowego
+        start_color = img_bgr[y, x].tolist()
+        fill_color = [color.blue(), color.green(), color.red()]
+        # Jeśli kolor docelowy jest taki sam, nie rób nic
+        if start_color == fill_color:
+            return layer
 
-    # Pobranie koloru startowego
-    start_color = img_bgr[y, x].tolist()
-    fill_color = [color.blue(), color.green(), color.red()]
-    # Jeśli kolor docelowy jest taki sam, nie rób nic
-    if start_color == fill_color:
+        # Tworzenie maski dla floodFill (musi być większa o 2 px w każdą stronę)
+        mask = np.zeros((height + 2, width + 2), np.uint8)
+
+    except IndexError:
         return layer
-
-    # Tworzenie maski dla floodFill (musi być większa o 2 px w każdą stronę)
-    mask = np.zeros((height + 2, width + 2), np.uint8)
-
     # Flood fill w OpenCV
-    cv.floodFill(img_bgr, mask, (x, y), fill_color, loDiff=(10, 10, 10), upDiff=(10, 10, 10), flags=cv.FLOODFILL_FIXED_RANGE)
-
+    try:
+        cv.floodFill(img_bgr, mask, (x, y), fill_color, loDiff=(10, 10, 10), upDiff=(10, 10, 10), flags=cv.FLOODFILL_FIXED_RANGE)
+    except cv.error:
+        return layer
     # Konwersja z powrotem do RGBA
     img_rgba = cv.cvtColor(img_bgr, cv.COLOR_BGR2RGBA)
 

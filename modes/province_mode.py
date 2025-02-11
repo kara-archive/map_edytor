@@ -12,9 +12,8 @@ class ProvinceMode(Mode):
         super().__init__(map_controller)
         self.mode_manager = mode_manager
         self.register_mode(z=0,label="Prowincje", short="q")
-        self.layer = self.layer_manager.get_layer(self.name)
-        self.fill_color = None
         self.map_colors = ['#000000','#446ba3','#343434']
+        self.fill_color = QColor('white')
 
     def handle_event(self, event):
         """Obsługuje zdarzenia w trybie prowincji."""

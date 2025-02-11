@@ -20,11 +20,15 @@ class ModeManager(QObject):
         self.active_mode = None
         self.active_mode_name = None
         self.modes = {}
-        self.roads_mode = RoadsMode(self, map_controller)
-        self.army_mode = ArmyMode(self, map_controller)
-        self.province_mode = ProvinceMode(self, map_controller)
-        self.buildings_mode = BuildingsMode(self, map_controller)
+        self._init_modes()
+
+    def _init_modes(self):
+        self.roads_mode = RoadsMode(self, self.map_controller)
+        self.army_mode = ArmyMode(self, self.map_controller)
+        self.province_mode = ProvinceMode(self, self.map_controller)
+        self.buildings_mode = BuildingsMode(self, self.map_controller)
         #self.new_mode = NewMode(self, map_controller)
+
 
     def set_mode(self, mode_name=None):
         """Ustawia aktywny tryb."""

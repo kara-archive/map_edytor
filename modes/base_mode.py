@@ -10,11 +10,12 @@ class Mode:
         self.snapshot_manager = map_controller.snapshot_manager
         self.active_state = None
 
-    def register_mode(self, z, short, label=None):
+    def register_mode(self, z, short=None, label=None):
         self.mode_manager.modes.update({self.name: self})
         self.map_controller.layer_manager.Z_VALUES.update({self.name: z})
         if label:
             self.map_controller.buttons_info.append((label, self.name))
+        if short:
             self.map_controller.shortcuts.update({short: self.name})
 
 
