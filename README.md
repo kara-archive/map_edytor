@@ -1,5 +1,6 @@
 ### Zależności
 PyQt5 open-cv i oczywiście python
+
 w wersji "light" tylko PyQt5
 # Edytor mapkowych
 Zrobiony z myślą o systemie z japońskiej, ale można też łatwo dostosować pod inne systemy.
