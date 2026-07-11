@@ -91,111 +91,126 @@ class StateController(QObject):
             print(f"Błąd podczas zapisywania pliku CSV: {e}")
 
     def render_table_image(self, obecna_tura):
-        """
-        Renderuje tabelę z danymi państw jako QImage.
-        Kolumny: Nazwa + wszystkie dynamiczne atrybuty (z pominięciem color, state_controller, name).
-        Wiersze: tylko państwa bez 'NPC' w nazwie.
-        """
-        if not self.states:
-            return None
+            """
+            Renderuje tabelę z danymi państw jako QImage.
+            Kolumny: Nazwa + wszystkie dynamiczne atrybuty (z pominięciem color, state_controller, name).
+            Wiersze: tylko państwa bez 'NPC' w nazwie.
+            """
+            if not self.states:
+                return None
 
-        # Zbierz atrybuty i dane (tak samo jak w export_to_csv)
-        all_attributes = []
-        for state in self.states:
-            for attr in state.__dict__.keys():
-                if attr not in {"color", "state_controller", "name"} and attr not in all_attributes:
-                    all_attributes.append(attr)
+            # Zbierz atrybuty i dane (tak samo jak w export_to_csv)
+            all_attributes = []
+            for state in self.states:
+                for attr in state.__dict__.keys():
+                    if attr not in {"color", "state_controller", "name"} and attr not in all_attributes:
+                        all_attributes.append(attr)
 
-        headers = [f"Tura {obecna_tura}"] + [
-            "LvL" if attr.lower() == "lvl" else attr.capitalize()
-            for attr in all_attributes
-        ]
+            # --- PATCH: Słownik tłumaczeń atrybutów na język polski ---
+            attribute_translations = {
+                "town": "Miasta",
+                "rancho": "Wsie",
+                "provinces": "Prowincje",
+                "plant": "Manufaktury",
+                "Capital": "Stolica",
+                "army": "Armia",
+                "fort": "Forty",
+                "ship": "Okręty",
+                "investments": "Inw.",
+                "food": "Żywność",
+                # Miejsce na Twoje kolejne atrybuty (np. "gold": "Złoto")
+            }
+            # ----------------------------------------------------------
 
-        rows = []
-        row_colors = []
-        for state in self.states:
-            if "NPC" not in state.name:
-                state_data = [str(getattr(state, attr, "")) for attr in all_attributes]
-                rows.append([state.name] + state_data)
-                row_colors.append(state.color)  # hex string
+            headers = [f"Tura {obecna_tura}"] + [
+                "LvL" if attr.lower() == "lvl" else attribute_translations.get(attr.lower(), attr.capitalize())
+                for attr in all_attributes
+            ]
 
-        if not rows:
-            return None
+            rows = []
+            row_colors = []
+            for state in self.states:
+                if "NPC" not in state.name:
+                    state_data = [str(getattr(state, attr, "")) for attr in all_attributes]
+                    rows.append([state.name] + state_data)
+                    row_colors.append(state.color)  # hex string
 
-        # Parametry rysowania
-        font = QFont("Sans", 11)
-        font.setBold(False)
-        header_font = QFont("Sans", 11, QFont.Bold)
-        fm = QFontMetrics(font)
-        hfm = QFontMetrics(header_font)
+            if not rows:
+                return None
 
-        padding_x = 12
-        padding_y = 8
-        row_height = max(fm.height(), hfm.height()) + padding_y * 2
+            # Parametry rysowania
+            font = QFont("Sans", 11)
+            font.setBold(False)
+            header_font = QFont("Sans", 11, QFont.Bold)
+            fm = QFontMetrics(font)
+            hfm = QFontMetrics(header_font)
 
-        # Oblicz szerokość każdej kolumny
-        col_widths = []
-        for col_idx in range(len(headers)):
-            max_w = hfm.horizontalAdvance(headers[col_idx])
-            for row in rows:
-                if col_idx < len(row):
-                    w = fm.horizontalAdvance(row[col_idx])
-                    max_w = max(max_w, w)
-            col_widths.append(max_w + padding_x * 2)
+            padding_x = 12
+            padding_y = 8
+            row_height = max(fm.height(), hfm.height()) + padding_y * 2
 
-        table_width = sum(col_widths)
-        table_height = row_height * (1 + len(rows))  # nagłówek + dane
+            # Oblicz szerokość każdej kolumny
+            col_widths = []
+            for col_idx in range(len(headers)):
+                max_w = hfm.horizontalAdvance(headers[col_idx])
+                for row in rows:
+                    if col_idx < len(row):
+                        w = fm.horizontalAdvance(row[col_idx])
+                        max_w = max(max_w, w)
+                col_widths.append(max_w + padding_x * 2)
 
-        # Tworzenie obrazu
-        image = QImage(table_width, table_height, QImage.Format_RGBA8888)
-        image.fill(QColor(30, 30, 30, 255))  # ciemne tło
+            table_width = sum(col_widths)
+            table_height = row_height * (1 + len(rows))  # nagłówek + dane
 
-        painter = QPainter(image)
-        painter.setRenderHint(QPainter.Antialiasing)
+            # Tworzenie obrazu
+            image = QImage(table_width, table_height, QImage.Format_RGBA8888)
+            image.fill(QColor(30, 30, 30, 255))  # ciemne tło
 
-        # Rysuj nagłówek
-        painter.setFont(header_font)
-        x = 0
-        for col_idx, header in enumerate(headers):
-            painter.fillRect(x, 0, col_widths[col_idx], row_height, QColor(50, 50, 50, 255))
-            painter.setPen(QColor(220, 220, 220))
-            painter.drawText(x + padding_x, 0, col_widths[col_idx] - padding_x, row_height,
-                             0x0080 | 0x0004, header)  # AlignVCenter | AlignLeft
-            x += col_widths[col_idx]
+            painter = QPainter(image)
+            painter.setRenderHint(QPainter.Antialiasing)
 
-        # Rysuj wiersze
-        painter.setFont(font)
-        for row_idx, row in enumerate(rows):
-            y = (row_idx + 1) * row_height
-            state_color = QColor(row_colors[row_idx])
-
-            # Tło wiersza — lekki pasek koloru państwa
-            bg = QColor(state_color)
-            bg.setAlpha(50)
-            painter.fillRect(0, y, table_width, row_height, bg)
-
+            # Rysuj nagłówek
+            painter.setFont(header_font)
             x = 0
-            for col_idx, cell in enumerate(row):
-                # Pierwsza kolumna (nazwa) — kolor państwa jako tekst
-                if col_idx == 0:
-                    painter.setPen(state_color)
-                else:
-                    painter.setPen(QColor(200, 200, 200))
-                painter.drawText(x + padding_x, y, col_widths[col_idx] - padding_x, row_height,
-                                 0x0080 | 0x0004, cell)
+            for col_idx, header in enumerate(headers):
+                painter.fillRect(x, 0, col_widths[col_idx], row_height, QColor(50, 50, 50, 255))
+                painter.setPen(QColor(220, 220, 220))
+                painter.drawText(x + padding_x, 0, col_widths[col_idx] - padding_x, row_height,
+                                0x0080 | 0x0004, header)  # AlignVCenter | AlignLeft
                 x += col_widths[col_idx]
 
-            # Linia oddzielająca
-            painter.setPen(QColor(60, 60, 60))
-            painter.drawLine(0, y, table_width, y)
+            # Rysuj wiersze
+            painter.setFont(font)
+            for row_idx, row in enumerate(rows):
+                y = (row_idx + 1) * row_height
+                state_color = QColor(row_colors[row_idx])
 
-        # Ramka zewnętrzna
-        painter.setPen(QColor(80, 80, 80))
-        painter.drawRect(0, 0, table_width - 1, table_height - 1)
+                # Tło wiersza — lekki pasek koloru państwa
+                bg = QColor(state_color)
+                bg.setAlpha(50)
+                painter.fillRect(0, y, table_width, row_height, bg)
 
-        painter.end()
-        return image
+                x = 0
+                for col_idx, cell in enumerate(row):
+                    # Pierwsza kolumna (nazwa) — kolor państwa jako tekst
+                    if col_idx == 0:
+                        painter.setPen(state_color)
+                    else:
+                        painter.setPen(QColor(200, 200, 200))
+                    painter.drawText(x + padding_x, y, col_widths[col_idx] - padding_x, row_height,
+                                    0x0080 | 0x0004, cell)
+                    x += col_widths[col_idx]
 
+                # Linia oddzielająca
+                painter.setPen(QColor(60, 60, 60))
+                painter.drawLine(0, y, table_width, y)
+
+            # Ramka zewnętrzna
+            painter.setPen(QColor(80, 80, 80))
+            painter.drawRect(0, 0, table_width - 1, table_height - 1)
+
+            painter.end()
+            return image
 
 
     def get_food_provinces_count(self):
@@ -231,6 +246,7 @@ class StateController(QObject):
             capital = getattr(state, "capital", 0)
             town = getattr(state, "town", 0)
             plant = getattr(state, "plant", 0)
+            #(TODO) czytaj niżej
             state.investments = capital * 5 + town * 1 + plant * 1
 
             # 2. Food
@@ -241,8 +257,9 @@ class StateController(QObject):
             
             prov_food = food_provinces.get(state.name, 0)
             
-            # Wzór: prov_food * 1 + rancho * 3 - town * 6 - capital * 6 - plant * 4 - ship * 2 - army * 1
-            state.food = prov_food * 1 + rancho * 3 - town * 6 - capital * 6 - plant * 4 - ship * 2 - army * 1
+            # Wzór: prov_food * 1 + rancho * 3 - town * 6 - capital * 6 - plant * 4 - ship * 1 - army * 1
+            #(TODO) dodać łatwe konfigurację statyystyk, może być przynajmniej u góry pliku w formie stałych
+            state.food = prov_food * 1 + rancho * 3 - town * 6 - capital * 6 - plant * 4 - ship * 1 - army * 1
 
     def load_from_csv(self, file_path):
         """Wczytuje stany z pliku CSV."""
@@ -279,6 +296,7 @@ class State:
     def get_building_value(self, building_type, biome):
         building_type = self._normalize_building_type(building_type)
         biome = (biome or "plain").lower()
+        #(TODO) tutaj tak samo, to musi być łatwo konfigurowalne 
 
         if biome == "water":
             return 0
