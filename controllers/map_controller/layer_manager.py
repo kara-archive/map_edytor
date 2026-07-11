@@ -43,20 +43,8 @@ class LayerManager:
             print(f"Warstwa '{layer_name}' nie istnieje.")
             return
 
-        layer_data = self.layers[layer_name]
-
-        if layer_name == "province" and "biome" in self.visible_layers:
-            # Tworzymy kopię i nakładamy maskę (gumkę)
-            temp_image = layer_data.copy()
-            painter = QPainter(temp_image)
-            painter.setCompositionMode(QPainter.CompositionMode_Clear)
-            for y in range(4, temp_image.height(), 9):
-                for x in range(4, temp_image.width(), 9):
-                    painter.drawPoint(x, y)
-            painter.end()
-            pixmap = QPixmap.fromImage(temp_image)
-        else:
-            pixmap = QPixmap.fromImage(layer_data)
+        layer_data = self.get_render_image(layer_name)
+        pixmap = QPixmap.fromImage(layer_data)
 
         if layer_name in self.layer_items:
             pixmap_item = self.layer_items[layer_name]
@@ -67,6 +55,26 @@ class LayerManager:
         # Dodatkowa kontrola widoczności warstwy
         if layer_name not in self.visible_layers:
             print(f"Warstwa '{layer_name}' nie jest widoczna. Ustawiam widoczność na True.")
+
+    def get_render_image(self, layer_name):
+        layer_data = self.layers.get(layer_name)
+        if layer_data is None:
+            return None
+        """
+        (TODO) gówno do usunięcia, nie powinno to się tutaj znajdować, a być obsługiwane w biome_mode:
+        if layer_name == "biome" in self.visible_layers:
+            # do poprawy, pierdolone gówno od ai
+            temp_image = layer_data.copy()
+            painter = QPainter(temp_image)
+            painter.setCompositionMode(QPainter.CompositionMode_Clear)
+            for y in range(4, temp_image.height(), 6):
+                for x in range(4, temp_image.width(), 6):
+                    painter.drawPoint(x, y)
+            painter.end()
+            return temp_image
+        """
+
+        return layer_data
 
     def refresh_all_layers(self):
         for layer_name in self.visible_layers:

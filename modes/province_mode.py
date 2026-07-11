@@ -11,7 +11,7 @@ class ProvinceMode(Mode):
         self.name = "province"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=1,label="Prowincje", short="q")
+        self.register_mode(z=0,label="Prowincje", short="q")
         self.map_colors = ['#000000','#446ba3','#343434']
         self.fill_color = QColor('white')
 

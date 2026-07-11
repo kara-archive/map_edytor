@@ -20,7 +20,7 @@ class BiomeMode(Mode):
         self.name = "biome"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=0, label="Biomy", short="b")
+        self.register_mode(z=-1, label="Biomy", short="b")
         self.fill_color = self.BIOMES["Woda"]
 
     def handle_event(self, event):
@@ -64,7 +64,10 @@ class BiomeMode(Mode):
         if not (0 <= x < layer.width() and 0 <= y < layer.height()):
             return
         if layer.pixelColor(x, y).alpha() == 0 and self.map_controller.cv_image is not None:
-            layer = self.map_controller.cv_image.copy()
+            layer = self.map_controller.cv_image.copy() #po zrobieniu kopii, należy upewnić się że kanał alfa=0
 
-        self.layer_manager.layers[self.name] = flood_fill(layer, x, y, color)
+        self.layer_manager.layers[self.name] = flood_fill(layer, x, y, color) 
+        #(TODO)należy wprowadzić, aby używać floodfill ale ma być to deseń w postaci kropek, 
+        #aby jedynie co 5 kropka w obszarze floodfill była zakolorywana, reszta ma mieć alfa=0 
+        #(floodfill chyba ignoruje kanał alfa, co jest na naszą korzyść, jeśli nie to należy wprowadzić nową funcję np food_fill_pattern)
         self.layer_manager.refresh_layer(self.name)

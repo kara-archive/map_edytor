@@ -90,21 +90,24 @@ class MapController:
             layer_name = [key for key, val in self.layer_manager.Z_VALUES.items() if val == value][0]
             if layer_name in self.layer_manager.visible_layers:
                 layer_data = self.layer_manager.get_layer(layer_name)
-                if layer_data is not None:
-                    # Jeśli to warstwa prowincji i biomy są widoczne, nakładamy maskę na kopię przed narysowaniem
-                    if layer_name == "province" and "biome" in self.layer_manager.visible_layers:
-                        temp_image = layer_data.copy()
-                        painter = QPainter(temp_image)
-                        painter.setCompositionMode(QPainter.CompositionMode_Clear)
-                        for y in range(4, temp_image.height(), 9):
-                            for x in range(4, temp_image.width(), 9):
-                                painter.drawPoint(x, y)
-                        painter.end()
-                        layer_data = temp_image
-                    
-                    painter = QPainter(flattened_image)
-                    painter.drawImage(0, 0, layer_data)
+                """
+                (TODO) gówniany kod rozjebał widok mapy, zamiast dodawać deseń kropek z warstwy biome, to przykrywa mi warstwę province, 
+                to w ogóle nie powinno znajdować się tutaj, a w biome_mode.py
+
+                if layer_data is not None and layer_name == "biome":
+                    temp_image = layer_data.copy()
+                    painter = QPainter(temp_image)
+                    painter.setCompositionMode(QPainter.CompositionMode_Clear)
+                    for y in range(4, temp_image.height(), 6):
+                        for x in range(4, temp_image.width(), 6):
+                            painter.drawPoint(x, y)
                     painter.end()
+                    layer_data = temp_image
+                """
+
+                painter = QPainter(flattened_image)
+                painter.drawImage(0, 0, layer_data)
+                painter.end()
 
         return flattened_image
 
