@@ -4,6 +4,8 @@ import os
 from .layer_manager import LayerManager
 from .snapshot_manager import SnapshotManager
 from .mode_manager import ModeManager
+from controllers.data import MapData
+from controllers.archive_manager import ArchiveManager
 
 
 class MapController:
@@ -17,6 +19,9 @@ class MapController:
         self.layer_manager = LayerManager(map_controller=self)
         self.snapshot_manager = SnapshotManager(map_controller=self)
         self.mode_manager = ModeManager(map_controller=self)
+        self.map_data = MapData()
+        self.archive_manager = ArchiveManager(map_controller=self)
+        self.bg_item = None
 
     def set_scene(self, scene):
         """Ustawia scenę dla kontrolera."""
@@ -44,16 +49,29 @@ class MapController:
 
     def update_scene(self):
         """Odświeża obraz na scenie."""
-        # Tworzenie pustej warstwy, aby odświeżyć scenę
+        if hasattr(self, 'bg_item') and self.bg_item is not None:
+            try:
+                self.scene.removeItem(self.bg_item)
+            except Exception:
+                pass
+            self.bg_item = None
+
         height, width = self.cv_image.height(), self.cv_image.width() if self.cv_image is not None else (600, 800)
+
+        # Dodanie obrazu bazowego jako tła na samym dole (Z = -10)
+        if self.cv_image is not None:
+            bg_pixmap = QPixmap.fromImage(self.cv_image)
+            self.bg_item = QGraphicsPixmapItem(bg_pixmap)
+            self.bg_item.setZValue(-10)
+            self.scene.addItem(self.bg_item)
+
+        # Tworzenie pustej warstwy
         empty_layer = QImage(width, height, QImage.Format_RGBA8888)
         empty_layer.fill(QColor(0, 0, 0, 0))  # Przezroczysta warstwa
 
-        # Tworzenie QPixmap na podstawie pustej warstwy
         pixmap = QPixmap.fromImage(empty_layer)
-
-        # Dodanie pustej warstwy do sceny
         pixmap_item = QGraphicsPixmapItem(pixmap)
+        pixmap_item.setZValue(-100)  # Poniżej tła
         self.scene.addItem(pixmap_item)
 
     def _flatten_image(self):
@@ -61,39 +79,72 @@ class MapController:
         Spłaszcza obraz, łącząc bazowy obraz mapy i wszystkie widoczne warstwy.
         :return: Spłaszczony obraz jako QImage.
         """
+        if self.cv_image is None:
+            raise ValueError("Brak obrazu bazowego do spłaszczenia.")
 
-        base_layer_name = next((name for name, z in self.layer_manager.Z_VALUES.items() if z == 0), None)
-        if base_layer_name is None:
-            raise ValueError("Nie znaleziono warstwy bazowej z z_value równym 0.")
+        # Zaczynamy od czystego obrazu bazowego
+        flattened_image = self.cv_image.copy().convertToFormat(QImage.Format_RGBA8888)
 
-        flattened_image = self.layer_manager.get_layer(base_layer_name)
-        if flattened_image is None:
-            raise ValueError(f"Warstwa bazowa '{base_layer_name}' nie została znaleziona.")
-
-        # Konwertuj QImage na QImage.Format_RGBA8888
-        flattened_image = flattened_image.convertToFormat(QImage.Format_RGBA8888)
-
+        # Rysujemy wszystkie widoczne warstwy w kolejności rosnących Z-values
         for value in sorted(self.layer_manager.Z_VALUES.values()):
             layer_name = [key for key, val in self.layer_manager.Z_VALUES.items() if val == value][0]
             if layer_name in self.layer_manager.visible_layers:
                 layer_data = self.layer_manager.get_layer(layer_name)
                 if layer_data is not None:
+                    # Jeśli to warstwa prowincji i biomy są widoczne, nakładamy maskę na kopię przed narysowaniem
+                    if layer_name == "province" and "biome" in self.layer_manager.visible_layers:
+                        temp_image = layer_data.copy()
+                        painter = QPainter(temp_image)
+                        painter.setCompositionMode(QPainter.CompositionMode_Clear)
+                        for y in range(4, temp_image.height(), 9):
+                            for x in range(4, temp_image.width(), 9):
+                                painter.drawPoint(x, y)
+                        painter.end()
+                        layer_data = temp_image
+                    
                     painter = QPainter(flattened_image)
                     painter.drawImage(0, 0, layer_data)
                     painter.end()
 
         return flattened_image
 
-    def export_image(self, file_path):
+    def export_image(self, file_path, table_image=None):
         """
         Spłaszcza obraz i zapisuje go do pliku.
+        Jeśli podano table_image (QImage), skaluje go i dokłada do mapy:
+        - na dole, jeśli mapa jest szersza niż wyższa (landscape),
+        - po lewej, jeśli mapa jest wyższa niż szersza (portrait).
         :param file_path: Ścieżka do zapisu obrazu.
+        :param table_image: Opcjonalny QImage z tabelą danych.
         """
         try:
-            # Spłaszcz obraz
             flattened_image = self._flatten_image()
 
-            # Zapisz do pliku
+            if table_image is not None and not table_image.isNull():
+                map_w = flattened_image.width()
+                map_h = flattened_image.height()
+
+                if map_w < map_h:
+                    # Portrait — mapa wyższa, tabela na dole (dokłada do krótszego boku)
+                    scaled_table = table_image.scaledToWidth(map_w)
+                    combined = QImage(map_w, map_h + scaled_table.height(), QImage.Format_RGBA8888)
+                    combined.fill(QColor(0, 0, 0, 255))
+                    painter = QPainter(combined)
+                    painter.drawImage(0, 0, flattened_image)
+                    painter.drawImage(0, map_h, scaled_table)
+                    painter.end()
+                else:
+                    # Landscape — mapa szersza, tabela po lewej (dokłada do krótszego boku)
+                    scaled_table = table_image.scaledToHeight(map_h)
+                    combined = QImage(map_w + scaled_table.width(), map_h, QImage.Format_RGBA8888)
+                    combined.fill(QColor(0, 0, 0, 255))
+                    painter = QPainter(combined)
+                    painter.drawImage(scaled_table.width(), 0, flattened_image)
+                    painter.drawImage(0, 0, scaled_table)
+                    painter.end()
+
+                flattened_image = combined
+
             if not flattened_image.save(file_path):
                 raise IOError(f"Nie udało się zapisać obrazu do pliku: {file_path}")
 
@@ -161,3 +212,27 @@ class MapController:
 
     def get_image(self):
         return self.cv_image
+
+    def get_biome_at(self, x, y):
+        """Pobiera nazwę biomu na podanych współrzędnych."""
+        biome_layer = self.layer_manager.get_layer("biome")
+        if biome_layer is None or not (0 <= x < biome_layer.width() and 0 <= y < biome_layer.height()):
+            return "plain"
+
+        color = biome_layer.pixelColor(x, y)
+        if color.alpha() == 0:
+            return "plain"
+
+        # Mapowanie kolorów na nazwy biomów
+        hex_val = color.name().lower()
+        if hex_val == "#4080bf":
+            return "water"
+        elif hex_val == "#d6b365":
+            return "desert"
+        elif hex_val == "#2e7d32":
+            return "forest"
+        elif hex_val == "#8bc34a":
+            return "plain"
+        elif hex_val == "#8d8d8d":
+            return "mountains"
+        return "plain"

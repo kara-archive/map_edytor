@@ -3,17 +3,26 @@ from PyQt5.QtGui import QImage, QIcon, QPixmap, QColor # type: ignore
 from PyQt5.QtCore import QSize, QTimer # type: ignore
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
 from modes.base_mode import Mode
+from modes.biome_mode import BiomeMode
 import os
 import time
 
 class BuildingsMode(Mode):
     """Obsługuje tryb budynków."""
 
+    BIOME_NAMES = {
+        "Woda": "water",
+        "Pustynia": "desert",
+        "Las": "forest",
+        "Plain": "plain",
+        "Góry": "mountains",
+    }
+
     def __init__(self, mode_manager, map_controller):
         self.name = "buildings"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=2, label="Budynki", short="e")
+        self.register_mode(z=3, label="Budynki", short="e")
         self.building_positions = {}  # Słownik przechowujący pozycje budynków
         self.building_icons = self.load_building_icons("icons")
         self.roads = self.mode_manager.roads
@@ -67,7 +76,7 @@ class BuildingsMode(Mode):
                 button.setChecked(True)
 
         # Aktualizacja dynamicznego menu
-        self.map_controller.button_panel.update_dynamic_menu(buttons)
+        self.request_menu_update.emit(buttons)
 
         # Ustawienie pierwszego przycisku jako domyślnie zaznaczonego
 
@@ -113,6 +122,10 @@ class BuildingsMode(Mode):
 
     def add_building(self, x, y):
         """Dodaje budynek do warstwy i zapisuje operację."""
+        if self.get_biome_at(x, y) == "water":
+            print("Nie można budować na wodzie.")
+            return
+
         building_layer = self.map_controller.layer_manager.get_layer("buildings")
         building_layer = draw_icon(building_layer, self.active_icon, x, y)
         self.map_controller.layer_manager.refresh_layer("buildings")
@@ -128,32 +141,62 @@ class BuildingsMode(Mode):
 
     def count_cities_by_state(self):
         """
-        Próbkuje piksele w pozycjach budynków różnych typów i wyświetla liczbę budynków każdego typu dla każdego państwa.
+        Próbkuje piksele w pozycjach budynków i liczy ich wartość z uwzględnieniem biomu.
         """
         self.set_colors_in_color_label()
         roads_layer = self.map_controller.layer_manager.get_layer("roads")
+        province_layer = self.map_controller.layer_manager.get_layer("province")
+        states = self.map_controller.state_controller.get_states()
+
         for building_type, positions in self.building_positions.items():
-            if not positions:
-                positions = [(0, 0)]  # bug, że gdy nie ma budynków to nie odświerza liczby
+            positions_road = self._get_positions_connected_to_roads(positions, roads_layer)
+            counts = {state.name: 0 for state in states}
 
-            if self.roads:
-                positions_road = []
-                for position in positions:
-                    if QColor(roads_layer.pixel(position[0],position[1])) == QColor(128, 128, 128, 255):
-                        positions_road.append(position)
-            else:
-                positions_road = []
-                for position in positions:
-                    positions_road.append(position)
+            for x, y in positions_road:
+                biome = self.get_biome_at(x, y)
+                if biome == "water":
+                    continue
 
-            pixel_sampler = PixelSampler(
-                self.map_controller.layer_manager.layers.get("province"),
-                positions_road,
-                self.map_controller.state_controller.get_states()
-            )
+                state = self._get_state_at(province_layer, x, y, states)
+                if state is None:
+                    continue
 
-            for state in self.map_controller.state_controller.get_states():
-                setattr(state, building_type, pixel_sampler.get(state.name, 0))
+                counts[state.name] += state.get_building_value(building_type, biome)
+
+            for state in states:
+                setattr(state, building_type, counts.get(state.name, 0))
+        self.map_controller.state_controller.recalculate_all_stats()
+
+    def _get_positions_connected_to_roads(self, positions, roads_layer):
+        if not positions:
+            return []
+        if not self.roads:
+            return list(positions)
+        if roads_layer is None:
+            return []
+
+        positions_road = []
+        for x, y in positions:
+            if 0 <= x < roads_layer.width() and 0 <= y < roads_layer.height():
+                if QColor(roads_layer.pixel(x, y)) == QColor(128, 128, 128, 255):
+                    positions_road.append((x, y))
+        return positions_road
+
+    def get_biome_at(self, x, y):
+        return self.map_controller.get_biome_at(x, y)
+
+    def _get_state_at(self, province_layer, x, y, states):
+        if province_layer is None or not (0 <= x < province_layer.width() and 0 <= y < province_layer.height()):
+            return None
+
+        color = QColor(province_layer.pixel(x, y)).getRgb()[:3]
+        for state in states:
+            if self._is_similar_color(color, QColor(state.color).getRgb()[:3]):
+                return state
+        return None
+
+    def _is_similar_color(self, color1, color2, tolerance=5):
+        return all(abs(int(c1) - int(c2)) <= tolerance for c1, c2 in zip(color1, color2))
 
     def find_cities(self):
         """

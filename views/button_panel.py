@@ -1,9 +1,7 @@
-import os
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QPushButton, QButtonGroup, QFileDialog, QShortcut, QCheckBox, QHBoxLayout, QGroupBox # type: ignore
 from PyQt5.QtCore import QTimer, pyqtSignal # type: ignore
 from PyQt5.QtGui import QKeySequence # type: ignore
-import zipfile
-from controllers.data import DATA
+import os
 
 class ButtonPanel(QWidget):
     """Panel boczny z przyciskami do interakcji."""
@@ -22,7 +20,7 @@ class ButtonPanel(QWidget):
 
         layout = QVBoxLayout()
         self.setLayout(layout)
-        self.setMaximumWidth(150)  # Ustawienie maksymalnej szerokości
+        self.setMaximumWidth(600)  # Ustawienie maksymalnej szerokości
 
         # Tworzenie grupy przycisków
         group_box = QGroupBox("")
@@ -173,13 +171,14 @@ class ButtonPanel(QWidget):
                 self.map_view.state_panel.update_states()
 
     def export_turn(self):
-        """Eksportuje turę: zapisuje obraz mapy i plik CSV z danymi stanu."""
+        """Eksportuje turę: zapisuje obraz mapy z tabelą danych państw jako PNG."""
         obecna_tura = self.get_last_turn() + 1  # Pobierz aktualny numer tury
 
-        # Ścieżki do zapisania
-        export_path = f"Tury/{obecna_tura}.Tura"
-        self.map_controller.export_image(f"Tury/{obecna_tura}.Tura"+".png")
-        self.state_controller.export_to_csv(obecna_tura,"Tury/prowincje"+".csv")
+        # Renderuj tabelę z danymi państw jako QImage
+        table_image = self.state_controller.render_table_image(obecna_tura)
+
+        # Eksportuj mapę z doklejoną tabelą
+        self.map_controller.export_image(f"Tury/{obecna_tura}.Tura.png", table_image=table_image)
         self.update_export_button()
 
     def save_data(self):
@@ -189,45 +188,11 @@ class ButtonPanel(QWidget):
         file_path, _ = QFileDialog.getSaveFileName(self, "Zapisz dane", "", "ZIP Files (*.zip)")
         if file_path:
             if not file_path.endswith(".zip"):
-                file_path += ".zip"  # Dodaj rozszerzenie, jeśli użytkownik go nie podał
+                file_path += ".zip"
             try:
-                self.save(file_path)
-                print(f"Pomyślnie zapisano dane do {file_path}.")
+                self.map_controller.archive_manager.save_to_zip(file_path)
             except Exception as e:
                 print(f"Błąd podczas zapisywania danych: {e}")
-
-    def save(self, output_zip_path):
-        """
-        Eksportuje cv_image, warstwy, dane z DATA oraz CSV ze stanami jako ZIP bez kompresji.
-        :param output_zip_path: Ścieżka do pliku ZIP.
-        """
-        temp_dir = "temp_export"
-        os.makedirs(temp_dir, exist_ok=True)
-
-        try:
-            # Zapisz obrazy PNG za pomocą MapController
-            self.map_controller.save_layers_to_png(temp_dir)
-
-            # Zapisz CSV stanów za pomocą StateController
-            states_csv_path = os.path.join(temp_dir, "states_metadata.csv")
-            self.state_controller.save_to_csv(states_csv_path)
-
-            # Zapisz CSV z DATA
-            data_csv_path = os.path.join(temp_dir, "data_metadata.csv")
-            DATA.save(data_csv_path)  # Bezpośrednie wywołanie istniejącej funkcji
-
-            # Spakuj wszystkie pliki do ZIP bez kompresji
-            with zipfile.ZipFile(output_zip_path, "w", compression=zipfile.ZIP_STORED) as zipf:
-                for file_name in os.listdir(temp_dir):
-                    file_path = os.path.join(temp_dir, file_name)
-                    zipf.write(file_path, arcname=file_name)  # Dodaj pliki z relatywną ścieżką
-            print(f"Dane spakowane do {output_zip_path}")
-
-        finally:
-            # Usuń tymczasowy katalog
-            for file_name in os.listdir(temp_dir):
-                os.remove(os.path.join(temp_dir, file_name))
-            os.rmdir(temp_dir)
 
     def load_data(self):
         """
@@ -236,63 +201,8 @@ class ButtonPanel(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(self, "Wczytaj dane", "", "")
         if file_path:
             try:
-                self.load(file_path)
-                print(f"Pomyślnie wczytano dane z {file_path}.")
+                self.map_controller.archive_manager.load_from_zip(file_path)
+                self.map_view.scene().update()
+                self.state_panel.update_states()
             except Exception as e:
                 print(f"Błąd podczas wczytywania danych: {e}")
-
-    def load(self, input_zip_path):
-        """
-        Importuje dane z pliku ZIP i przywraca je do stanu aplikacji.
-        :param input_zip_path: Ścieżka do pliku ZIP.
-        """
-        temp_dir = "temp_import"
-        os.makedirs(temp_dir, exist_ok=True)
-
-        try:
-            # Rozpakuj ZIP do katalogu tymczasowego
-            with zipfile.ZipFile(input_zip_path, "r") as zipf:
-                zipf.extractall(temp_dir)
-            print(f"Dane rozpakowane z {input_zip_path}")
-
-            # Przywróć cv_image (bazowy obraz)
-            base_image_path = os.path.join(temp_dir, "base_image.png")
-            if os.path.exists(base_image_path):
-                self.map_controller.load_map(base_image_path)
-                print(f"Obraz bazowy załadowany z {base_image_path}")
-
-            # Przywróć warstwy
-            for file_name in os.listdir(temp_dir):
-                if file_name.endswith(".png") and file_name != "base_image.png":
-                    layer_name = os.path.splitext(file_name)[0]
-                    layer_path = os.path.join(temp_dir, file_name)
-                    # Sprawdź, czy warstwa już istnieje, i nadpisz ją
-                    if layer_name in self.map_controller.layer_manager.layers:
-                        print(f"Warstwa '{layer_name}' już istnieje. Nadpisywanie...")
-                    self.map_controller.load_layer_from_png(layer_name, layer_path)
-
-            # Przywróć stany z CSV
-            states_csv_path = os.path.join(temp_dir, "states_metadata.csv")
-            if os.path.exists(states_csv_path):
-                self.state_controller.load_from_csv(states_csv_path)
-                print(f"Stany załadowane z {states_csv_path}")
-
-            # Przywróć dane z DATA
-            data_csv_path = os.path.join(temp_dir, "data_metadata.csv")
-            if os.path.exists(data_csv_path):
-                DATA.load(data_csv_path)  # Wywołanie funkcji z DATA
-                print(f"Dane DATA załadowane z {data_csv_path}")
-
-            # Odśwież scenę
-            self.map_controller.update_scene()
-            self.map_view.scene().update()
-
-        finally:
-            # Usuń tymczasowy katalog
-            for file_name in os.listdir(temp_dir):
-                os.remove(os.path.join(temp_dir, file_name))
-            os.rmdir(temp_dir)
-            self.map_controller.init_modes()
-            self.state_panel.update_states()
-
-        print("Dane zostały pomyślnie przywrócone.")

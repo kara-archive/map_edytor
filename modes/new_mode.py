@@ -6,7 +6,7 @@ class NewMode(Mode):
         self.name = "new"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=4, label="Nowy", short="n")
+        self.register_mode(z=5, label="Nowy", short="n")
 
 
 

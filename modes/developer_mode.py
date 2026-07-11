@@ -2,8 +2,7 @@ from PyQt5.QtGui import QImage, QColor
 from controllers.tools import flood_fill
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QPainterPath
 from PyQt5.QtWidgets import QGraphicsPathItem
-from controllers.data import DATA
-import copy
+
 import numpy as np
 from modes.base_mode import Mode
 import math
@@ -16,7 +15,7 @@ class DevelopMode(Mode):
         self.sampled_color = (np.uint8(68), np.uint8(107), np.uint8(163))
         self.active_state = None
         self.mode_manager = mode_manager
-        self.register_mode(5, label="Develop")
+        self.register_mode(6, label="Develop")
         self.layer = self.map_controller.layer_manager.layers.get("develop")
 
     def handle_event(self, event):
@@ -24,7 +23,7 @@ class DevelopMode(Mode):
 
         if event.button == "left" and event.event_type == "click":
                 fill_color = self.sampled_color
-                DATA.provinces.append((event.x, event.y))
+                self.map_controller.map_data.provinces.append((event.x, event.y))
                 self.draw_province_dots((np.uint8(0), np.uint8(255), np.uint8(0)))
         if event.button == "right" and event.event_type == "click":
                 fill_color = (np.uint8(255), np.uint8(255), np.uint8(255))
@@ -33,7 +32,7 @@ class DevelopMode(Mode):
                 self._zmazuj(event)
 
     def setup_menu(self):
-        self.map_controller.button_panel.update_dynamic_menu([])
+        self.request_menu_update.emit([])
 
 
     def copy_image(self, cv_image):
@@ -74,7 +73,7 @@ class DevelopMode(Mode):
         painter.setPen(pen)
 
 
-        for (x, y) in DATA.provinces:
+        for (x, y) in self.map_controller.map_data.provinces:
             if 0 <= x < width and 0 <= y < height:
                 painter.drawPoint(x, y)
                 self.flood_fill(x, y, color)
@@ -104,13 +103,13 @@ class DevelopMode(Mode):
         """
         x, y = event.x, event.y
         removed_positions = [
-            (bx, by) for bx, by in DATA.provinces
+            (bx, by) for bx, by in self.map_controller.map_data.provinces
             if math.sqrt((bx - x) ** 2 + (by - y) ** 2) <= radius
         ]
 
         # Usuwanie budynków z bazy danych w dokładnym promieniu
         for pos in removed_positions:
-            DATA.provinces.remove(pos)
+            self.map_controller.map_data.provinces.remove(pos)
 
         print(f"Usunięto {len(removed_positions)} budynków w promieniu {radius} od punktu ({x}, {y}).")
         return removed_positions

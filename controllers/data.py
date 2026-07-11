@@ -1,14 +1,12 @@
-import csv
 import copy
 
-class DATA(object):
+class MapData(object):
     """Hierarchical database storing coordinates of different types of objects."""
     def __init__(self):
-        self.buildings = DATA.Buildings()
-        self.army = DATA.Army()
-        self.provinces = DATA.Provinces()
-        self.province_mode = None  # Add province_mode to DATA for easier restoration
-
+        self.buildings = self.Buildings()
+        self.army = self.Army()
+        self.provinces = self.Provinces()
+        self.province_mode = None  # Add province_mode for easier restoration
 
     class Buildings:
         """Przechowuje różne typy budynków."""
@@ -27,89 +25,3 @@ class DATA(object):
         def __init__(self, *args):
             super().__init__(*args)
             self.extend([])
-
-    # Główne kategorie danych
-    buildings = Buildings()
-    army = Army()
-    provinces = Provinces()
-
-    @staticmethod
-    def save(file_path):
-        """
-        Zapisuje dane do pliku CSV.
-        :param file_path: Ścieżka do pliku.
-        """
-        try:
-            with open(file_path, mode='w', newline='', encoding='utf-8') as file:
-                writer = csv.writer(file)
-
-                # Zapis prowincji
-                writer.writerow(["Provinces"])
-                for x, y in DATA.provinces:
-                    writer.writerow([x, y])
-
-                # Zapis budynków
-                writer.writerow(["Buildings:Cities"])
-                for x, y in DATA.buildings.cities:
-                    writer.writerow([x, y])
-
-                writer.writerow(["Buildings:Towns"])
-                for x, y in DATA.buildings.towns:
-                    writer.writerow([x, y])
-
-                writer.writerow(["Buildings:Farms"])
-                for x, y in DATA.buildings.farms:
-                    writer.writerow([x, y])
-
-                # Zapis armii
-                writer.writerow(["Army:Units"])
-                for x, y in DATA.army.units:
-                    writer.writerow([x, y])
-
-            print(f"Dane zapisane do pliku {file_path}.")
-        except Exception as e:
-            print(f"Błąd podczas zapisu do pliku: {e}")
-
-    @staticmethod
-    def load(file_path):
-        """
-        Wczytuje dane z pliku CSV.
-        :param file_path: Ścieżka do pliku.
-        """
-        try:
-            with open(file_path, mode='r', encoding='utf-8') as file:
-                reader = csv.reader(file)
-                section = None
-
-                # Czyszczenie istniejących danych
-                DATA.provinces.clear()
-                DATA.buildings.cities.clear()
-                DATA.buildings.towns.clear()
-                DATA.buildings.farms.clear()
-                DATA.army.units.clear()
-
-                for row in reader:
-                    if not row:
-                        continue
-
-                    # Rozpoznanie sekcji
-                    if row[0] in ["Provinces", "Buildings:Cities", "Buildings:Towns", "Buildings:Farms", "Army:Units"]:
-                        section = row[0]
-                        continue
-
-                    # Parsowanie współrzędnych
-                    x, y = map(int, row)
-                    if section == "Provinces":
-                        DATA.provinces.append((x, y))
-                    elif section == "Buildings:Cities":
-                        DATA.buildings.cities.append((x, y))
-                    elif section == "Buildings:Towns":
-                        DATA.buildings.towns.append((x, y))
-                    elif section == "Buildings:Farms":
-                        DATA.buildings.farms.append((x, y))
-                    elif section == "Army:Units":
-                        DATA.army.units.append((x, y))
-
-            print(f"Dane wczytane z pliku {file_path}.")
-        except Exception as e:
-            print(f"Błąd podczas wczytywania pliku: {e}")

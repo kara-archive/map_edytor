@@ -154,7 +154,7 @@ class PixelSampler(dict):
 
                 # Znajdź państwo odpowiadające kolorowi
                 for state in self.states:
-                    if self._is_similar_color(color, state.color.getRgb()[:3], self.tolerance):
+                    if self._is_similar_color(color, QColor(state.color).getRgb()[:3], self.tolerance):
                         counts[state.name] += 1  # Zlicz prowincję
                         break
         return counts

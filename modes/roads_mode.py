@@ -97,7 +97,7 @@ class RoadsMode(Mode):
                 button.setChecked(True)
 
 
-        self.map_controller.button_panel.update_dynamic_menu(buttons)
+        self.request_menu_update.emit(buttons)
 
     def set_size(self, size):
         self.size = size

@@ -58,6 +58,7 @@ class MainView(QMainWindow):
         self.map_view.event_occurred.connect(self.handle_event_occurred)
         self.button_panel.active_mode.connect(self.handle_active_mode)
         self.state_panel.active_state_changed.connect(self.handle_active_state)
+        self.map_controller.mode_manager.menu_update_requested.connect(self.button_panel.update_dynamic_menu)
 
     def handle_event_occurred(self, event):
         """Obsługuje zdarzenie z MapView."""

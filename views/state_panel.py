@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy, QShortcut, QButtonGroup  # type: ignore
-from PyQt5.QtGui import QColor, QKeySequence # type: ignore
+from PyQt5.QtGui import QColor, QKeySequence, QIntValidator # type: ignore
 from PyQt5.QtCore import QSize, pyqtSignal # type: ignore
 from controllers.state_controller import State
 from PyQt5.QtCore import QTimer, Qt # type: ignore
@@ -72,7 +72,7 @@ class StatePanel(QWidget):
         top_layout = QHBoxLayout()
         color_label = QPushButton()
         color_label.setFixedSize(QSize(40, 40))
-        color_label.setStyleSheet(f"background-color: {state.color.name()}; border: 1px solid black;")
+        color_label.setStyleSheet(f"background-color: {state.color}; border: 1px solid black;")
         button = QPushButton(state.name)
         button.setCheckable(True)
         button.setMaximumWidth(200)
@@ -109,19 +109,22 @@ class StatePanel(QWidget):
         """Edytuje istniejące państwo."""
         dialog = AddStateDialog(self, state)
         if dialog.exec_() == QDialog.Accepted:
-            new_name, new_color = dialog.get_state()
+            new_name, new_color, new_lvl = dialog.get_state()
             if new_name and new_color:
                 state.name = new_name
-                state.color = new_color
+                state.color = new_color.name()
+                state.lvl = new_lvl
+                self.controller.recalculate_all_stats()
                 self.update_states()
                 self.set_active_state(state)
 
     def add_new_state(self):
         dialog = AddStateDialog(self)
         if dialog.exec_() == QDialog.Accepted:
-            name, color = dialog.get_state()  # Pobranie nazwy i koloru z dialogu
+            name, color, lvl = dialog.get_state()  # Pobranie nazwy, koloru i lvl z dialogu
             if name and color:
                 new_state = State(name, color.name(), self.controller)  # Tworzenie obiektu State
+                new_state.lvl = lvl
                 self.controller.add_state(new_state)
                 self.update_states()
 
@@ -156,6 +159,12 @@ class AddStateDialog(QDialog):
         self.name_input.setPlaceholderText("Nazwa państwa")
         layout.addWidget(self.name_input)
 
+        self.lvl_input = QLineEdit(self)
+        self.lvl_input.setPlaceholderText("Poziom (LvL)")
+        self.lvl_input.setValidator(QIntValidator(0, 99999, self))
+        self.lvl_input.setText("0")
+        layout.addWidget(self.lvl_input)
+
         self.color_button = QPushButton("Wybierz kolor", self)
         self.color_button.clicked.connect(self.choose_color)
         layout.addWidget(self.color_button)
@@ -169,8 +178,9 @@ class AddStateDialog(QDialog):
         # Jeśli edytujemy istniejące państwo
         if state:
             self.name_input.setText(state.name)
-            self.selected_color = QColor(state.color.name())
+            self.selected_color = QColor(state.color)
             self.color_button.setStyleSheet(f"background-color: {self.selected_color.name()};")
+            self.lvl_input.setText(str(getattr(state, 'lvl', 0)))
             self.setWindowTitle(f"Edytuj państwo: {state.name}")
 
     def choose_color(self):
@@ -198,6 +208,7 @@ class AddStateDialog(QDialog):
 
     def get_state(self):
         name = self.name_input.text()
+        lvl = int(self.lvl_input.text() or 0)
         if name:
-            return name, self.selected_color
-        return None, None
+            return name, self.selected_color, lvl
+        return None, None, 0

@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QImage, QPixmap, QColor # type: ignore
-from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore # type: ignore
+from PyQt5.QtGui import QImage, QPixmap, QColor, QPainter # type: ignore
+from PyQt5.QtWidgets import QGraphicsPixmapItem # type: ignore
 
 class LayerManager:
     def __init__(self, map_controller):
@@ -26,10 +26,10 @@ class LayerManager:
         self.layer_items[layer_name] = pixmap_item
         self.set_visibility(layer_name, True)
 
-        # Jeśli warstwa ma być zainicjalizowana obrazem bazowym
-        if z_value == 0 and cv_image is not None:
+        # Warstwy wypełniane flood-fill potrzebują konturów z obrazu bazowego.
+        if layer_name in {"province", "biome"} and cv_image is not None:
             self.layers[layer_name] = cv_image.copy()
-            print(f"Skopiowano cv_image do warstwy '{layer_name}' (z_value = 1)")
+            print(f"Skopiowano cv_image do warstwy '{layer_name}'")
 
     def initialize_layer_items(self, scene, cv_image):
         height, width = cv_image.height(), cv_image.width()
@@ -45,7 +45,18 @@ class LayerManager:
 
         layer_data = self.layers[layer_name]
 
-        pixmap = QPixmap.fromImage(layer_data)
+        if layer_name == "province" and "biome" in self.visible_layers:
+            # Tworzymy kopię i nakładamy maskę (gumkę)
+            temp_image = layer_data.copy()
+            painter = QPainter(temp_image)
+            painter.setCompositionMode(QPainter.CompositionMode_Clear)
+            for y in range(4, temp_image.height(), 9):
+                for x in range(4, temp_image.width(), 9):
+                    painter.drawPoint(x, y)
+            painter.end()
+            pixmap = QPixmap.fromImage(temp_image)
+        else:
+            pixmap = QPixmap.fromImage(layer_data)
 
         if layer_name in self.layer_items:
             pixmap_item = self.layer_items[layer_name]
@@ -68,7 +79,10 @@ class LayerManager:
                 self.visible_layers.add(layer_name)
             else:
                 self.visible_layers.discard(layer_name)
-
+            
+            # Włączanie/wyłączanie biomów wpływa na maskowanie warstwy prowincji
+            if layer_name == "biome":
+                self.refresh_layer("province")
         else:
             print(f"Warstwa '{layer_name}' nie istnieje.")
 

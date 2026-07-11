@@ -1,5 +1,5 @@
 from controllers.tools import flood_fill, PixelSampler
-from controllers.data import DATA
+
 from PyQt5.QtGui import QColor
 from modes.base_mode import Mode
 from PyQt5.QtWidgets import QPushButton, QButtonGroup # type: ignore
@@ -11,7 +11,7 @@ class ProvinceMode(Mode):
         self.name = "province"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=0,label="Prowincje", short="q")
+        self.register_mode(z=1,label="Prowincje", short="q")
         self.map_colors = ['#000000','#446ba3','#343434']
         self.fill_color = QColor('white')
 
@@ -47,7 +47,7 @@ class ProvinceMode(Mode):
 
 
         if self.active_state and hasattr(self.active_state, 'color'):
-            self.fill_color = self.active_state.color
+            self.fill_color = QColor(self.active_state.color)
 
         if self.fill_color:
             color = self.fill_color
@@ -65,7 +65,7 @@ class ProvinceMode(Mode):
             buttons.append(lighter_color_preview)
             lighter_color_preview.clicked.connect(lambda: self.set_color(lighter_color))
 
-        self.map_controller.button_panel.update_dynamic_menu(buttons, rows=1)
+        self.request_menu_update.emit(buttons)
 
     def set_color(self, color):
         """Ustawia self.sampled_color na podany kolor."""
@@ -81,9 +81,10 @@ class ProvinceMode(Mode):
     def sample_provinces(self):
         states = self.map_controller.state_controller.get_states()
         image = self.mode_manager.layer_manager.layers.get(self.name)
-        province_counts = PixelSampler(image, DATA.provinces, states)
+        province_counts = PixelSampler(image, self.map_controller.map_data.provinces, states)
         for state in states:
             state.provinces = province_counts.get(state.name, 0)
+        self.map_controller.state_controller.recalculate_all_stats()
 
     def get_color_at(self, x, y):
         layer = self.map_controller.layer_manager.get_layer(self.name)

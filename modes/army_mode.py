@@ -11,7 +11,7 @@ class ArmyMode(Mode):
         self.name = "army"
         super().__init__(map_controller)
         self.mode_manager = mode_manager
-        self.register_mode(z=3, label="Wojsko", short="w")
+        self.register_mode(z=4, label="Wojsko", short="w")
         self.army_icons = self.load_army_icons("icons")
         self.active_icon = next(iter(self.army_icons.values()))
         self.active_icon_name = next(iter(self.army_icons.keys()))
@@ -56,7 +56,7 @@ class ArmyMode(Mode):
         if active_state is None or not hasattr(active_state, "color"):
             print("Brak aktywnego państwa lub koloru.")
             return
-        state_color = active_state.color.getRgb()[:3]  # Pobierz RGB
+        state_color = QColor(active_state.color).getRgb()[:3]  # Pobierz RGB
 
         # Przekształć ikonę armii
         recolored_icon = recolor_icon(self.active_icon.copy(), state_color)
@@ -104,7 +104,7 @@ class ArmyMode(Mode):
             if icon_name == self.active_icon_name:
                 button.setChecked(True)
 
-        self.map_controller.button_panel.update_dynamic_menu(buttons)
+        self.request_menu_update.emit(buttons)
 
 
 
@@ -125,6 +125,7 @@ class ArmyMode(Mode):
 
             for state in self.map_controller.state_controller.get_states():
                 setattr(state, army_type, pixel_sampler.get(state.name, 0))
+        self.map_controller.state_controller.recalculate_all_stats()
 
     def add_army_position(self, x, y, army_type):
         if army_type not in self.army_positions:
