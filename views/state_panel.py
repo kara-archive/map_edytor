@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy, QShortcut, QButtonGroup  # type: ignore
+from PyQt5.QtWidgets import QWidget, QSpinBox, QVBoxLayout, QLabel, QPushButton, QScrollArea, QDialog, QLineEdit, QColorDialog, QHBoxLayout, QSizePolicy, QShortcut, QButtonGroup  # type: ignore
 from PyQt5.QtGui import QColor, QKeySequence, QIntValidator # type: ignore
 from PyQt5.QtCore import QSize, pyqtSignal # type: ignore
 from controllers.state_controller import State
@@ -62,43 +62,58 @@ class StatePanel(QWidget):
             self.add_state_widget(state)
 
     def add_state_widget(self, state):
-        """Dodaje widget reprezentujący jedno państwo."""
-        # Kontener dla elementu
-        container = QWidget()
-        container_layout = QVBoxLayout(container)
-        container_layout.setContentsMargins(3, 3, 3, 3)
+            """Dodaje widget reprezentujący jedno państwo."""
+            # Kontener dla elementu
+            container = QWidget()
+            container_layout = QVBoxLayout(container)
+            container_layout.setContentsMargins(3, 3, 3, 3)
 
-        # Górna linijka: Kolor + przycisk
-        top_layout = QHBoxLayout()
-        color_label = QPushButton()
-        color_label.setFixedSize(QSize(40, 40))
-        color_label.setStyleSheet(f"background-color: {state.color}; border: 1px solid black;")
-        button = QPushButton(state.name)
-        button.setCheckable(True)
-        button.setMaximumWidth(200)
+            # Górna linijka: Kolor + przycisk + Poziom (lvl)
+            top_layout = QHBoxLayout()
+            
+            color_label = QPushButton()
+            color_label.setFixedSize(QSize(40, 40))
+            color_label.setStyleSheet(f"background-color: {state.color}; border: 1px solid black;")
+            
+            button = QPushButton(state.name)
+            button.setCheckable(True)
+            button.setMaximumWidth(200)
 
-        # Sprawdź, czy to ostatnio wybrane państwo
-        if state == self.active_state:
-            button.setChecked(True)
-            button.setStyleSheet("font-weight: bold;")  # Ustaw pogrubioną czcionkę
+            # --- NOWY ELEMENT: QSpinBox dla state.lvl ---
+            lvl_spinbox = QSpinBox()
+            lvl_spinbox.setRange(0, 100)  # Zmień zakres minimum i maksimum wg potrzeb
+            lvl_spinbox.setValue(state.lvl) # Ustawienie początkowej wartości
+            lvl_spinbox.setToolTip("Zmień poziom (lvl)")
+            
+            # Funkcja lambda automatycznie zaktualizuje atrybut state.lvl w obiekcie
+            lvl_spinbox.valueChanged.connect(lambda value, s=state: setattr(s, 'lvl', value))
+            # --------------------------------------------
 
-        button.clicked.connect(lambda _, s=state: self.set_active_state(state))
-        color_label.clicked.connect(lambda _, s=state: self.edit_state(state))
-        top_layout.addWidget(color_label)
-        top_layout.addWidget(button)
+            # Sprawdź, czy to ostatnio wybrane państwo
+            if state == self.active_state:
+                button.setChecked(True)
+                button.setStyleSheet("font-weight: bold;")  # Ustaw pogrubioną czcionkę
 
-        # Dodanie przycisku do QButtonGroup
-        self.button_group.addButton(button)
+            button.clicked.connect(lambda _, s=state: self.set_active_state(state))
+            color_label.clicked.connect(lambda _, s=state: self.edit_state(state))
+            
+            top_layout.addWidget(color_label)
+            top_layout.addWidget(button)
+            top_layout.addWidget(lvl_spinbox) # Dodanie spinboxa do górnego układu
 
-        # Dolna linijka: Opis
-        bottom_label = QLabel(f"{state.get_dynamic_attributes()}")
-        bottom_label.setStyleSheet("font-size: 16px;")
-        bottom_label.setAlignment(Qt.AlignLeft)
-        container_layout.addLayout(top_layout)
-        container_layout.addWidget(bottom_label)
+            # Dodanie przycisku do QButtonGroup
+            self.button_group.addButton(button)
 
-        # Dodanie do układu przewijanej listy
-        self.scroll_layout.addWidget(container)
+            # Dolna linijka: Opis
+            bottom_label = QLabel(f"{state.get_dynamic_attributes()}")
+            bottom_label.setStyleSheet("font-size: 16px;")
+            bottom_label.setAlignment(Qt.AlignLeft)
+            
+            container_layout.addLayout(top_layout)
+            container_layout.addWidget(bottom_label)
+
+            # Dodanie do układu przewijanej listy
+            self.scroll_layout.addWidget(container)
 
     def set_active_state(self, state):
             self.active_state = state

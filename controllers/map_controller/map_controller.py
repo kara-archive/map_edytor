@@ -127,7 +127,7 @@ class MapController:
                 map_w = flattened_image.width()
                 map_h = flattened_image.height()
 
-                if map_w < map_h:
+                if True: #map_w < map_h:
                     # Portrait — mapa wyższa, tabela na dole (dokłada do krótszego boku)
                     scaled_table = table_image.scaledToWidth(map_w)
                     combined = QImage(map_w, map_h + scaled_table.height(), QImage.Format_RGBA8888)
@@ -136,15 +136,15 @@ class MapController:
                     painter.drawImage(0, 0, flattened_image)
                     painter.drawImage(0, map_h, scaled_table)
                     painter.end()
-                else:
+                #else: #zostawiam na później, trzeba trochę dopracowć skalowanie
                     # Landscape — mapa szersza, tabela po lewej (dokłada do krótszego boku)
-                    scaled_table = table_image.scaledToHeight(map_h)
-                    combined = QImage(map_w + scaled_table.width(), map_h, QImage.Format_RGBA8888)
-                    combined.fill(QColor(0, 0, 0, 255))
-                    painter = QPainter(combined)
-                    painter.drawImage(scaled_table.width(), 0, flattened_image)
-                    painter.drawImage(0, 0, scaled_table)
-                    painter.end()
+                    #scaled_table = table_image.scaledToHeight(map_h)
+                    #combined = QImage(map_w + scaled_table.width(), map_h, QImage.Format_RGBA8888)
+                    #combined.fill(QColor(0, 0, 0, 255))
+                    #painter = QPainter(combined)
+                    #painter.drawImage(scaled_table.width(), 0, flattened_image)
+                    #painter.drawImage(0, 0, scaled_table)
+                    #painter.end()
 
                 flattened_image = combined
 
