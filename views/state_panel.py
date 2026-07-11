@@ -42,7 +42,7 @@ class StatePanel(QWidget):
         self.scroll_area.setWidget(self.scroll_content)
         layout.addWidget(self.scroll_area)
 
-        self.setMaximumWidth(400)
+        self.setMaximumWidth(800)
 
         # Timer do odświeżania widoku co sekundę
         self.timer = QTimer(self)
@@ -77,12 +77,13 @@ class StatePanel(QWidget):
             
             button = QPushButton(state.name)
             button.setCheckable(True)
-            button.setMaximumWidth(200)
+            button.setMaximumWidth(600)
 
             # --- NOWY ELEMENT: QSpinBox dla state.lvl ---
             lvl_spinbox = QSpinBox()
             lvl_spinbox.setRange(0, 100)  # Zmień zakres minimum i maksimum wg potrzeb
             lvl_spinbox.setValue(state.lvl) # Ustawienie początkowej wartości
+            lvl_spinbox.setMaximumWidth(80)
             lvl_spinbox.setToolTip("Zmień poziom (lvl)")
             
             # Funkcja lambda automatycznie zaktualizuje atrybut state.lvl w obiekcie
@@ -106,7 +107,7 @@ class StatePanel(QWidget):
 
             # Dolna linijka: Opis
             bottom_label = QLabel(f"{state.get_dynamic_attributes()}")
-            bottom_label.setStyleSheet("font-size: 16px;")
+            bottom_label.setStyleSheet("font-size: 32px;")
             bottom_label.setAlignment(Qt.AlignLeft)
             
             container_layout.addLayout(top_layout)
