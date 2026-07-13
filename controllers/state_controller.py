@@ -93,53 +93,56 @@ class StateController(QObject):
     def render_table_image(self, obecna_tura):
             """
             Renderuje tabelę z danymi państw jako QImage.
-            Kolumny: Nazwa + wszystkie dynamiczne atrybuty (z pominięciem color, state_controller, name).
-            Wiersze: tylko państwa bez 'NPC' w nazwie.
+            Używa get_dynamic_attributes(). Separatory zachowują puste nagłówki kolumn.
             """
-            if not self.states:
+            from PyQt5.QtGui import QImage, QPainter, QColor, QFont, QFontMetrics
+
+            valid_states = [s for s in self.states if "NPC" not in s.name]
+            if not valid_states:
                 return None
 
-            # Zbierz atrybuty i dane (tak samo jak w export_to_csv)
-            all_attributes = []
-            for state in self.states:
-                for attr in state.__dict__.keys():
-                    if attr not in {"color", "state_controller", "name"} and attr not in all_attributes:
-                        all_attributes.append(attr)
+            sample_state = valid_states[0]
 
-            # --- PATCH: Słownik tłumaczeń atrybutów na język polski ---
+            # Pobieramy WSZYSTKIE atrybuty z modelu (separatory też tu będą!)
+            all_attributes = [attr_name for _, attr_name in sample_state.get_dynamic_attributes()]
+
             attribute_translations = {
                 "town": "Miasta",
                 "rancho": "Wsie",
                 "provinces": "Prowincje",
-                "plant": "Fabryki",
-                "Capital": "Stolica",
+                "plant": "Kombinaty",
+                "capital": "Stolica", 
                 "army": "Armia",
                 "fort": "Forty",
                 "ship": "Okręty",
                 "investments": "Inw.",
                 "food": "Żywność",
                 "inv_bonus": "Handel"
-                # Miejsce na Twoje kolejne atrybuty (np. "gold": "Złoto")
             }
-            # ----------------------------------------------------------
 
-            headers = [f"Tura {obecna_tura}"] + [
-                "LvL" if attr.lower() == "lvl" else attribute_translations.get(attr.lower(), attr.capitalize())
-                for attr in all_attributes
-            ]
+            # --- TWORZENIE NAGŁÓWKÓW Z UWZGLĘDNIENIEM SEPARATORÓW ---
+            headers = [f"Tura {obecna_tura}"]
+            for attr in all_attributes:
+                # Sprawdzamy wartość tego atrybutu w państwie testowym
+                val = getattr(sample_state, attr, "")
+                
+                if val == "|":
+                    headers.append(" ") # Separator -> pusta kolumna (spacja)
+                elif attr.lower() == "lvl":
+                    headers.append("LvL")
+                else:
+                    headers.append(attribute_translations.get(attr.lower(), attr.capitalize()))
 
+            # Zbieranie wartości do wierszy
             rows = []
             row_colors = []
-            for state in self.states:
-                if "NPC" not in state.name:
-                    state_data = [str(getattr(state, attr, "")) for attr in all_attributes]
-                    rows.append([state.name] + state_data)
-                    row_colors.append(state.color)  # hex string
+            for state in valid_states: 
+                # Separatory wpadną tu automatycznie jako "|" !
+                state_data = [str(getattr(state, attr, "")) for attr in all_attributes]
+                rows.append([state.name] + state_data)
+                row_colors.append(state.color)
 
-            if not rows:
-                return None
-
-            # Parametry rysowania
+            # Parametry rysowania (bez zmian)
             font = QFont("Sans", 11)
             font.setBold(False)
             header_font = QFont("Sans", 11, QFont.Bold)
@@ -161,39 +164,37 @@ class StateController(QObject):
                 col_widths.append(max_w + padding_x * 2)
 
             table_width = sum(col_widths)
-            table_height = row_height * (1 + len(rows))  # nagłówek + dane
+            table_height = row_height * (1 + len(rows)) 
 
-            # Tworzenie obrazu
+            # Tworzenie obrazu (bez zmian)
             image = QImage(table_width, table_height, QImage.Format_RGBA8888)
-            image.fill(QColor(30, 30, 30, 255))  # ciemne tło
+            image.fill(QColor(30, 30, 30, 255)) 
 
             painter = QPainter(image)
             painter.setRenderHint(QPainter.Antialiasing)
 
-            # Rysuj nagłówek
+            # Rysuj nagłówek (bez zmian)
             painter.setFont(header_font)
             x = 0
             for col_idx, header in enumerate(headers):
                 painter.fillRect(x, 0, col_widths[col_idx], row_height, QColor(50, 50, 50, 255))
                 painter.setPen(QColor(220, 220, 220))
                 painter.drawText(x + padding_x, 0, col_widths[col_idx] - padding_x, row_height,
-                                0x0080 | 0x0004, header)  # AlignVCenter | AlignLeft
+                                0x0080 | 0x0004, header) 
                 x += col_widths[col_idx]
 
-            # Rysuj wiersze
+            # Rysuj wiersze (bez zmian)
             painter.setFont(font)
             for row_idx, row in enumerate(rows):
                 y = (row_idx + 1) * row_height
                 state_color = QColor(row_colors[row_idx])
 
-                # Tło wiersza — lekki pasek koloru państwa
                 bg = QColor(state_color)
                 bg.setAlpha(50)
                 painter.fillRect(0, y, table_width, row_height, bg)
 
                 x = 0
                 for col_idx, cell in enumerate(row):
-                    # Pierwsza kolumna (nazwa) — kolor państwa jako tekst
                     if col_idx == 0:
                         painter.setPen(state_color)
                     else:
@@ -202,17 +203,14 @@ class StateController(QObject):
                                     0x0080 | 0x0004, cell)
                     x += col_widths[col_idx]
 
-                # Linia oddzielająca
                 painter.setPen(QColor(60, 60, 60))
                 painter.drawLine(0, y, table_width, y)
 
-            # Ramka zewnętrzna
             painter.setPen(QColor(80, 80, 80))
             painter.drawRect(0, 0, table_width - 1, table_height - 1)
 
             painter.end()
             return image
-
 
     def get_food_provinces_count(self):
         """Zwraca słownik {nazwa_państwa: liczba_prowincji_produkujących_żywność}."""
@@ -282,67 +280,60 @@ class State:
     def __init__(self, name, color, state_controller=None):
         self.name = name
         self.color = color
+
+ 
+        self.A = "|"
+        self.food = 0
+        self.B = "|"
         self.provinces = 0
-        self.town = 0
         self.rancho = 0
-        self.plant = 0
-        self.capital = 0
+
+        self.C = "|"
+        self.lvl = 0 
+        self.D = "|"
         self.army = 0
         self.fort = 0
         self.ship = 0
-        self.lvl = 0
+
+        self.E = "|"
         self.investments = 0
-        self.food = 0
+        self.F = "|"
+        self.town = 0
+        self.capital = 0
+        self.plant = 0  
         self.inv_bonus = 0
+        
         self.state_controller = state_controller
 
-    def get_building_value(self, building_type, biome):
-        building_type = self._normalize_building_type(building_type)
-        biome = (biome or "plain").lower()
-        #(TODO) tutaj tak samo, to musi być łatwo konfigurowalne 
-
-        if biome == "water":
-            return 0
-        if building_type == "town" and biome == "mountains":
-            return 0
-        if building_type == "rancho":
-            return 0 if biome == "desert" else 3
-        return 1
-
-    def _normalize_building_type(self, building_type):
-        building_type = str(building_type).lower()
-        aliases = {
-            "miasto": "town",
-            "town": "town",
-            "wies": "rancho",
-            "wieś": "rancho",
-            "village": "rancho",
-            "rancho": "rancho",
-            "plant": "plant",
-            "fabryka": "plant",
-            "factory": "plant",
-            "farma": "rancho",
-            "farm": "rancho",
-            "zywnosc": "rancho",
-            "żywność": "rancho",
-        }
-        return aliases.get(building_type, building_type)
-
     def get_dynamic_attributes(self):
-        """Zwraca sformatowany string z nazwami atrybutów, z wyłączeniem name, color i atrybutów zawierających 'capital'."""
-        attributes = []
-        if self.state_controller:
-            colors = self.state_controller.label_colors
-        else:
-            colors = ["burlywood",]
-        color_index = 0
+            """Zwraca listę krotek: (sformatowany_html, oryginalna_nazwa_atrybutu) lub znacznik separatora."""
+            attributes_data = []
+            
+            if getattr(self, "state_controller", None):
+                colors = self.state_controller.label_colors
+            else:
+                colors = ["burlywood"]
+                
+            color_index = 0
+            ignored_attrs = {"name", "color", "label_colors", "state_controller"}
 
-        for attr, value in self.__dict__.items():
-            if attr not in {"name", "color", "label_colors", "state_controller"} and "capital" not in attr:
-                color = colors[color_index % len(colors)]
-                attr_initial = f'<span style="color:{color}">{attr[0].upper()}</span>'
-                value_str = ''.join(f'<span style="color:{color}">{char}</span>' for char in str(value))
-                attributes.append(f"{attr_initial}:{value_str}")
-                color_index += 1
+            for attr, value in self.__dict__.items():
+                if attr not in ignored_attrs and "capital" not in attr:
+                    
+                    # --- OBSŁUGA SEPARATORÓW ---
+                    if value == "|":
+                        # Zwracamy czysty znak "|" i None zamiast nazwy atrybutu
+                        attributes_data.append(("|", attr))
+                        continue 
 
-        return " ".join(attributes)
+                    # --- STANDARDOWE ATRYBUTY ---
+                    color = colors[color_index % len(colors)]
+                    attr_initial = f'<span style="color:{color}">{attr[0].upper()}</span>'
+                    value_str = ''.join(f'<span style="color:{color}">{char}</span>' for char in str(value))
+                    
+                    display_html = f"{attr_initial}:{value_str}"
+                    attributes_data.append((display_html, attr)) 
+                    
+                    color_index += 1
+
+            return attributes_data

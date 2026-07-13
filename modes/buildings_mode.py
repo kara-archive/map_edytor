@@ -161,11 +161,24 @@ class BuildingsMode(Mode):
                 if state is None:
                     continue
 
-                counts[state.name] += state.get_building_value(building_type, biome)
+                counts[state.name] += self.get_building_value(building_type, biome)
 
             for state in states:
                 setattr(state, building_type, counts.get(state.name, 0))
         self.map_controller.state_controller.recalculate_all_stats()
+
+    def get_building_value(self, building_type, biome):
+        #building_type = self._normalize_building_type(building_type)
+        biome = (biome or "plain").lower()
+        #(TODO) tutaj tak samo, to musi być łatwo konfigurowalne 
+
+        if biome == "water":
+            return 0
+        if building_type == "town" and biome == "mountains":
+            return 0
+        if building_type == "rancho":
+            return 0 if biome == "desert" else 3
+        return 1
 
     def _get_positions_connected_to_roads(self, positions, roads_layer):
         if not positions:

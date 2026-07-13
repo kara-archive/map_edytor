@@ -113,11 +113,8 @@ class StatePanel(QWidget):
             # Dodanie przycisku do QButtonGroup
             self.button_group.addButton(button)
 
-            # Dolna linijka: Opis
-            bottom_label = QLabel(f"{state.get_dynamic_attributes()}")
-            bottom_label.setStyleSheet("font-size: 32px;")
-            bottom_label.setAlignment(Qt.AlignLeft)
-            
+            bottom_label = self.assemble_attribute_widgets(state)         
+  
             container_layout.addLayout(top_layout)
             container_layout.addWidget(bottom_label)
 
@@ -170,6 +167,51 @@ class StatePanel(QWidget):
             next_index = (current_index + 1) % len(states)
             self.set_active_state(states[next_index])
 
+    def assemble_attribute_widgets(self, state):
+            """Tworzy listę interaktywnych widgetów z tooltipami na podstawie strukturalnych danych."""
+            from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel
+            
+            # 1. Pobranie danych strukturalnych (lista krotek) z modelu
+            attributes_data = state.get_dynamic_attributes()
+            
+            if not attributes_data:
+                return QLabel("Brak dynamicznych atrybutów do wyświetlenia.")
+
+            # Tworzenie głównego kontenera i układu (Layout)
+            container_widget = QWidget()
+            h_layout = QHBoxLayout(container_widget)
+            
+            # Usunięcie marginesów wokół layoutu, by widget nie był zbyt szeroki
+            h_layout.setContentsMargins(0, 0, 0, 0)
+            h_layout.setSpacing(5) # Odstęp między etykietami
+            
+            for display_html, attr_name in attributes_data:
+                # 2. Tworzenie widgetu dla każdego segmentu
+                attribute_label = QLabel()
+                
+                # Przypisujemy gotowy kod HTML (inicjał + wartość w kolorach)
+                attribute_label.setText(display_html) 
+                
+                # 3. Ustawienie Tooltipa - teraz wyświetla SAMĄ nazwę atrybutu
+                attribute_label.setToolTip(attr_name) 
+                
+                # Twoje ostylowanie - dodanie ramki i zaokrąglenia
+                attribute_label.setStyleSheet("""
+                    QLabel {
+                        padding: 0px 0px; 
+                        border: 0px solid #444; 
+                        border-radius: 5px;
+                        background-color: #fff; 
+                    }
+                """)
+                
+                h_layout.addWidget(attribute_label)
+
+            # Dodanie elastycznego odstępu na końcu, by etykiety były dociśnięte do lewej strony
+            h_layout.addStretch()
+
+            # Zwrot głównego, złożonego widżetu GUI
+            return container_widget
 
 class AddStateDialog(QDialog):
     """Okno dialogowe do dodawania/edytowania państwa."""
