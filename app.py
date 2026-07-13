@@ -117,7 +117,7 @@ def main():
 
     if args.load:
         try:
-            main_view.button_panel.load(args.load)  # Wywołanie funkcji ładowania
+            main_view.map_controller.archive_manager.load_from_zip(args.load)  # Wywołanie funkcji ładowania
             print(f"Pomyślnie wczytano plik: {args.load}")
         except Exception as e:
             print(f"Błąd podczas wczytywania pliku: {e}")
