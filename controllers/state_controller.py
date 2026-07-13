@@ -111,13 +111,14 @@ class StateController(QObject):
                 "town": "Miasta",
                 "rancho": "Wsie",
                 "provinces": "Prowincje",
-                "plant": "Manufaktury",
+                "plant": "Fabryki",
                 "Capital": "Stolica",
                 "army": "Armia",
                 "fort": "Forty",
                 "ship": "Okręty",
                 "investments": "Inw.",
                 "food": "Żywność",
+                "inv_bonus": "Handel"
                 # Miejsce na Twoje kolejne atrybuty (np. "gold": "Złoto")
             }
             # ----------------------------------------------------------
@@ -246,8 +247,9 @@ class StateController(QObject):
             capital = getattr(state, "capital", 0)
             town = getattr(state, "town", 0)
             plant = getattr(state, "plant", 0)
+            bonus = getattr(state, "inv_bonus", 0)
             #(TODO) czytaj niżej
-            state.investments = capital * 5 + town * 1 + plant * 1
+            state.investments = capital * 5 + town * 1 + plant * 1 + bonus
 
             # 2. Food
             rancho = getattr(state, "rancho", 0)
@@ -291,6 +293,7 @@ class State:
         self.lvl = 0
         self.investments = 0
         self.food = 0
+        self.inv_bonus = 0
         self.state_controller = state_controller
 
     def get_building_value(self, building_type, biome):

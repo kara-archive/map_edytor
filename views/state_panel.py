@@ -79,15 +79,22 @@ class StatePanel(QWidget):
             button.setCheckable(True)
             button.setMaximumWidth(600)
 
-            # --- NOWY ELEMENT: QSpinBox dla state.lvl ---
+            # --- LVL ---
             lvl_spinbox = QSpinBox()
             lvl_spinbox.setRange(0, 100)  # Zmień zakres minimum i maksimum wg potrzeb
             lvl_spinbox.setValue(state.lvl) # Ustawienie początkowej wartości
             lvl_spinbox.setMaximumWidth(80)
-            lvl_spinbox.setToolTip("Zmień poziom (lvl)")
-            
+            lvl_spinbox.setToolTip("LvL")
+
+            inv_spinbox = QSpinBox()
+            inv_spinbox.setRange(0, 100)  # Zmień zakres minimum i maksimum wg potrzeb
+            inv_spinbox.setValue(state.inv_bonus) # Ustawienie początkowej wartości
+            inv_spinbox.setMaximumWidth(80)
+            inv_spinbox.setToolTip("Handel")
+
             # Funkcja lambda automatycznie zaktualizuje atrybut state.lvl w obiekcie
             lvl_spinbox.valueChanged.connect(lambda value, s=state: setattr(s, 'lvl', value))
+            inv_spinbox.valueChanged.connect(lambda value, s=state: setattr(s, 'inv_bonus', value))
             # --------------------------------------------
 
             # Sprawdź, czy to ostatnio wybrane państwo
@@ -101,6 +108,7 @@ class StatePanel(QWidget):
             top_layout.addWidget(color_label)
             top_layout.addWidget(button)
             top_layout.addWidget(lvl_spinbox) # Dodanie spinboxa do górnego układu
+            top_layout.addWidget(inv_spinbox) # Dodanie spinboxa do górnego układu
 
             # Dodanie przycisku do QButtonGroup
             self.button_group.addButton(button)
