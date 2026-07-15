@@ -7,3 +7,9 @@ dist
 venv
 Tury
 .continue
+app.dist
+app.onefile_build
+app.bin
+nuitka-crash-report.xml
+app.bin.nuitka-pgo
+*nuitka*
