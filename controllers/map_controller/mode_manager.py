@@ -27,14 +27,14 @@ class ModeManager(QObject):
         # Inicjalizacja domyślnych trybów
         self.register_mode(RoadsMode(self, self.map_controller))
         self.register_mode(ArmyMode(self, self.map_controller))
-        self.register_mode(BiomeMode(self, self.map_controller))
+        #self.register_mode(BiomeMode(self, self.map_controller))
         self.register_mode(ProvinceMode(self, self.map_controller))
         self.register_mode(BuildingsMode(self, self.map_controller))
         
         # Dla wstecznej kompatybilności w innych miejscach kodu (update_snap, init_modes)
         self.roads_mode = self.modes.get("roads")
         self.army_mode = self.modes.get("army")
-        self.biome_mode = self.modes.get("biome")
+        #self.biome_mode = self.modes.get("biome")
         self.province_mode = self.modes.get("province")
         self.buildings_mode = self.modes.get("buildings")
 

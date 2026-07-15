@@ -170,14 +170,15 @@ class BuildingsMode(Mode):
     def get_building_value(self, building_type, biome):
         #building_type = self._normalize_building_type(building_type)
         biome = (biome or "plain").lower()
-        #(TODO) tutaj tak samo, to musi być łatwo konfigurowalne 
+        #(TODO) na razie i tak nie działają biomy
 
         if biome == "water":
             return 0
         if building_type == "town" and biome == "mountains":
             return 0
         if building_type == "rancho":
-            return 0 if biome == "desert" else 3
+            # Zmiana z 3 na 1, ponieważ mnożenie następuje w state_controller.py
+            return 0 if biome == "desert" else 1
         return 1
 
     def _get_positions_connected_to_roads(self, positions, roads_layer):
@@ -222,7 +223,7 @@ class BuildingsMode(Mode):
 
         start_time = time.time()
         for building_type, icon in self.building_icons.items():
-            self.building_positions[building_type] = find_icons(icon, layer)
+            print(f"\n[DEBUG] Przetwarzanie typu budowli: '{building_type}'")
         end_time = time.time()
         print(f"Znaleziono budynki w czasie: {end_time - start_time:.2f} s")
 
